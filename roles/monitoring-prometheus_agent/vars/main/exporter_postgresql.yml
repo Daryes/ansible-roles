@@ -1,0 +1,28 @@
+---
+
+# postgresql exporter system requirements
+role_prometheus_agent_postgresql_requirements:
+  common:
+    # required for db and users management
+    - "python3-psycopg2"
+    # required to allow ansible to switch to the pgsql user
+    - "acl"
+  debian:
+    - "libpq-dev"
+    - "python3-dev"
+  redhat:
+    - "libpq-devel"
+
+
+# download url
+role_prometheus_agent_postgresql_package_file: "postgres_exporter-{{ prometheus_agent_postgresql_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_postgresql_package_url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v{{ prometheus_agent_postgresql_version }}/{{ role_prometheus_agent_postgresql_package_file }}"
+
+
+role_prometheus_agent_postgresql_dist:
+  service: "prometheus-postgres-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-postgres-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/postgres_exporter"
+  auth: "{{ role_prometheus_agent_dist.data }}/.postgres_auth.yml"
+

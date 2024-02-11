@@ -1,0 +1,34 @@
+---
+
+# ref: https://grafana.com/docs/grafana/v9.0/developers/http_api/admin/#global-users
+# ref: https://grafana.com/docs/grafana/latest/developers/http_api/user/
+
+- name: Monitoring Grafana | provisioning - api credential settings validity
+  fail:
+    msg: "The 'grafana_provisioning_admin_password' parameter has not been set correctly, it must be updated to a different value than the default admin password"
+  when: >
+    grafana_provisioning_admin_password |length == 0
+    or grafana_provisioning_admin_password == role_grafana_admin_pass_default
+
+
+- name: Monitoring Grafana | provisioning - api credentials access check
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/users"
+    method: GET
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    status_code: [200, 400, 401]
+    headers:
+      Host: "{{ grafana_domain }}"
+  register: task_grafana_api_access
+  until: task_grafana_api_access.status in [200, 400, 401]
+  retries: 10  # duration = retries * delay
+  delay: 2     # sec
+
+
+- name: Monitoring Grafana | provisioning - api initialization on first execution
+  include_tasks: api_initialization.yml
+  when: task_grafana_api_access.status != 200
+

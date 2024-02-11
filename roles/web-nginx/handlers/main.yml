@@ -1,0 +1,28 @@
+---
+
+# notice: handlers are executed in the order they are written in the handlers file, not the order they are notified
+
+# this will also validate the configuration
+- name: restart nginx validate config
+  shell: /usr/sbin/nginx -t
+  become: yes
+  notify: restart nginx service
+
+
+- name: reload nginx validate config
+  shell: /usr/sbin/nginx -t
+  become: yes
+  notify: reload nginx service
+
+
+# restart must be executed before a reload
+- name: restart nginx service
+  service:
+    name: "nginx"
+    state: "restarted"
+
+
+- name: reload nginx service
+  service:
+    name: "nginx"
+    state: "reloaded"

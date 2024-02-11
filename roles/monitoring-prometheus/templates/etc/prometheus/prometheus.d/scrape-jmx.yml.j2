@@ -1,0 +1,26 @@
+---
+# {{ ansible_managed }}
+
+# list of all jmx java targets managed by ansible
+{# Single template : will loop on each host, then search their variables to find those with the 'group+suffix' name and repeat the full template #}
+{% set loopSuffixFilter = '_exporter_jmx' %}
+{% for loopHost in hostvars|sort   if loopHost not in ['127.0.0.1','::1','localhost'] %}
+{%   set hostvarsCache = hostvars[ loopHost ] %}
+{%   for loopGroup in hostvarsCache['group_names'] %}
+{%     if hostvarsCache[ loopGroup + loopSuffixFilter ] is defined %}
+{%       set loopOutput = hostvarsCache[ loopGroup + loopSuffixFilter ] %}
+
+- targets: [ '{{ loopOutput.exporter_host |default(loopHost) }}:{{ loopOutput.exporter_port }}' ]
+  labels:
+    app_name: '{{ loopOutput.name |default("") }}'
+    app_group: '{{ loopOutput.group |default("") }}'
+    instance_hostname: '{{ loopOutput.exporter_host |default(loopHost) }}'
+    instance_port: {{ loopOutput.port |default(0) }}
+    exporter_port: {{ loopOutput.exporter_port }}
+{#  # import extra template  #}
+{%  include 'labels-inventory.include.j2' %}
+    # specific labels
+    {{ loopOutput.labels |default([]) |flatten |to_nice_yaml(indent=0) |regex_replace('- |\[|\]', '') |indent(4) }}
+{%     endif %}
+{%   endfor %}
+{% endfor %}

@@ -1,0 +1,35 @@
+---
+
+- name: "{{ arg_install_comment }} | pkg install APT - uninstall unwanted packages"
+  include_tasks: debian_proc-uninstall.yml
+  # the variables from defaults/ aren't initialized when an include does not provide them
+  when: >
+    arg_remove_packages is defined
+    and ( arg_remove_packages.common |length >0 or arg_remove_packages.debian |length >0)
+
+
+# create a variable containing the requested packages
+# with dedicated properties without the name or without the version
+# * any package can be "module-name" but also specify a version with "module-name=1.2" or "module=1.2.*"
+# * _pkg_install_status is used externally to detect if an installation occured
+- name: "{{ arg_install_comment }} | pkg install APT - verify if install is required"
+  set_fact:
+    cacheable: no
+    task_package_install_list: "{{ task_package_install_list |default({}) | combine (
+                                   { item : {
+                                      'name': item |regex_replace('=.*$','')
+                                     }
+                                   }
+                                ) }}"
+  with_items:
+    - "{{ arg_install_packages.common }}"
+    - "{{ arg_install_packages.debian }}"
+  register: _pkg_install_status
+  changed_when: >
+    task_package_install_list[item].name not in ansible_facts.packages
+
+
+- name: "{{ arg_install_comment }} | pkg install APT - load the install module"
+  include_tasks: debian_proc-install.yml
+  when: _pkg_install_status is changed
+

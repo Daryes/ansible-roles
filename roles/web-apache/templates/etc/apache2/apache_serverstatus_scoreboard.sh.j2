@@ -1,0 +1,65 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# {% raw %}
+# Read the server-status output from apache
+# and clean it from the html tag
+# Save the result in a text file
+#
+
+CURL_URL_TARGET=http://127.0.0.1/server-status
+CURL_TIMEOUT=10     # seconds
+
+OUTPUT_LOG_FILE=/var/log/apache2/server-status.log
+[ -d /var/log/apache ] && OUTPUT_LOG_FILE=/var/log/apache/server-status.log
+[ -d /var/log/httpd ]  && OUTPUT_LOG_FILE=/var/log/httpd/server-status.log
+
+DATE_TIME_NOW=$(date "+%Y%m%d-%H%M%S") 
+
+
+# check the log file access
+sRet=$( touch $OUTPUT_LOG_FILE 2>&1 )
+if [ $? -ne 0 ]; then echo "$0: Error with the logfile"; echo -e "$DATE_TIME_NOW\t$sRet"; exit 1; fi
+
+
+# retrieve the status page
+sRet=$( curl --silent --show-error --fail --insecure --location --max-time $CURL_TIMEOUT $CURL_URL_TARGET 2>&1)
+nRet=$?
+
+if [ $nRet != 0 ]; then 
+    echo "$0: An error occured with CURL while joining $CURL_URL_TARGET"
+    echo -e "$DATE_TIME_NOW\t$sRet" | tee -a $OUTPUT_LOG_FILE
+    echo "curl exit code: $nRet"
+    exit $nRet
+fi
+
+# The apache server-status output is in html
+# no ascii variant is available for the detailled scoreboard with the http requests
+# it requires to be parsed as a html file
+
+# extract only the table section with the scoreboard
+sRet=$( echo "$sRet" | sed -n '/<table border="0">/,/<\/table>/p;' )
+if [ -z "$sRet" ]; then 
+	echo "$0: Error with the scoreboard"
+	echo -e "${DATE_TIME_NOW}\tthe scoreboard is missing in the data returned from $CURL_URL_TARGET" | tee -a $OUTPUT_LOG_FILE
+	exit 1
+fi
+
+
+# replace columns separator with tab
+sRet=$( echo "$sRet" | sed 's#</t[dh]><t[dh][^>]*>#\t#gI;' )
+
+# remove carriage returns (tr -d)
+# replace </tr> with carriage returns
+# remove all remaining html tags
+# remove empty lines
+sRet=$( echo "$sRet" | tr -d '\n' | sed 's#</tr>#\n#gI;
+                                         s#<[^>]*>##g;
+                                         s#^ *$##g;'
+      )
+
+# insert date at start
+sRet=$( echo "$sRet" | sed "s/^/${DATE_TIME_NOW}\t/;" )
+
+echo "$sRet" >> $OUTPUT_LOG_FILE
+
+# {% endraw %}

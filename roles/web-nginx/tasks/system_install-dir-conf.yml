@@ -1,0 +1,73 @@
+---
+
+# additional variable manipulation to retrieve the list of packages required for the modules
+# map will do the switch but will also add 'Undefined' for each missing attribute
+# the select('defined') is required to filter such entries.
+# The second select() will remove empty entries.
+# sum() is used to add a default value [] and flatten the list, from [a,b],c,[d] to [ a,b,c,d ]
+- name: webserver nginx | assemble modules system packages variable
+  set_fact:
+    task_modules_extra_packages_merged:
+      common: "{{ task_web_nginx_merged |map(attribute='modules_system_packages') |map(attribute='common') |select('defined') |select() |list |sum(start=[]) }}"
+      debian: "{{ task_web_nginx_merged |map(attribute='modules_system_packages') |map(attribute='debian') |select('defined') |select() |list |sum(start=[]) }}"
+      redhat: "{{ task_web_nginx_merged |map(attribute='modules_system_packages') |map(attribute='redhat') |select('defined') |select() |list |sum(start=[]) }}"
+
+
+# import the package install role
+- name: webserver nginx | install packages
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "webserver nginx"
+    arg_install_packages: "{{ role_webserver_nginx_install_packages }}"
+
+
+# import the package install role
+- name: webserver nginx | install additional modules packages
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "webserver nginx - modules"
+    arg_install_packages: "{{ task_modules_extra_packages_merged }}"
+  when: >
+    task_modules_extra_packages_merged.common |length > 0
+    or task_modules_extra_packages_merged.debian |length > 0
+    or task_modules_extra_packages_merged.redhat |length > 0
+
+
+- name: webserver nginx | system - configuration files
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  with_items:
+    - "/etc/logrotate.d/nginx"
+    - "/etc/nginx/nginx.conf"
+
+
+# directories can vary depending of the distribution
+- name: webserver nginx | system - directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: no
+    owner: root
+    group: root
+    mode: "0755"
+  with_items:
+    - "/etc/nginx/conf.d"
+    - "/etc/nginx/sites-available"
+    - "/etc/nginx/sites-enabled"
+    - "/etc/nginx/modules-available"
+    - "{{ role_nginx_dist.module_enabled }}"
+
+
+# the main conf uses the real paths, the links are created for convenience
+- name: webserver nginx | system - symlink for specific distribution structure
+  file:
+    src: "{{ role_nginx_dist.module_enabled }}"
+    dest: "/etc/nginx/modules-enabled"
+    state: link
+    follow: false
+  when: ansible_os_family |lower != "debian"
+

@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+# File listing the different reverse proxy for the geo groups
+# call it in a geo{} group with : include conf.d/geo_ip_revproxy.include;
+
+{% for loop_items in nginx_global_revproxy_list %}
+    proxy {{ loop_items.ip }};    # {{ loop_items.description }}
+{% endfor %}

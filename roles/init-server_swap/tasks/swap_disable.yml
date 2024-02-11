@@ -1,0 +1,37 @@
+---
+
+# swapoff will also read the fstab - must be executed first
+- name: system | swap | disable - all swap devices
+  command: swapoff -a
+
+
+- name: system | swap | disable - remove all swapfiles from fstab
+  mount:
+    src: "{{ var_swap_device_file }}"
+    name: "{{ role_swap_dist.mount_name }}"
+    state: absent
+  vars:
+    var_swap_device_file: "{{ item.split(':') |first }}"
+  loop_control:
+    label: "{{ var_swap_device_file }}"
+  with_items: "{{ task_swap_device_list.stdout_lines }}"
+  when: var_swap_device_file not in [ '', '/' ]
+
+
+- name: system | swap | disable - remove all swapfiles
+  file:
+    path: "{{ var_swap_device_file }}"
+    state: absent
+    recurse: false
+  vars:
+    var_swap_device_file: "{{ item.split(':') |first }}"
+  loop_control:
+    label: "{{ var_swap_device_file }}"
+  with_items: "{{ task_swap_device_list.stdout_lines }}"
+  when: var_swap_device_file not in [ '', '/' ]
+
+
+- name: system | swap | disable - refresh swap facts
+  setup:
+    gather_subset: [ "hardware" ]
+

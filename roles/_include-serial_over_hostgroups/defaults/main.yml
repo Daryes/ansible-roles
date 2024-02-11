@@ -1,0 +1,17 @@
+---
+
+# list of host patterns which can be servers, groups, combinations
+# example:
+#   - "mygroup:&linux"
+#   - "server1,server2,server5"
+#   - "webserver*:!atlanta"
+serial_over_hostgroups_patterns: []
+
+
+# list of servers to exclude
+# syntax:
+#   - "server1"
+#   - "server2"
+#   - "{{ groups['mygroup'] }}"
+serial_over_hostgroups_exclude_servers: []
+

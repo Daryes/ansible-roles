@@ -1,0 +1,10 @@
+{% if prometheus_scrape_ssl |bool %}
+scheme: https
+tls_config:
+  insecure_skip_verify: {{ prometheus_scrape_ssl_insecure_skip_verify }}
+{% endif %}
+{% if prometheus_scrape_auth_basic |bool > 0 %}
+basic_auth:
+  username: '{{ prometheus_scrape_auth_basic_user }}'
+  password_file: 'web-config.scrape'
+{% endif %}

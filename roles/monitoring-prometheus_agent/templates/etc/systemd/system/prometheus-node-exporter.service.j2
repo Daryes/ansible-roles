@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+# ref: debian .deb package
+
+[Unit]
+Description=Prometheus exporter for machine metrics
+Documentation=https://github.com/prometheus/node_exporter
+After=network.target
+
+
+[Service]
+#Restart=on-failure
+User={{ role_prometheus_agent_dist.user }}
+
+EnvironmentFile={{ role_prometheus_agent_node_dist.service_conf }}
+Environment="LOGFILE={{ role_prometheus_agent_dist.log }}/prometheus-{{ role_prometheus_agent_node_dist.bin |basename }}.log"
+
+# using /bin/bash -c "exec ..." to start a forking process without an absolute path and without bash staying as resident
+ExecStart=/bin/bash -c "exec {{ role_prometheus_agent_node_dist.bin }} ${ARGS}  &>>${LOGFILE}"
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+
+[Install]
+WantedBy=multi-user.target
+# old rhel/centos name
+Alias=node_exporter.service

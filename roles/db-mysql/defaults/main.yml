@@ -1,0 +1,60 @@
+---
+
+# specify the MariaDB version: XX.Y
+mysql_version: "CHANGE_ME_IN_INVENTORY_GROUPVARS"
+
+# listen IP and port - specify 0.0.0.0 for all IP
+mysql_listen_address: "localhost"
+mysql_listen_port: "3306"
+
+
+# MySQL / MariaDB directories - default values
+mysql_conf_dir: "{{ role_mysql_dist.conf }}"
+mysql_data_dir: "{{ role_mysql_dist.data }}"
+mysql_log_dir: "{{ role_mysql_dist.log }}"
+
+# Example to move everything under '<project root>/db-mysql/' :
+# mysql_root_dir: "{{ project_root }}/db-mysql"
+# mysql_conf_dir: "{{ mysql_root_dir }}/conf"
+# mysql_data_dir: "{{ mysql_root_dir }}/data"
+# mysql_log_dir: "{{ mysql_root_dir }}/log"
+
+# set to yes to ignore the source when both source and dest exist - usually the case when reinstalling the server
+mysql_move_data_both_exist_ignore_source: no
+
+
+# variables to create databases and users
+#<group name>_mysql_db:
+#- db:               database name
+#  collation:        database collation, default to "utf8mb4_unicode_ci"
+#  encoding:         connexion encoding, default to "utf8mb4"
+#
+#<group name>_mysql_user:
+#- name:             user login name
+#  password:         user login password
+#  user_host:        @host login, can be empty, will default to 'localhost', 'server', or '%'
+#  privs:            optional, user privilege on the target dbs
+#  state:            optional (default: present), specify if the user need to be 'present' or 'absent' (deleted)
+#
+
+
+# number of days to keep the system execution logs
+mysql_system_log_rotate_days: 7
+
+
+# mysql config settings
+mysql_config_connection_max: 25
+mysql_config_open_files_limit: 2048
+
+# default db collation
+# http://mysql.rjweb.org/utf8_collations.html
+mysql_config_default_collation: "utf8mb4_unicode_ci"
+mysql_config_default_charset: "utf8mb4"
+
+mysql_config_slow_query_log: "0"
+# set to "ON" to activate the performance schema
+mysql_config_performance_schema: "OFF"
+
+# add raw settings to the MySQL configuration file
+mysql_config_settings_raw: []
+

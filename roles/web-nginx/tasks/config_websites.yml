@@ -1,0 +1,102 @@
+---
+
+- name: webserver nginx | vhost - disable unwanted websites
+  file:
+    path: "/etc/nginx/sites-enabled/{{ item }}.conf"
+    state: absent
+  with_items:
+    - "{{ nginx_global_vhost_disable }}"
+    - "{{ task_web_nginx_merged |selectattr('active', 'defined') |selectattr('active', 'equalto', false) |map(attribute='server_name') |list }}"
+  loop_control:
+    label: "sites disabled => {{ item }}"
+  notify: reload nginx validate config
+
+
+# install the sites templates
+# change 'item' to thisVhost for usability in the website templates
+- name: webserver nginx | vhost - install default websites
+  template:
+    src: "{{ thisVhost.site_vhost_template }}"
+    dest: "/etc/nginx/sites-available/{{ var_vhost_filename }}"
+    owner: "root"
+    group: "root"
+    mode: "644"
+  vars:
+    var_vhost_filename: "{{ thisVhost.site_vhost_template |basename |regex_replace('.j2$', '') }}"
+  with_items:
+    - "{{ role_nginx_default_sites }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "default => {{ var_vhost_filename }}"
+  when: thisVhost.active |default(true) |bool
+  notify: reload nginx validate config
+
+
+# activate default sites
+- name: webserver nginx | vhost - activate default website
+  file:
+    src: "/etc/nginx/sites-available/{{ var_vhost_filename }}"
+    dest: "/etc/nginx/sites-enabled/{{ var_vhost_filename }}"
+    state: link
+    force: yes
+  vars:
+    var_vhost_filename: "{{ thisVhost.site_vhost_template |basename |regex_replace('.j2$', '') }}"
+  with_items:
+    - "{{ role_nginx_default_sites }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "site enabled => {{ thisVhost.server_name }}"
+  when: thisVhost.active |default(true) |bool
+  notify: reload nginx validate config
+
+
+# some vhost can use a different log directory
+# search for the attribue log_dir in the variables, then create them
+- name: webserver nginx | vhost - create extra log directories
+  file:
+    path: "{{ item.site_vhost_log_dir }}"
+    state: directory
+    recurse: no
+  with_items:
+    - "{{ task_web_nginx_merged |selectattr('site_vhost_log_dir', 'defined') |list }}"
+  loop_control:
+    label: "{{ item.server_name }} => extra log dir: {{ item.site_vhost_log_dir |default('none') }}"
+  when: >
+    item.active |default(true) |bool
+    and item.site_vhost_log_dir |default('') |length > 0
+    and item.site_vhost_log_dir != role_nginx_log
+
+
+# variable 'item' is changed to 'thisVhost' for usability in the website templates
+# notice: only the server_name will be reused as a filename when stored under /etc/nginx/sites-available/
+- name: webserver nginx | vhost - install standalone websites
+  template:
+    src: "{{ thisVhost.site_vhost_template }}"
+    dest: "/etc/nginx/sites-available/{{ thisVhost.server_name }}.conf"
+    owner: "root"
+    group: "root"
+    mode: "644"
+  with_items:
+    - "{{ task_web_nginx_merged }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "site available => {{ thisVhost.server_name }}"
+  when: thisVhost.active |default(true) |bool
+  notify: reload nginx validate config
+
+
+# activate sites, only standalone vhosts
+- name: webserver nginx | vhost - activate standalone websites
+  file:
+    src: "/etc/nginx/sites-available/{{ thisVhost.server_name }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ thisVhost.server_name }}.conf"
+    state: link
+    force: yes
+  with_items:
+    - "{{ task_web_nginx_merged }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "site enabled => {{ thisVhost.server_name }}"
+  when: thisVhost.active |default(true) |bool
+  notify: reload nginx validate config
+

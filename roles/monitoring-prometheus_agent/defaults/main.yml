@@ -1,0 +1,264 @@
+---
+# Notices:
+# the version to install do not expect a 'v' as prefix -  ex : "0.15.0"
+# The _version_hash variables can be empty (no validation), or with the format "sha:<hash>" or "sha256:<hash>" or "sha512:<hash> ..."
+# While the listen port can be listed, the prometheus server role does not support having it changed
+#
+
+# log retention in days for the system logs under /var/log/prometheus
+# all agents will reuse this same setting
+prometheus_agent_syslog_history_days: 15
+
+
+# Activate basic auth usage to access the multiple exporters
+# Password is crypted with bcrypt
+# ref: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+prometheus_agent_auth_basic: no
+prometheus_agent_auth_basic_user: ""
+prometheus_agent_auth_basic_pass_crypted: ""
+
+
+# Activate https by specifying the ssl certificate to use
+# Fill with the full path to the .pem|crt and .key files
+prometheus_agent_ssl_cert_pem: ""
+prometheus_agent_ssl_cert_key: ""
+
+
+# system exporter ----------------------
+# ref: https://prometheus.io/download/
+# ref: https://github.com/prometheus/node_exporter/releases
+#
+# set to yes to install the agent
+prometheus_agent_node_install: yes
+prometheus_agent_node_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_node_version_hash: ""
+
+# node agent listen ip and port
+prometheus_agent_node_listen: "0.0.0.0:9100"
+
+# extra parameters for the node agent service
+prometheus_agent_node_service_extra_args: >-
+    --no-collector.infiniband --no-collector.tapestats
+    --collector.logind
+    --collector.sysctl
+    --collector.sysctl.include=fs.file-nr
+    --collector.sysctl.include=fs.dentry-state
+    --collector.sysctl.include=fs.aio-nr --collector.sysctl.include=fs.aio-max-nr
+    --collector.sysctl.include=fs.inode-state
+
+
+## Other agents configuration ########################################
+# Notice: many dedicated agents expect their requirements already installed
+# If for example the required db engine isn't installed and running, the exporter installation won't be able to finish
+
+
+# blackbox -----------------------------
+# ref: https://prometheus.io/download/
+# ref: https://github.com/prometheus/blackbox_exporter/releases
+#
+# set to yes to install the agent
+prometheus_agent_blackbox_install: no
+prometheus_agent_blackbox_version: "CHANGE_ME_IN_GROUPS_VARS"
+prometheus_agent_blackbox_version_hash: ""
+
+# blackbox listen ip and port
+prometheus_agent_blackbox_listen: "127.0.0.1:9115"
+
+# extra parameters for the blackbox service
+prometheus_agent_blackbox_conf_extra_args: ""
+
+# set to "true" to disable target certificate validation (only for http_* and tls_connect probes)
+prometheus_agent_blackbox_conf_tls_insecure_skip_verify: "false"
+# on some situation the icmp packet size can be too large
+prometheus_agent_blackbox_conf_icmp_payload_size: 56
+
+
+# pushgateway --------------------------
+# ref: https://prometheus.io/download/
+# ref: https://github.com/prometheus/pushgateway/releases
+#
+# set to yes to install the agent
+prometheus_agent_pushgateway_install: no
+prometheus_agent_pushgateway_version: "CHANGE_ME_IN_GROUPS_VARS"
+prometheus_agent_pushgateway_version_hash: ""
+
+# pushgateway listen ip and port
+prometheus_agent_pushgateway_listen: "127.0.0.1:9091"
+
+# pushgateway service extra parameters
+prometheus_agent_pushgateway_conf_extra_args: ""
+
+
+# Mysql --------------------------------
+# ref: https://prometheus.io/download/
+# ref: https://github.com/prometheus/mysqld_exporter/releases
+# set to yes to install the agent
+prometheus_agent_mysql_install: no
+prometheus_agent_mysql_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_mysql_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_mysql_listen: "0.0.0.0:9104"
+
+# extra parameters for the mysqld agent service
+prometheus_agent_mysqld_service_extra_args: ""
+
+# mysql monitoring user informations
+prometheus_agent_mysql_user_create: false
+prometheus_agent_mysql_user: "exporter"
+prometheus_agent_mysql_password: "CHANGE_ME_IN_GROUP_VARS"
+# unix socket for mysql communication
+prometheus_agent_mysql_socket: "{{ role_prometheus_agent_mysql_dist.unix_socket }}"
+
+
+# PostgreSQL ---------------------------
+# ref: https://github.com/prometheus-community/postgres_exporter/releases
+#
+# set to yes to install the agent
+prometheus_agent_postgresql_install: no
+prometheus_agent_postgresql_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_postgresql_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_postgresql_listen: "0.0.0.0:9187"
+
+# extra parameters for the postgresql agent service
+# Notice: 'web.config.file' and 'auto-discover-databases' are already set
+prometheus_agent_postgresql_service_extra_args: ""
+
+# postgresql monitoring user informations
+prometheus_agent_postgresql_user_create: false
+prometheus_agent_postgresql_user: "exporter"
+prometheus_agent_postgresql_password: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_postgresql_system_user: "postgres"
+
+# set to yes to use ssl with PostgreSQL authentification for the exporter
+prometheus_agent_postgresql_auth_sslmode: false
+
+
+# MongoDB ------------------------------
+#
+# set to yes to install the agent
+prometheus_agent_mongodb_install: no
+prometheus_agent_mongodb_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_mongodb_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_mongodb_listen: "0.0.0.0:9187"
+
+# extra parameters for the mongodb agent service
+prometheus_agent_mongodb_service_extra_args: "--mongodb.global-conn-pool --collect-all --discovering-mode"
+
+# mongodb URI connection string
+prometheus_agent_mongodb_connuri: "mongodb://user:password@127.0.0.1:27017/admin?ssl=true"
+
+
+# Oracle DB ----------------------------
+#
+# set to yes to install the agent
+prometheus_agent_oracledb_install: no
+prometheus_agent_oracledb_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_oracledb_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_oracledb_listen: "0.0.0.0:9161"
+
+# extra parameters for the oracledb agent service
+# Notice: 'web.config.file' and 'default.metrics' are already set
+prometheus_agent_oracledb_service_extra_args: "--log.level error"
+
+# oracle datasource  and home
+prometheus_agent_oracledb_dsname: "read_only_user/password@//myhost:1521/service"
+prometheus_agent_oracledb_orahome: "/u01/app/oracle/product/19.0.0/dbhome_1"
+# oracle libs - usually under <_orahome>/lib
+prometheus_agent_oracledb_oralib: "{{ prometheus_agent_oracledb_orahome }}/lib"
+
+
+# Apache httpd -------------------------
+# ref: https://github.com/Lusitaniae/apache_exporter/releases
+#
+# set to yes to install the agent
+prometheus_agent_apache_install: no
+prometheus_agent_apache_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_apache_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_apache_listen: "0.0.0.0:9117"
+
+# url to the server-status page - localhost should be prefered
+prometheus_agent_apache_server_status: "http://localhost/server-status/?auto"
+
+# extra parameters for the apache agent service
+# add '--insecure' if required for https connection
+prometheus_agent_apache_service_extra_args: ' --host_override="" '
+
+
+# SNMP ---------------------------------
+# ref: https://github.com/prometheus/snmp_exporter/releases
+#
+# set to yes to install the agent
+prometheus_agent_snmp_install: no
+prometheus_agent_snmp_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_snmp_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_snmp_listen: "0.0.0.0:9116"
+
+# extra parameters for the snmp agent service
+# read this before changing this setting: https://github.com/prometheus/snmp_exporter#configuration
+prometheus_agent_snmp_service_extra_args: "--config.file {{ role_prometheus_agent_snmp_dist.mibs_default }}"
+
+# list of manually generated snmp.yml files to deploy on the agent server
+# example:
+#   - "/path/to/local/ansible/server/non_standard_device.yml"
+#   - ...
+# the files will be deployed under /etc/prometheus/snmp/
+prometheus_agent_snmp_mibs_deploy_files: []
+
+
+# java jmx -----------------------------
+# ref: https://github.com/prometheus/jmx_exporter/releases
+#
+# usual syntax for activation is to change the JVM settings with:
+#   JAVA_OPTS="-javaagent:/usr/local/bin/jmx_prometheus_javaagent.jar=9901:/etc/prometheus/jmx.yml"
+#
+# set to yes to install the agent
+prometheus_agent_jmx_install: no
+prometheus_agent_jmx_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_jmx_version_hash: ""
+
+
+# smokeping prober ---------------------
+# ref: https://github.com/SuperQ/smokeping_prober/releases
+#
+# set to yes to install the agent
+prometheus_agent_smokeping_install: no
+prometheus_agent_smokeping_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_smokeping_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_smokeping_listen: "0.0.0.0:9374"
+
+# extra parameters for the smokeping agent service
+prometheus_agent_smokeping_service_extra_args: ""
+
+# list of the url or ip to monitor
+# for now, labels are not supported by the agent
+# example:
+#  - "server.domain.tld"
+#  - "1.2.3.4"
+#
+prometheus_agent_smokeping_targets: []
+
+
+# smartctl prober ---------------------
+# ref: https://github.com/prometheus-community/smartctl_exporter
+#
+# set to yes to install the agent
+prometheus_agent_smartctl_install: no
+prometheus_agent_smartctl_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_agent_smartctl_version_hash: ""
+
+# agent listen ip and port
+prometheus_agent_smartctl_listen: "0.0.0.0:9633"
+

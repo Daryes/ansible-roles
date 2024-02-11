@@ -1,0 +1,110 @@
+---
+
+- name: Certificate push private | parameters validation
+  assert:
+    that:
+      # must be defined, but allowed to be empty
+      - certificates_private_push is defined
+    fail_msg: "Error: the mandatory parameter is not defined, it is possible its definition in the inventory is not valid"
+    quiet: yes
+
+
+# the loop is here only for a more detailled log output
+- name: Certificate push private | system - create access group for certificates
+  group:
+    name: "{{ item }}"
+    system: yes
+    state: present
+  with_items:
+    - "{{ role_certs_dist.group }}"
+  become: yes
+
+
+- name: Certificate push private | system - create private directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "root"
+    group: "{{ role_certs_dist.group }}"
+    # 710 allows to access subdirectories wihout being able to list the content of the private dir itself
+    mode: "0710"
+  with_items:
+    - "{{ role_certs_dist.private_store }}"
+  become: yes
+
+
+- name: Certificate push private | certs - create dedicated cert directories
+  file:
+    path: "{{ role_certs_dist.private_store }}/{{ item.name }}"
+    state: directory
+    owner: "root"
+    group: "{{ role_certs_dist.group }}"
+    mode: "0750"
+  with_items: "{{ certificates_private_push }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: >
+    item.name is defined
+    and inventory_hostname in item.target_hosts |default([ inventory_hostname ])
+  become: yes
+
+
+- name: Certificate push private | certs - install pem certificates
+  copy:
+    content: "{{ item.pem }}"
+    dest: "{{ role_certs_dist.private_store }}/{{ item.name }}/{{ item.name }}.pem"
+    owner: root
+    group: "{{ role_certs_dist.group }}"
+    mode: "640"
+  with_items: "{{ certificates_private_push }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: >
+    item.name is defined
+    and inventory_hostname in item.target_hosts |default([ inventory_hostname ])
+  become: yes
+  register: task_status
+
+
+- name: Certificate push private | certs - install keyfiles
+  copy:
+    content: "{{ item.key }}"
+    dest: "{{ role_certs_dist.private_store }}/{{ item.name }}/{{ item.name }}.key"
+    owner: root
+    group: "{{ role_certs_dist.group }}"
+    mode: "640"
+  with_items: "{{ certificates_private_push }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: >
+    item.name is defined
+    and inventory_hostname in item.target_hosts |default([ inventory_hostname ])
+  become: yes
+  no_log: yes
+
+
+- name: Certificate push private | certs - generate combined certs
+  copy:
+    content: "{{ item.key + item.pem }}"
+    dest: "{{ role_certs_dist.private_store }}/{{ item.name }}/{{ item.name }}.combined.pem"
+    owner: root
+    group: "{{ role_certs_dist.group }}"
+    mode: "640"
+  with_items: "{{ certificates_private_push }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: >
+    item.name is defined
+    and item.combined_create |default(false)
+    and inventory_hostname in item.target_hosts |default([ inventory_hostname ])
+  become: yes
+  no_log: yes
+
+
+# create new data as the task variable contains the full certificates and keys
+- name: Certificate push private | ansible - register execution status in a fact
+  set_fact:
+    _certificate_push_private_status: { "changed": "{{ task_status is changed }}" }
+    cacheable: yes
+  changed_when: task_status is changed
+

@@ -1,0 +1,23 @@
+---
+
+# new drive partition and mount settings
+system_drives_initialize: []
+# examples:
+#  - device_name: "sdb"
+#    mount_point: "/opt"
+#    mount_options: "defaults,noatime"
+#    fstype: "ext4"
+#    fstype_options: "-O 64bit"
+#    lvm_vgname: "vgstorage"
+#    lvm_lvname: "lvopt"
+#
+#  - device_name: "sdc"
+#   mount_point: "/data"
+#   mount_options: ""           # if empty or omitted, will be set to "defaults,relatime"
+#   fstype: "xfs"
+#   fstype_options: ""
+#   # reuse the server name but without any - or _ and remove anything after a '.'
+#   # the \ must be doubled in the inventory
+#   lvm_vgname: "vg{{ inventory_hostname |regex_replace('[_-]|\\..*','') }}"
+#   lvm_lvname: "lvdata"
+

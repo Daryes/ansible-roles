@@ -1,0 +1,22 @@
+---
+
+# system requirements
+role_prometheus_agent_snmp_requirements:
+  common: []
+  debian:
+    - "libsnmp40"
+  redhat:
+    - "net-snmp-agent-libs"
+
+# prometheus packages ref: https://prometheus.io/download/
+role_prometheus_agent_snmp_package_file: "snmp_exporter-{{ prometheus_agent_snmp_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+role_prometheus_agent_snmp_package_url: "https://github.com/prometheus/snmp_exporter/releases/download/v{{ prometheus_agent_snmp_version }}/{{ role_prometheus_agent_snmp_package_file }}"
+
+
+role_prometheus_agent_snmp_dist:
+  service: "prometheus-snmp-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-snmp-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/snmp_exporter"
+  mibs: "{{ role_prometheus_agent_dist.conf }}/snmp"
+  mibs_default: "{{ role_prometheus_agent_dist.bin_dir }}/snmp_exporter-archive/snmp.yml"
+

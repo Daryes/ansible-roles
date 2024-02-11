@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+{{ role_bind_dist.log }}/*.log {
+        daily
+        rotate 15
+
+        missingok
+        notifempty
+
+        compress
+        delaycompress
+
+        create 644 {{ role_bind_dist.log_user }} {{ role_bind_dist.log_group }}
+        sharedscripts
+        postrotate
+                [ ! -f {{ role_bind_dist.service_pid }} ] || service {{ role_bind_dist.service }} reload > /dev/null 2>&1
+        endscript
+}
+

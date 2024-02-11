@@ -1,0 +1,163 @@
+---
+
+# specify the grafana version: XX.YY.Z
+grafana_version: "CHANGE_ME_IN_INVENTORY_GROUPVARS"
+
+
+# grafana packages
+# hashes can be retrieved from https://grafana.com/grafana/download
+grafana_pkg_file_deb: "grafana_{{ grafana_version }}_amd64.deb"
+grafana_pkg_url_deb: "https://dl.grafana.com/oss/release/{{ grafana_pkg_file_deb }}"
+grafana_version_hash_deb: ""
+
+grafana_pkg_file_rpm: "grafana-{{ grafana_version }}-1.x86_64.rpm"
+grafana_pkg_url_rpm: "https://dl.grafana.com/oss/release/{{ grafana_pkg_file_rpm }}"
+grafana_version_hash_rpm: ""
+
+
+# grafana public domain to access grafana from a browser
+grafana_domain: "{{ inventory_hostname }}"
+# grafana public url to access grafana from a browser - the '/' is required at the end
+grafana_root_url: "https://{{ grafana_domain }}/"
+
+
+# grafana listen IP and port
+grafana_listen_ip: "0.0.0.0"
+grafana_listen_port: "3000"
+
+
+# config and data directory location
+grafana_conf_dir: "/etc/grafana"
+grafana_data_dir: "/var/lib/grafana"
+
+
+# grafana additional plugins to install
+# ref: https://grafana.com/grafana/plugins/
+# example:
+#  - "vonage-status-panel"
+#  - "natel-discrete-panel"
+grafana_plugins_install: []
+
+
+# update installed plugins - set to yes to activate
+grafana_plugins_update_all: no
+
+
+# grafana settings customization
+# ref: https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/
+# example:
+#   - section: "feature_toggles"
+#     param: "swaggerUi"
+#     value: "true"
+#
+#   - param:  "param2"
+#     ...
+#
+# section is the [section] group name in a ini file, without the []
+#
+# notice: domain, http_addr, http_port, data directory, plugins settings, analytics reports and enable_gzip are already managed
+# same for metrics and smtp settings defined right after
+grafana_config_settings: []
+
+
+# set to yes to enable internal metrics to be collected by prometheus and/or graphite
+grafana_config_metrics: no
+# set a basic auth to require authorization to access the metrics endpoints
+grafana_config_metrics_basic_auth_username: ""
+grafana_config_metrics_basic_auth_password: ""
+
+
+# duration to keep the annotations (manual and automatic) - default is 0 to keep them forever
+# Examples: 6h (hours), 10d (days), 2w (weeks), 1M (month).
+grafana_config_annotations_max_age: "0"
+
+grafana_config_annotations_alerting_max_age: "{{ grafana_config_annotations_max_age }}"
+grafana_config_annotations_dashboard_max_age: "{{ grafana_config_annotations_max_age }}"
+grafana_config_annotations_api_max_age: "{{ grafana_config_annotations_max_age }}"
+
+
+grafana_config_smtp: no
+grafana_config_smtp_host: "localhost:25"
+grafana_config_smtp_user: ""
+# If the password contains # or ; you have to wrap it with triple quotes. Ex """#password;"""
+grafana_config_smtp_password: ""
+grafana_config_smtp_from_address: "admin@{{ grafana_domain }}"
+grafana_config_smtp_from_name: "Grafana"
+grafana_config_smtp_tls_starttls: "OpportunisticStartTLS"
+grafana_config_smtp_tls_skip_verify: no
+
+
+# ##########################################################
+# grafana provisioning
+#
+# ref: https://grafana.com/docs/grafana/latest/administration/provisioning/
+
+# provisioning: datasources
+# structure is the same as the grafana reference file
+# grafana_provisioning_datasources:
+#   apiVersion: 1
+#   deleteDatasources:
+#     - name: Graphite
+#       orgId: 1
+#   datasources:
+#     - name: Graphite
+#       type: graphite
+#       access: prox
+#       ...
+grafana_provisioning_datasources: []
+
+
+# provisioning: dashboards
+# structure is the same as the grafana reference file
+# grafana_provisioning_dashboards:
+#   apiVersion: 1
+#   providers:
+#     - name: dashboards
+#       type: file
+#       ...
+grafana_provisioning_dashboards: []
+
+
+# This setting will allow to transfer dashboards into grafana config dir
+# The destination will always be under "/etc/grafana/provisioning/dashboards/"
+# If the destination is omitted, the last level directory from the source will be reused (ex: source=/.../my/dashboard/datawarehouse/*.json => dest=datawarehouse/)
+# example:
+#   - source: "/a/directory/on/the/ansible/server"
+#     dest: "relative/location"
+#     mode: "dirsync"
+#   - source: "/another/path/to/a/file.json"
+#     dest: "another/relative/location"
+#     mode: "file"
+#
+#   - source: "/etc/ansible/storage/grafana/dashboards/ex1"
+#     dest: "ex1"
+#     mode: "dirsync"
+grafana_provisioning_dashboards_transferts: []
+
+
+# provisioning: organizations
+# Change the name of the default organization - mostly cosmetic, can appear in some dashboards
+grafana_provisioning_org_name: "Main Org."
+
+
+# provisioning: admin user (local)
+# (mandatory) change the default password which default to the public known value "admin"
+grafana_provisioning_admin_login: "admin"
+grafana_provisioning_admin_password: "admin"
+
+
+# provisioning: users (local)
+# example:
+#  - name: "a name"            # (optional) user visible name
+#    login: "user"             # user login, must be unique
+#    password: "ax1!5..."      # complex password
+#    email: "user@domain.tld"  # (optional) user email, default to "login@localhost"
+#    isadmin: false            # (optional) set to true for a global admin, default to false
+#    orgid: 1                  # (optional) set the organization ID, default to ID 1  -  only 1 is currently supported
+#    role: "Viewer"            # (optional) role in the target organization, one of: Admin, Editor, Viewer (default to Viewer)
+#
+#  - login: "reader"
+#    password: "read-only"
+#
+grafana_provisioning_users: []
+

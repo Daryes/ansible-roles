@@ -1,0 +1,100 @@
+---
+
+- name: webserver apache | vhost - disable unwanted sites
+  file:
+    path: "{{ role_apache_dist.etc }}/sites-enabled/{{ item }}.conf"
+    state: absent
+  with_items:
+    - "{{ apache_global_vhost_disable }}"
+    - "{{ task_web_apache_merged |selectattr('active', 'defined') |selectattr('active', 'equalto', false) |map(attribute='server_name') |list }}"
+  loop_control:
+    label: "site disabled => {{ item }}"
+  notify: reload apache validate config
+
+
+# install the site template
+# change 'item' to thisVhost for usability in the website templates
+- name: webserver apache | vhost - install default and sub-default websites
+  template:
+    src: "{{ thisVhost.site_vhost_template }}"
+    dest: "{{ role_apache_dist.etc }}/sites-available/{{ var_vhost_filename }}"
+    owner: "root"
+    group: "root"
+    mode: "644"
+  vars:
+    var_vhost_filename: "{{ thisVhost.site_vhost_template |basename |regex_replace('.j2$', '') }}"
+  with_items:
+    - "{{ role_apache_default_sites }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "default => {{ var_vhost_filename }}"
+  when: thisVhost.active |default(True) |bool
+  notify: reload apache validate config
+
+
+# activate default site
+- name: webserver apache | vhost - activate default website
+  file:
+    src: "{{ role_apache_dist.etc }}/sites-available/{{ var_vhost_filename }}"
+    dest: "{{ role_apache_dist.etc }}/sites-enabled/{{ var_vhost_filename }}"
+    state: link
+    force: yes
+  vars:
+    var_vhost_filename: "{{ thisVhost.site_vhost_template |basename |regex_replace('.j2$', '') }}"
+  with_items:
+    - "{{ role_apache_default_sites }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "site enabled => {{ thisVhost.server_name }}"
+  when: thisVhost.active |default(True) |bool
+  notify: reload apache validate config
+
+
+- name: webserver apache | vhost - create extra log directories
+  file:
+    path: "{{ item.site_vhost_log_dir }}"
+    state: directory
+    recurse: no
+  with_items:
+    - "{{ task_web_apache_merged |selectattr('site_vhost_log_dir', 'defined') |list }}"
+  loop_control:
+    label: "{{ item.server_name }} => extra log dir: {{ item.site_vhost_log_dir |default('none') }}"
+  when: >
+    item.active |default(True) |bool
+    and item.site_vhost_log_dir |default('') |length > 0
+    and item.site_vhost_log_dir != role_apache_dist.log
+
+
+# variable 'item' is changed to 'thisVhost' for usability in the website templates
+# notice: only the server_name will be reused as a filename when stored under /etc/apache2/sites-available/
+- name: webserver apache | vhost - install standalone websites
+  template:
+    src: "{{ thisVhost.site_vhost_template }}"
+    dest: "{{ role_apache_dist.etc }}/sites-available/{{ thisVhost.server_name }}.conf"
+    owner: "root"
+    group: "root"
+    mode: "644"
+  with_items:
+    - "{{ task_web_apache_merged }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "site available => {{ thisVhost.server_name }}"
+  when: thisVhost.active |default(True) |bool
+  notify: reload apache validate config
+
+
+# activate sites, only standalone vhosts
+- name: webserver apache | vhost - activate standalone websites
+  file:
+    src: "{{ role_apache_dist.etc }}/sites-available/{{ thisVhost.server_name }}.conf"
+    dest: "{{ role_apache_dist.etc }}/sites-enabled/{{ thisVhost.server_name }}.conf"
+    state: link
+    force: yes
+  with_items:
+    - "{{ task_web_apache_merged |selectattr('site_vhost_standalone', 'defined') |selectattr('site_vhost_standalone', 'equalto', true) |list }}"
+  loop_control:
+    loop_var: thisVhost
+    label: "site available => {{ thisVhost.server_name }}"
+  when: thisVhost.active |default(True) |bool
+  notify: reload apache validate config
+

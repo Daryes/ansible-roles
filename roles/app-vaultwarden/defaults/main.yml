@@ -1,0 +1,63 @@
+---
+
+# docker image version
+vaultwarden_version: "latest"
+
+
+# compose installation directory
+vaultwarden_install_dir: "/opt/vaultwarden"
+
+
+# use the docker-compose@ service from the sys-docker role
+vaultwarden_use_compose_service: no
+
+
+# external domain url, format: https://domain.dns
+vaultwarden_domain_url: "https://unknown.nowhere.tld"
+
+
+# docker default listen IP and ports
+vaultwarden_listen_ip: "127.0.0.1"
+vaultwarden_listen_port: 3080
+vaultwarden_listen_port_ws: 3012
+
+
+# Access token for the admin interface, use as a generator:  openssl rand -base64 48
+# If not set for the first launch, the admin panel is disabled. Should stay empty when the panel is not required
+vaultwarden_admin_token: ""
+
+
+# db usage type, set to :
+# - "sqlite" for a local sqlite file
+# - "psql" for a dockerized postgresql companin within the same compose file
+# - "external" for a remote database
+vaultwarden_db: "sqlite"
+
+# psql db only: db password (if activated)
+vaultwarden_db_local_password: "n8p2dRnPSqxoPea3Y8Bi"
+
+# external db only: full url (if activated)
+# supported formats:
+#        mysql://[[user]:[password]@]host[:port][/database]
+#   postgresql://[[user]:[password]@]host[:port][/database]
+vaultwarden_db_external_url: ""
+
+
+# smtp configuration
+# smtp remote server - ex: smtp.domain.tld
+vaultwarden_smtp_host: localhost
+# security mode, support the following options: starttls, force_tls and off
+# for port 25, use off (or starttls if a certificate is available)
+# for port 465, use force_tls
+# for port 587, use starttls
+vaultwarden_smtp_security_mode: "starttls"
+vaultwarden_smtp_port: 587
+
+# smtp user and password
+vaultwarden_smtp_username: ""
+vaultwarden_smtp_password: ""
+
+# sender informations
+vaultwarden_smtp_from_email: vaultwarden@domain.tld
+vaultwarden_smtp_from_name: Vaultwarden
+

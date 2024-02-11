@@ -1,0 +1,22 @@
+---
+
+# using namespace for updating variables in a loop
+# as such, it is required when updating to use : set x = ns.... = "new value"
+- set_fact:
+    _serial_over_hostgroups: >-
+      {%- set ns = namespace( loopOutput = [] ) -%}
+      {%- for loopGroup in serial_over_hostgroups_patterns -%}
+      {%-   set loopHosts = query( 'inventory_hostnames', loopGroup ) |difference( serial_over_hostgroups_exclude_servers |flatten ) -%}
+      {%-   for loopHost in loopHosts -%}
+      {%-     if ns.loopOutput[ loop.index0 ] is not defined -%}
+      {%-       set _ = ns.loopOutput.append( { 'set':loop.index, 'hosts':[ loopHost ], 'size':1 } ) -%}
+      {%-     else -%}
+      {%-       set _ = ns.loopOutput[ loop.index0 ]['hosts'].append( loopHost ) -%}
+      {%-       set _ = ns.loopOutput[ loop.index0 ].update( size = ns.loopOutput[ loop.index0 ]['hosts'] |length )  -%}
+      {%-     endif -%}
+      {%-   endfor -%}
+      {%- endfor -%}
+      {{ ns.loopOutput }}
+  # the execution will be available for all hosts
+  run_once: yes
+

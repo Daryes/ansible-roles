@@ -1,0 +1,44 @@
+---
+
+# These tasks are moved in a dedicated file to prevent them appearing in the log when no action are required
+
+
+# rmdir only to ensure the directory is really empty
+- name: "{{ arg_move_data_comment }} | move data to new location - remove empty directories"
+  shell:
+    cmd: rmdir "{{ item.dir }}"
+    removes: "{{ item.dir }}"
+    warn: no
+  with_items:
+    - { id: 0, type: "source", dir: "{{ arg_move_data_source_path }}" }
+    - { id: 1, type: "dest",   dir: "{{ arg_move_data_dest_path }}" }
+  when: task_files_in_both_path.results[ item.id ].matched |default(1) == 0
+  become: yes
+
+
+# ansible doesn't have a builtin move command
+# the "removes:" will allow to skip the execution if the directory was removed meanwhile
+- name: "{{ arg_move_data_comment }} | move data to new location - ignore source data (renamed to -dist) when new location is also present"
+  shell:
+    cmd: >
+      if [ -s "{{ var_source_path_dist }}" ]; then rm -r "{{ var_source_path_dist }}"; fi;
+      mv "{{ arg_move_data_source_path }}"  "{{ var_source_path_dist }}";
+    removes: "{{ arg_move_data_source_path }}"
+  vars:
+    var_source_path_dist: "{{ arg_move_data_source_path }}-dist"
+  when: arg_move_data_both_exist_delete_source |bool
+  become: yes
+
+
+- name: "{{ arg_move_data_comment }} | move data to new location - ignore new location data (deleted) when source is still present"
+  shell:
+    cmd: >
+      if [ -h '{{ arg_move_data_dest_path }}' ]; then unlink '{{ arg_move_data_dest_path }}'; fi;
+      if [ -s '{{ arg_move_data_dest_path }}' ]; then rm -r  '{{ arg_move_data_dest_path }}'; fi;
+    removes: "{{ arg_move_data_dest_path }}"
+  when: arg_move_data_both_exist_delete_dest |bool
+  become: yes
+
+
+# update the directories stat data
+- import_tasks: directories_stat.yml

@@ -1,0 +1,10 @@
+---
+
+# system requirements
+role_prometheus_agent_ipmi_requirement_packages:
+  common: []
+  debian:
+    - "freeipmi-tools"
+  redhat:
+    - "freeipmi"
+

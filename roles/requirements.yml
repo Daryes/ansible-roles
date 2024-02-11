@@ -1,0 +1,32 @@
+---
+
+# This file lists all the required external requirements (collections, roles, ...)
+# documentation:
+#   - https://docs.ansible.com/ansible/latest/user_guide/collections_using.html
+#   - https://docs.ansible.com/ansible/latest/galaxy/user_guide.html
+#
+# usage:
+#    ansible-galaxy collection install -r requirements.yml
+#    ansible-galaxy role install --force -r requirements.yml --roles-path /etc/ansible/roles
+# the roles will be installed under /etc/ansible/roles
+#
+# if you need to generate the "git clone" commands for all the repos, use (remove the echo and " " to execute) :
+#   grep "src:" requirements.yml | tr -d ' ' | cut -d ':' -f2-  | xargs -d "\n" -L1 echo "git clone  "
+#
+
+collections:
+  # ansible collections: https://docs.ansible.com/ansible/latest/collections/ansible/index.html
+  - ansible.netcommon
+  - ansible.utils
+  - community.general
+  - community.crypto
+  - community.mysql
+  - community.postgresql
+
+
+roles: []
+#  - name: <role name>
+#    src: ssh://git@my.scm.com/path/to/repo.git
+#    scm: git
+#    version: master
+

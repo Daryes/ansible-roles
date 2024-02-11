@@ -1,0 +1,51 @@
+---
+# Requirement : the facts cache must be active with : gathering = smart
+
+# the include must be first due to some variables alteration on Windows
+# note : as ansible_os_family value is changed for Windows systems, the import won't be run until the fact cache expires
+- name: Windows | specific discovery variables
+  include_tasks: windows.yml
+  when: ansible_os_family |lower == "windows"
+
+
+- name: Linux | specific discovery variables
+  include_tasks: linux-rocky.yml
+  when: ansible_os_family |lower == "rocky"
+
+
+# - import_tasks: hwr-ipmi.yml
+#   when: ansible_virtualization_role is defined and ansible_virtualization_role == 'host'
+
+
+# as a side effect, group_by also reloads groups variables
+- name: all | additionnal groups
+  group_by:
+    key: "{{ item }}"
+  with_items:
+    - "{{ ansible_system |lower }}"
+    - "os_type_{{ ansible_system |lower }}"
+    - "os_family_{{ ansible_os_family |lower }}"
+    - "os_distrib_{{ ansible_distribution |lower }}"
+    - "os_release_{{ ansible_distribution_release |lower }}"
+    - "virt_{{ ansible_virtualization_type |lower }}_{{ ansible_virtualization_role |lower }}"
+    - "env_{{ envir_type |default('unknown', true) |lower }}"
+  changed_when: false
+
+
+# boolean values must be with the syntax 'variable: "{% if ... then ... %}" ' to allow to be defined as a real boolean. 'variable="if ..."' and/or '|bool' don't work
+- name: all | additionnal facts
+  set_fact:
+    cacheable: yes
+    is_virtualmachine: "{% if ansible_virtualization_role is defined and ansible_virtualization_role == 'guest' %}true{% else %}false{% endif %}"
+    ansible_architecture_extra: "{{ role_system_arch }}"
+
+
+- name: all | display assigned groups and roles
+  debug:
+    msg: >-
+      {{ inventory_hostname }}
+      system( {{ ansible_system }} )
+      os_family( {{ ansible_os_family }} )
+      distribution( {{ ansible_distribution }} )
+      groups( {{ group_names | join(', ') }} )
+

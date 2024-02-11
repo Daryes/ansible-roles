@@ -1,0 +1,36 @@
+---
+
+# prometheus + alertmanager system user
+- import_tasks: user.yml
+
+
+# prometheus + alertmanager installation
+- import_tasks: install.yml
+
+
+# change the directories location
+- import_tasks: move_data.yml
+
+
+# prometheus + alertmanager system configuration
+- import_tasks: system.yml
+
+
+# prometheus + alertmanager main configuration
+- import_tasks: config.yml
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+- name: Monitoring Prometheus | enable and start the services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - "{{ role_prometheus_dist.service }}"
+    - "{{ role_prometheus_dist.alertmanager_service }}"
+  become: yes
+

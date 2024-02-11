@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+# default configuration same as debian
+
+LoadModule access_compat_module /usr/lib/apache2/modules/mod_access_compat.so
+LoadModule alias_module /usr/lib/apache2/modules/mod_alias.so
+
+LoadModule auth_basic_module /usr/lib/apache2/modules/mod_auth_basic.so
+LoadModule authn_core_module /usr/lib/apache2/modules/mod_authn_core.so
+LoadModule authn_file_module /usr/lib/apache2/modules/mod_authn_file.so
+LoadModule authz_core_module /usr/lib/apache2/modules/mod_authz_core.so
+LoadModule authz_host_module /usr/lib/apache2/modules/mod_authz_host.so
+LoadModule authz_user_module /usr/lib/apache2/modules/mod_authz_user.so
+
+LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
+LoadModule dir_module /usr/lib/apache2/modules/mod_dir.so
+
+LoadModule deflate_module /usr/lib/apache2/modules/mod_deflate.so
+LoadModule env_module /usr/lib/apache2/modules/mod_env.so
+LoadModule filter_module /usr/lib/apache2/modules/mod_filter.so
+LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
+LoadModule negotiation_module /usr/lib/apache2/modules/mod_negotiation.so
+LoadModule reqtimeout_module /usr/lib/apache2/modules/mod_reqtimeout.so
+LoadModule setenvif_module /usr/lib/apache2/modules/mod_setenvif.so
+LoadModule status_module /usr/lib/apache2/modules/mod_status.so
+

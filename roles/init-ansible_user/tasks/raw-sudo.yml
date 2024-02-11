@@ -1,0 +1,28 @@
+---
+
+- name: Init | Bootstrap - sudo availability
+  raw: "command -v sudo"
+  register: system_with_sudo
+  failed_when: false
+  changed_when: system_with_sudo.rc != 0
+
+
+# note: the commands are ran as a single command line. Keep a ';' at the end of each line
+- name: Init | Bootstrap - install sudo (debian + redhat)
+  raw: >
+    export SUDO_GRP=sudo;
+    if [ ! -s /usr/bin/sudo ]; then
+      echo 'sudo required';
+      if   [ -x /usr/bin/apt ]; then /usr/bin/apt --quiet -y install sudo;
+      elif [ -x /usr/bin/yum ]; then /usr/bin/yum install -y sudo; export SUDO_GRP=wheel;
+      fi;
+      sleep 3;
+    fi;
+    command -v sudo;
+    usermod --append --groups $SUDO_GRP  {{ ansible_user }};
+  register: bootstrap_sudo
+  changed_when: bootstrap_sudo.stdout is search('sudo required')
+  when: system_with_sudo.rc != 0
+  become: yes
+  become_method: "su"
+

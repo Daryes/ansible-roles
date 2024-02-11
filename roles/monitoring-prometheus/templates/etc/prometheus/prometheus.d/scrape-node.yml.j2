@@ -1,0 +1,26 @@
+---
+# {{ ansible_managed }}
+
+# list of servers managed by ansible
+{% for loopHost in prometheus_job_node |default([]) |flatten |sort  if loopHost not in ['127.0.0.1','::1','localhost'] %}
+{%   if hostvars[loopHost].ansible_system is defined  %}
+{%     set hostvarsCache = hostvars[loopHost] %}
+
+- targets: [ '{{ hostvarsCache.inventory_hostname }}:{{ role_system_agent_port[ "node_" + hostvarsCache.ansible_system |lower ] }}' ]
+  labels:
+{%     if hostvarsCache.ansible_virtualization_role is defined %}
+    # virt labels
+    virtual_role: "{{ hostvarsCache.ansible_virtualization_role|lower }}"
+{%     endif %}
+{#  # import extra template  #}
+{%    include 'labels-inventory.include.j2' %}
+    # 'roles' label merging the inventory groups
+{%     set ns = namespace(loopLabelRoles = []) %}
+{%     for loopGroupPrefix in prometheus_job_node_labels_group_filter |default([]) %}
+{%       set ns.loopLabelRoles = hostvarsCache['group_names'] |select('search', '^' + loopGroupPrefix) |list + ns.loopLabelRoles %}
+{%     endfor %}
+{%     if ns.loopLabelRoles |length > 0 %}
+    roles: "{{ ns.loopLabelRoles |sort |unique |join(',') }}"
+{%     endif %}
+{%   endif %}
+{% endfor %}

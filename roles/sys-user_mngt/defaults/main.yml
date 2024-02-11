@@ -1,0 +1,63 @@
+---
+# This file must not be changed
+# Copy its content into group_vars/linux
+#
+# It provides the documentation and default values
+# Variables here will be overwritten when declared in the inventory
+#
+###################################################
+
+# The default shell for a user if none is specified
+users_default_shell: "/bin/bash"
+
+# default primary group for new users
+users_default_group: "users"
+
+# umask for all users - always between " "
+users_default_umask: "022"
+
+# access mode for the homedir - always between " "
+users_default_home_access_mode: "0750"
+
+# timeout duration for sudo - in mins
+users_default_sudo_timeout: "15"
+
+
+# optional: sync the whole ssh_keys directory to the host
+# use with a sshd configuration changed to look into a controlled directory instead of the user home
+# _ansible_source is the source directory on the ansible server, _dir_dest is a fullpath to sync to on the servers
+user_mngt_sync_ssh_keys: false
+user_mngt_sync_ssh_keys_ansible_source: "/opt/ansible/data/ssh_pub_keys"
+user_mngt_sync_ssh_keys_dir_dest: "/opt/system/ssh"
+
+
+# List of system groups to create on all hosts
+groups_to_create_all: []
+
+
+# Lists of users to delete on all hosts
+users_to_delete_all: []
+
+
+# list of users to create
+# most settings, aside name, username and uid are optional.
+# ssh keys will be set in the user homedir
+# documentation : http://docs.ansible.com/ansible/latest/modules/user_module.html
+
+# users for all systems
+users_accounts_all: []
+
+
+# user accounts for specific servers
+# must be declared in host_vars/<host>
+users_accounts_host: []
+
+
+# user account for users in specific ansible groups
+# must be declared in group_vars/<ansible_group>
+# <ansible_group>_users_account: []
+
+
+# ansible user - only used to protect from possible deletion
+users_accounts_ansible_user: "ansible"
+

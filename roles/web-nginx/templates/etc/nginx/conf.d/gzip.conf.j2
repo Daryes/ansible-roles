@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+# GZIP compression global settings
+# ref: https://nginx.org/en/docs/http/ngx_http_gzip_module.html
+
+# can be deactivated at the server{} or location{} level
+# gzip             on;  # <= already activated in nginx.conf
+
+gzip_proxied     any;
+gzip_vary        on;
+
+# min response length to activate the compression
+gzip_min_length  10240;
+
+# file MIME type to compress in addition to text/html
+gzip_types       text/plain text/css text/javascript text/xml application/javascript application/x-javascript application/xml application/xml+rss application/json;
+

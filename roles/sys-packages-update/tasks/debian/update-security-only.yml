@@ -1,0 +1,11 @@
+---
+
+# https://raphaelhertzog.com/2010/09/21/debian-conffile-configuration-file-managed-by-dpkg/
+# use shell instead of the ansible module due to instability
+# TODO: implement "unattended-upgrade" instead
+- name: System Update | APT | update - security patches only
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade"
+  args:
+    warn: false
+  become: yes
+

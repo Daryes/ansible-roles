@@ -1,0 +1,300 @@
+---
+
+# prometheus and alertmanager versions (+hash) to install - using the official archive package
+# ref: https://prometheus.io/download/
+# ex : "0.15.0" - do not specify a 'v' as prefix
+prometheus_version: "CHANGE_ME_IN_GROUP_VARS"
+prometheus_alertmanager_version: "CHANGE_ME_IN_GROUP_VARS"
+
+# Either empty (no check), or with the format "sha:<hash>" or "sha256:<hash>" or "sha512:<hash> ..."
+# ex: "sha256:77793c4d9bb92be98f7525f8bc50cb8adb8c5de2e944d5500e90ab13918771fc"
+prometheus_version_hash: ""
+prometheus_alertmanager_hash: ""
+
+
+# Prometheus and alertmanager ip and port for the web UI
+# set _listen_ip to 127.0.0.1 if you're using a reverse proxy
+prometheus_listen_ip: "0.0.0.0"
+prometheus_listen_port: "9090"
+prometheus_alertmanager_listen_ip: "0.0.0.0"
+prometheus_alertmanager_listen_port: "9093"
+
+
+# Prometheus and alertmanager ssl certificate to use to activate https
+# Fill with the full path to the .pem|crt and .key files
+prometheus_ssl_cert_pem: ""
+prometheus_ssl_cert_key: ""
+
+
+# config and data main directories for prometheus and altermanager
+prometheus_conf_dir: "/etc/prometheus"
+prometheus_data_dir: "/var/lib/prometheus"
+
+
+# extra parameters for the services
+# notice: --web.listen-address, --config.file, --web.config.file, --storage.tsdb.path and --storage.tsdb.retention.time are already set
+prometheus_service_extra_args: ""
+prometheus_alertmanager_service_extra_args: ""
+
+
+# log retention in days for the system logs under /var/log/prometheus
+# For prometheus and alertmanager
+prometheus_syslog_history_days: 31
+
+
+# basic auth for prometheus access
+# If empty, it will not be actived. At least one user must be present to activate basic-auth
+# ref: https://prometheus.io/docs/guides/basic-auth/
+# example:
+#   - user: "username"
+#     pass_crypted: "$2b$12$hNf2l..."
+#   - user: "anotherone"
+#     pass_crypted: "$5..."
+#
+# Notice: this will prevent prometheus to monitor itself, prometheus_scrape_auth_basic_user & _password must be filled with a valid account
+# This scrape account must also be set in _basic_users
+prometheus_auth_basic_users: []
+
+
+# Activate basic auth usage to access all exporters
+# Password is in clear text
+# Notice: if prometheus_auth_basic_users[] is used, _basic_user and _password will be used for prometheus and alertmanager self-monitoring, even if _scrape_auth_basic=no
+prometheus_scrape_auth_basic: no
+prometheus_scrape_auth_basic_user: ""
+prometheus_scrape_auth_basic_password: ""
+
+# connect to all prometheus exporters using https
+prometheus_scrape_ssl: no
+prometheus_scrape_ssl_insecure_skip_verify: yes
+
+# ##########################################################
+# prometheus automatic jobs configuration - extra settings
+
+
+# global metrics scrape/collect interval
+prometheus_scrape_interval: "1m"
+prometheus_scrape_timeout: "30s"
+
+# specific interval for realtime jobs
+# to use for specific cases - lower than 10s will cause a cpu strain on the servers
+prometheus_scrape_interval_realtime: "10s"
+
+
+# global data retention, in days
+prometheus_data_retention_time: "15d"
+
+
+# list of extra label set to each jobs
+# notice: depending of the usage, if the labels are only used for communication with external applications, use instead '_job_external_labels'
+# syntax (name must be unique):
+#  - name: "value"
+#  - another: "value2"
+prometheus_job_all_labels_static:
+  # set a corp name - default to unknown
+  - corp: "{{ domain_name |default('unknown') }}"
+  # set a datacenter location - default to unknown
+  - geo: "{{ geo_dc |default('unknown') }}"
+
+
+# list of extra label set to each jobs
+# the usage is the same as "_all_labels", but while _all_ would be used globally
+# this one can be set on some specific hosts or groups
+prometheus_job_secondary_labels_static: []
+
+
+# same as _labels_static but instead of labels values, variable names will be provided and search into each host hostvars to retrieve the host value, if defined.
+# Otherwise the value will be set to "unknown"
+# Only applies to some exporters jobs (nodes, all db, jmx, all webservers), and kipped on the others jobs
+# notice: ansible_system, ansible_os_family and ansible_distribution are already applied when available
+# syntax:
+#  - name: "var_name1"
+#  - another: "var_name2"
+prometheus_job_all_labels_variable_name:
+  # set the environment if available
+  - env: "envir_type_short"
+
+
+# list of label inserted only when communicating with external systems (federation, remote storage, Alertmanager)
+# the usage is the same as "_all_labels", with the purpose to reduce the amount of labels when they are not mandatory
+prometheus_job_external_labels_static: []
+
+
+# list of remote blackbox instances - default to localhost
+# The blackbox probe is the agent for the certificate, website, icmp, and other jobs
+# If multiple instances are listed, the role does not support specific configurations, the exact same jobs will be executed on all of them (with an extra tag for distinction)
+# example:
+#  - "localhost"
+#  - "remote.domain.tld"
+prometheus_job_blackbox: [ '127.0.0.1' ]
+
+
+# node job -------------------------------------------------
+# list of hosts (Linux & Windows) to monitor for the usual system metrics (cpu, ram, network, ...)
+prometheus_job_node:
+  - "{{ groups['all'] }}"
+
+# list of group prefixes to search for in each host groups
+# and print them as extra labels
+prometheus_job_node_labels_group_filter: []
+# examples:
+#  - "app-'
+#  - 'db-'
+#  - 'sys-docker'
+
+
+# database job ---------------------------------------------
+# list of host to monitor for each db engine
+#
+# for mysql hosts
+prometheus_job_db_mysql: []
+# for postgresql hosts
+prometheus_job_db_pgsql: []
+# for mongodb hosts
+prometheus_job_db_mongo: []
+# for oracle db hosts
+prometheus_job_db_oracle: []
+
+
+# webservers job -------------------------------------------
+# list of host to monitor for each web server
+#
+# for apache hosts
+prometheus_job_web_apache: []
+
+
+# snmp job -------------------------------------------------
+# list of device to monitor using snmp protocol
+# notice: if the community is not 'public', and/or auth is required, another mibs yaml file must be generated
+# more information here : https://github.com/prometheus/snmp_exporter/issues/762
+# example:
+#   - name: "some-name"
+#     target: "1.2.3.4"
+#
+#   - name: "another"
+#     target: "device.local"
+#     module: "custom_mib"
+#     labels:
+#       - location: "basement"
+#
+prometheus_job_snmp: []
+
+
+# website job ----------------------------------------------
+# list of website urls to monitor - extra labels are supported
+# example:
+#   - name: "domain"
+#     url: "https://domain.tld"
+#
+#   - name: "corp"
+#     url: "http://my.corp-domain.tld"
+#     labels:
+#       - service: "my"
+#
+prometheus_job_website: []
+# set a different scrape/collect interval
+prometheus_job_website_scrape_interval: "{{ prometheus_scrape_interval }}"
+
+
+# certificate job ------------------------------------------
+# list of remote targets to monitor using a tls connection
+# Notice: the website job also retrieve certificate informations - use this only for non-https target (like smtp, dns-doh, ...)
+# example:
+#   - name: "domain"
+#     target: "domain.tld:443"
+#
+#   - name: "my.corp-domain.tld"
+#     target: "10.20.30.1:9043"
+#     labels:
+#       - service: "my"
+#
+prometheus_job_certificate: []
+# set a different scrape/collect interval
+prometheus_job_certificate_scrape_interval: "{{ prometheus_scrape_interval }}"
+
+
+# icmp job -------------------------------------------------
+# list of remote targets to monitor using icmp  - extra labels are supported
+# example:
+#   - name: "domain"
+#     target: "domain.tld"
+#
+#   - name: "router"
+#     target: "10.20.30.1"
+#     labels:
+#       - service: "mylabel"
+#
+prometheus_job_icmp: []
+# set a different scrape/collect interval
+prometheus_job_icmp_scrape_interval: "{{ prometheus_scrape_interval }}"
+
+
+# Java JMX job ---------------------------------------------
+# list of java instances to monitor using the jmx exporter agent - extra labels are supported
+# the role will search for all variables using an inventory group name and ending with '_exporter_jmx'
+# Each server must also be a member of the inventory groups
+#
+# syntax:
+# <inventory_group_name>_exporter_jmx:
+#   name: "application name"      # name of the application or module
+#   port: 9090                    # main network port of the application or module
+#   exporter_port: 9990           # port for the prometheus JMX exporter
+#   exporter_host: sub.domain.tld # optional, default to the server name, use this in case it must use a different name or ip
+#   group: "application group"    # optional, name of the application group with multiple jvm running together
+#   labels:                       # optional, list of labels to add to the metrics
+#     - mylabel: "lab1"
+#
+# <inventory_group_name_2>_exporter_jmx:
+#   name: "..."
+#    ...
+#
+
+
+# smokeping job --------------------------------------------
+# list of remote smokeping instance to collect  - extra labels are supported
+# Notice: this is the smokeping agents, the remote hosts to monitor must be declared on the smokeping agent side
+# example:
+#   - name: "prometheus"
+#     target: "localhost:9374"
+#
+#   - name: "outside"
+#     target: "10.20.30.45:9374"
+#     labels:
+#       - service: "mylabel"
+#
+prometheus_job_smokeping: []
+# set a different scrape/collect interval
+prometheus_job_smokeping_scrape_interval: "{{ prometheus_scrape_interval }}"
+
+
+# pushgateway job ------------------------------------------
+# list of remote pushgateway instances to collect
+# example:
+#  - "localhost"
+#  - "remote.domain.tld"
+#
+prometheus_job_pushgateway: []
+
+
+# grafana job ----------------------------------------------
+# list of remote grafana instances to collect
+# example:
+#   - name: "myServer"
+#     target: "localhost:3000"
+#
+#   - name: "myOtherServer"
+#     target: "remote-server:53000"
+#
+#   - name: "myPublicServer"
+#     # port is mandatory on the target
+#     target: "remote-server-proxy:443"
+#
+prometheus_job_grafana: []
+# use https to connect to all grafana instances - this cannot be set per instance
+prometheus_job_grafana_ssl: no
+# disable certificate checks
+prometheus_job_grafana_ssl_insecure_skip_verify: no
+
+
+# custom job ----------------------------------------------
+prometheus_job_raw_settings: []
+

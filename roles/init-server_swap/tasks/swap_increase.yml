@@ -1,0 +1,44 @@
+---
+
+- name: system | swap - validate free space on the filesystem
+  fail: msg="The filesystem {{ system_swap_file |dirname }} does not have enough free space ( {{ task_swap_device_size_increase_mb }}mb requested for {{ task_swap_file_fs_size_mb }}mb left )"
+  when: task_swap_device_size_increase_mb|int > task_swap_file_fs_size_mb|int
+
+
+# order in format() is important : size_mb, file
+- name: system | swap - allocate additional swapfile
+  shell: "{{ role_swap_dist.allocate_cmd_format | format( item.size_increase_mb|int, item.swapfile ) }}"
+  with_items:
+    - { swapfile: "{{ task_swap_device_file_increase }}", size_increase_mb: "{{ task_swap_device_size_increase_mb }}", total_mb: "{{ system_swap_size_mb }}" }
+  register: task_swap_allocate
+  become: true
+
+
+#- debug: var=task_swap_allocate
+
+
+- name: system | swap - activate new swapfile
+  shell:
+    cmd: >
+      chmod 600 {{ task_swap_device_file_increase }}
+      && mkswap {{ task_swap_device_file_increase }}
+      && swapon {{ task_swap_device_file_increase }}
+    warn: false
+  become: true
+
+
+- name: system | swap - add fstab entry
+  mount:
+    src: "{{ task_swap_device_file_increase }}"
+    name: "{{ role_swap_dist.mount_name }}"
+    fstype: swap
+    opts: sw
+    # only add to fstab with 'present', the mount is already done with the 'swapon' cmd
+    state: present
+  become: true
+
+
+- name: system | swap - refresh swap facts
+  setup:
+    gather_subset: [ "hardware" ]
+

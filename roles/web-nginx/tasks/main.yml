@@ -1,0 +1,90 @@
+---
+
+# The .extend() in "if var.extend(value) %}{% endif" is a jinja2 v2.9- hack to insert data in a loop. Check namespace for jinja2 v2.10+
+# The .extend() is set to ([ ]) to add the variable as a new entry in a dict
+# the >- expands the following lines as a string, while removing the carriage return.
+- name: webserver nginx | http vhost - concatenate inventory group variables
+  set_fact:
+    task_web_nginx_merged: >-
+      {%- set groupSuffix = '_nginx' -%}
+      {%- set loopOutput = task_web_nginx_merged |default( [] ) -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( [ hostvars[inventory_hostname][loopGroup + groupSuffix] ] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput |flatten }}
+
+# - debug: var=task_web_nginx_merged
+
+
+- name: webserver nginx | stream server - concatenate inventory group variables
+  set_fact:
+    task_web_nginx_stream_merged: >-
+      {%- set groupSuffix = '_stream_nginx' -%}
+      {%- set loopOutput = task_web_nginx_stream_merged |default( [] ) -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( [ hostvars[inventory_hostname][loopGroup + groupSuffix] ] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput |flatten }}
+
+# - debug: var=task_web_nginx_stream_merged
+
+
+# When an error in the syntax is present under group_vars or host_vars, it's possible ansible won't report it
+# The error message won't be clear, but still contains the bad item name.
+- name: webserver nginx | check merged variables validity
+  fail:
+    msg: "one of the <group>_nginx or <group>_stream_nginx variable is not correctly defined, or is missing an entry in the vault"
+  when: >
+    task_web_nginx_merged is not defined
+    or task_web_nginx_stream_merged is not defined
+
+
+- name: webserver nginx | selinux - detect presence
+  stat:
+    path: "{{ role_nginx_selinux.detect_cmd }}"
+    get_checksum: no
+  register: task_selinux_status
+  changed_when: false
+
+
+# import section
+- name: webserver nginx | selinux - load dedicated task
+  include_tasks: system_selinux.yml
+  when: task_selinux_status.stat.exists |default(false) |bool
+
+
+- import_tasks: system_install-dir-conf.yml
+
+- import_tasks: config_general-modules.yml
+
+- import_tasks: config_websites.yml
+
+
+# cannot be done before as the configuration is validated as a whole
+- name: webserver nginx | validate configuration
+  command: "/usr/sbin/nginx -t"
+  changed_when: false
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+# Role certificate_push_private generate a fact if a change occured to a certificate
+- name: webserver nginx | stop the service in case of certificate renewal
+  service:
+    name: "nginx"
+    state: "stopped"
+  when: _certificate_push_private_status is defined and _certificate_push_private_status is changed
+
+
+- name: webserver nginx | enable and start the service
+  service:
+    name: "nginx"
+    state: "{{ nginx_global_service_state }}"
+    enabled: "{{ nginx_global_service_enabled }}"
+

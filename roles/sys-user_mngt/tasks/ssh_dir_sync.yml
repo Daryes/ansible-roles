@@ -1,0 +1,23 @@
+---
+
+- name: User mgr | create SSH keys global directory
+  file: path={{ user_mngt_sync_ssh_keys_dir_dest }} state=directory mode=0755 owner=root group=root
+  when: user_mngt_sync_ssh_keys_dir_dest |length > 0
+
+
+# rsync ssh keys, but copy symlinks as the dest files, and not as links
+- name: User mgr | Sync SSH keys to global directory (full sync)
+  synchronize:
+    src: "{{ user_mngt_sync_ssh_keys_ansible_source }}/"
+    dest: "{{ user_mngt_sync_ssh_keys_dir_dest }}/"
+    mode: push
+    delete: yes
+    archive: no
+    copy_links: yes
+    perms: yes
+    dirs: yes
+    times: yes
+  when: >
+    user_mngt_sync_ssh_keys_ansible_source |length > 0
+    and  user_mngt_sync_ssh_keys_dir_dest |length > 0
+

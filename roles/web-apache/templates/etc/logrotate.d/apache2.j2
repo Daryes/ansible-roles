@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+
+{{ role_apache_dist.log }}/*.log {
+    daily
+    rotate 14
+    copytruncate
+
+    compress
+    delaycompress
+
+    missingok
+    notifempty
+
+    dateext
+    dateyesterday
+
+    create 0640 {{ role_apache_dist.log_user }} {{ role_apache_dist.log_group }}
+    sharedscripts
+}
+

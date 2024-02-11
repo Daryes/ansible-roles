@@ -1,0 +1,70 @@
+---
+
+# ---------------------------------------------
+# user management
+# idea : https://github.com/singleplatform-eng/ansible-users
+
+
+# create global groups
+- name: User mgr | global groups creation
+  group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid | default(omit) }}"
+  with_items: "{{ groups_to_create_all }}"
+
+
+# create users groups
+- name: User mgr | Per-username group creation
+  group:
+    name: "{{ item.username }}"
+    gid: "{{ item.gid | default(item.uid) | default(omit) }}"
+  with_items:
+    - "{{ users_accounts_all }}"
+    - "{{ users_accounts_host }}"
+    - "{{ task_users_accounts_merged }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : user={{ item.username }}"
+  when: >
+    item.username is defined
+    and not item.skip_create_user |default(false) |bool
+    and item.username_as_group |default(false) |bool
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+
+
+# note : only if current server is in target_hosts or not in skip_hosts (when defined)
+- name: User mgr | user creation
+  user:
+    name: "{{ item.username }}"
+    uid: "{{ item.uid | default(omit) }}"
+    group: "{{ item.group | default(item.username if item.username_as_group|default(false) else users_default_group) }}"
+    # an empty string in groups removes the user from all secondary groups
+    groups: "{{ item.groups | join(',') if item.groups is defined else omit }}"
+    append: "{{ item.groups_append |default(omit) }}"
+    home: "{{ item.homedir | default(omit) }}"
+    create_home: "{{ item.create_homedir |default('no') }}"
+    shell: "{{ item.shell |default(users_default_shell) }}"
+    password: "{{ item.password |default(omit) }}"
+    password_lock: "{{ item.password_lock |default(omit) }}"
+    update_password: "{{ item.update_password |default('on_create') }}"
+    comment: "{{ item.name |default('') }}"
+    generate_ssh_key: "{{ item.generate_ssh_key |default(omit) }}"
+    ssh_key_comment: "{{ item.ssh_key_comment | default(item.username + '@' + inventory_hostname) }}"
+    ssh_key_passphrase: "{{ item.ssh_key_passphrase |default(omit) }}"
+    system: "{{ item.system_user |default(omit) }}"
+    expires: "{{ item.expires | default(omit) }}"
+    local: "{{ item.local | default(omit) }}"
+    force: no
+  with_items:
+    - "{{ users_accounts_all }}"
+    - "{{ users_accounts_host }}"
+    - "{{ task_users_accounts_merged }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : user={{ item.username }}"
+  when: >
+    item.username is defined
+    and not item.skip_create_user |default(false) |bool
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+  become: yes
+

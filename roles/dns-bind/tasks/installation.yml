@@ -1,0 +1,54 @@
+---
+
+# install system packages
+- include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "Bind DNS"
+    arg_install_packages: "{{ role_bind_install_packages }}"
+
+
+# there is a catch22 with bind and the rdnc utility to reload the configuration.
+# on RHEL, bind isn't started at the end of the first installation, but rndc cannot work if the service isn't up
+# => check the service state, and skip rdnc handler if it is not started
+- name: Bind DNS | system  - retrieve service status
+  shell: "service {{ role_bind_dist.service }} status"
+  args:
+    warn: no
+  register: task_service_status_for_rndc
+  changed_when: false
+  failed_when: false
+
+
+- name: BIND DNS | system - directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: no
+  with_items:
+    - { path: "{{ role_bind_dist.etc }}",             owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "{{ role_bind_dist.etc_mode }}" }
+    - { path: "{{ role_bind_dist.etc }}/zones.d",     owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "{{ role_bind_dist.etc_mode }}" }
+    - { path: "{{ role_bind_dist.cache }}/data",      owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0750" }
+    - { path: "{{ role_bind_dist.cache }}/transfers", owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0750" }
+    - { path: "{{ role_bind_dist.cache }}/dynamic",   owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0750" }
+    - { path: "{{ role_bind_dist.log }}",             owner: "{{ role_bind_dist.log_user }}",  group: "{{ role_bind_dist.log_group }}",  mode: "{{ role_bind_dist.log_mode }}" }
+
+
+- name: BIND DNS | system - adjust existing files owner and mode
+  file:
+    path: "{{ item.path }}"
+    state: "file"
+    owner: "{{ item.owner |default(omit) }}"
+    group: "{{ item.group |default(omit) }}"
+    mode: "{{ item.mode |default(omit) }}"
+    recurse: no
+    # do not change the time information
+    modification_time: preserve
+    access_time: preserve
+  with_items:
+    # the file is generated on installation - the owner is always root
+    # a bug exists on Debian where the owner is not root and can cause access errors
+    - { path: "{{ role_bind_dist.etc_rndc_key }}",  owner: "root", group: "{{ role_bind_dist.group }}" }
+

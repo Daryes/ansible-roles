@@ -1,0 +1,62 @@
+---
+
+# mandatory system packages
+role_webserver_nginx_install_packages:
+  common:
+    - "nginx"
+  debian:
+    - "nginx-common"
+  redhat: []
+
+
+# mandatory defaut vhost
+role_nginx_default_sites:
+  - server_name: "default"
+    site_vhost_template: "templates/etc/nginx/sites-available/default.j2"
+    site_vhost_standalone: True
+
+  - server_name: "server-status"
+    site_vhost_template: "templates/etc/nginx/sites-available/server-status.conf.j2"
+    site_vhost_standalone: True
+
+
+# default system log directory
+role_nginx_log: "/var/log/nginx"
+
+
+# setting differences between distrib families
+role_nginx_dist_family:
+  debian:
+    user: "www-data"
+    log_user: "www-data"
+    log_group: "adm"
+    logrotate_post: "/bin/kill -USR1 `cat /run/nginx.pid 2>/dev/null` 2>/dev/null || true"
+    module_enabled: "/etc/nginx/modules-enabled"
+    web_root: "/var/www/html"
+
+  redhat:
+    user: "nginx"
+    log_user: "root"
+    log_group: "root"
+    logrotate_post: "/bin/kill -USR1 `cat /run/nginx.pid 2>/dev/null` 2>/dev/null || true"
+    module_enabled: "/usr/share/nginx/modules"
+    web_root: "/usr/share/nginx/html"
+
+role_nginx_dist:
+  user: "{{ role_nginx_dist_family[ ansible_os_family |lower ].user }}"
+  log_user: "{{ role_nginx_dist_family[ ansible_os_family |lower ].log_user }}"
+  log_group: "{{ role_nginx_dist_family[ ansible_os_family |lower ].log_group }}"
+  logrotate_post: "{{ role_nginx_dist_family[ ansible_os_family |lower ].logrotate_post }}"
+  module_enabled: "{{ role_nginx_dist_family[ ansible_os_family |lower ].module_enabled }}"
+  web_root: "{{ role_nginx_dist_family[ ansible_os_family |lower ].web_root }}"
+
+
+# selinux handling
+role_nginx_selinux:
+  detect_cmd: "/sbin/getenforce"
+  status_active_regex: "[Ee]nforc(ed|ing)"
+  setype_http: "http_port_t"
+  rules:
+    - "httpd_can_network_connect"
+    # - "httpd_can_network_connect_db"
+

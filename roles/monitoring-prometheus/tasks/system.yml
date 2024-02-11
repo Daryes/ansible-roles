@@ -1,0 +1,73 @@
+---
+
+- name: Monitoring Prometheus | system - create directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: no
+  with_items:
+    - { path: "{{ role_prometheus_dist.conf }}" }
+    - { path: "{{ role_prometheus_dist.conf_d }}" }
+    - { path: "{{ role_prometheus_dist.conf }}/alertmanager_templates" }
+    - { path: "{{ role_prometheus_dist.conf }}/consoles" }
+    - { path: "{{ role_prometheus_dist.conf }}/console_libraries" }
+    - { path: "{{ role_prometheus_dist.conf }}/alertmanager_templates" }
+    - { path: "{{ prometheus_data_dir }}",                                                      owner: "{{ role_prometheus_dist.user }}",  mode: "0755" }
+    - { path: "{{ prometheus_data_dir }}/{{ role_prometheus_dist.data_subdir }}",               owner: "{{ role_prometheus_dist.user }}",  mode: "0750" }
+    - { path: "{{ prometheus_data_dir }}/{{ role_prometheus_dist.alertmanager_data_subdir }}",  owner: "{{ role_prometheus_dist.user }}",  mode: "0750" }
+    - { path: "{{ role_prometheus_dist.log }}",  owner: "{{ role_prometheus_dist.log_user }}",  group: "{{ role_prometheus_dist.log_group }}" }
+  become: yes
+
+
+- name: Monitoring Prometheus | system - install logrotate and perf tweaks
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ item.dest |default(item.file) }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { file: "/etc/sysctl.d/91-monitoring-net-perfs.conf" }
+    - { file: "/etc/logrotate.d/prometheus" }
+    - { file: "/etc/logrotate.d/prometheus-alertmanager" }
+  loop_control:
+    label: "file: {{ item.dest |default(item.file) }}"
+  notify: "reload sysctl"
+  become: yes
+
+
+# separated as the handler must be called only when required
+- name: Monitoring Prometheus | system - install service files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ item.dest |default(item.file) }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { file: "/etc/systemd/system/{{ role_prometheus_dist.service }}" }
+    - { file: "{{ role_prometheus_dist.service_conf }}" }
+  loop_control:
+    label: "file: {{ item.dest |default(item.file) }}"
+  notify: [ "reload systemd-daemon", "stop prometheus" ]
+  become: yes
+
+
+- name: Monitoring Prometheus | system - install alertmanager service files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ item.file }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { file: "/etc/systemd/system/{{ role_prometheus_dist.alertmanager_service }}" }
+    - { file: "{{ role_prometheus_dist.alertmanager_service_conf }}" }
+  loop_control:
+    label: "file: {{ item.dest |default(item.file) }}"
+  notify: [ "reload systemd-daemon", "stop alertmanager" ]
+  become: yes
+

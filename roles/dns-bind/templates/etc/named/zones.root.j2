@@ -1,0 +1,23 @@
+// {{ ansible_managed }}
+// ref: debian package
+
+zone "." {
+{% if bind_zone_root_use_forwarders |bool %}
+        // forward unknown queries to external dns
+        type forward;
+
+{%   if bind_forwarders |length > 0 %}
+        forward only;
+        forwarders {
+{%     for loopIp in bind_forwarders |flatten %}
+            {{ loopIp }};
+{%     endfor %}
+        };
+{%   endif %}
+{% else %}
+	// prime the server with knowledge of the root servers
+        type hint;
+
+        file "{{ role_bind_files.etc_root_hints }}";
+{% endif %}
+};

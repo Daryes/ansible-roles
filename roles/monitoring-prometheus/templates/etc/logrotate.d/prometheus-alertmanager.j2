@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+{{ role_prometheus_dist.log }}/alertmanager.log {
+    daily
+    rotate {{ prometheus_syslog_history_days }}
+    copytruncate
+
+    missingok
+    notifempty
+
+    compress
+    delaycompress
+
+    dateext
+    dateyesterday
+}

@@ -1,0 +1,113 @@
+---
+
+# grafana admin credentials on first installation
+role_grafana_admin_user_default: "admin"
+role_grafana_admin_pass_default: "admin"
+
+
+role_grafana_config_settings_force:
+  - section: "analytics"
+    param: "reporting_enabled"
+    value: "false"
+
+  - section: "analytics"
+    param: "check_for_updates"
+    value: "false"
+
+  - section: "analytics"
+    param: "check_for_plugin_updates"
+    value: "false"
+
+  - section: "analytics"
+    param: "feedback_links_enabled"
+    value: "false"
+
+  # given both jscript and data sizes, you really don't want gzip off
+  - section: "server"
+    param: "enable_gzip"
+    value: "true"
+
+  - section: "auth.anonymous"
+    param: "hide_version"
+    value: "true"
+
+  - section: "metrics"
+    param: "enabled"
+    value: "{{ grafana_config_metrics |bool |string |lower }}"
+
+  - section: "metrics"
+    param: "basic_auth_username"
+    value: "{{ grafana_config_metrics_basic_auth_username }}"
+
+  - section: "metrics"
+    param: "basic_auth_password"
+    value: "{{ grafana_config_metrics_basic_auth_password }}"
+
+  # annotations maximum age
+  - section: "alerting"
+    param: "max_annotation_age"
+    value: "{{ grafana_config_annotations_alerting_max_age }}"
+
+  - section: "annotations.dashboard"
+    param: "max_age"
+    value: "{{ grafana_config_annotations_dashboard_max_age }}"
+
+  - section: "annotations.api"
+    param: "max_age"
+    value: "{{ grafana_config_annotations_api_max_age }}"
+
+  # smtp configuration
+  - section: "smtp"
+    param: "enabled"
+    value: "{{ grafana_config_smtp |bool |string |lower }}"
+
+  - section: "smtp"
+    param: "host"
+    value: "{{ grafana_config_smtp_host }}"
+
+  - section: "smtp"
+    param: "user"
+    value: "{{ grafana_config_smtp_user }}"
+
+  - section: "smtp"
+    param: "password"
+    value: "{{ grafana_config_smtp_password }}"
+
+  - section: "smtp"
+    param: "from_address"
+    value: "{{ grafana_config_smtp_from_address }}"
+
+  - section: "smtp"
+    param: "from_name"
+    value: "{{ grafana_config_smtp_from_name }}"
+
+  - section: "smtp"
+    param: "startTLS_policy"
+    value: "{{ grafana_config_smtp_tls_starttls }}"
+
+  - section: "smtp"
+    param: "skip_verify"
+    value: "{{ grafana_config_smtp_tls_skip_verify |bool |string |lower }}"
+
+
+# grafana sensitive config parameters
+# they will be hidden on ansible log output
+role_config_params_hide_value:
+  - 'password'
+  - 'admin_password'
+  - 'basic_auth_password'
+  - 'client_id'
+  - 'client_secret'
+  - 'secret_key'
+  - 'account_key'
+  - 'api_key'
+  - 'api_token'
+  - 'login_hint'
+  - 'password_hint'
+  - 'renderer_token'
+
+
+# grafana user roles in Organizations
+# case is important
+role_grafana_organization_roles: [ "Admin", "Editor", "Viewer" ]
+

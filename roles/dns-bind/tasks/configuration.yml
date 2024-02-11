@@ -1,0 +1,65 @@
+---
+
+- name: Bind DNS | config - install system files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ item.dest |default(item.file) }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner |default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { file: "/etc/logrotate.d/named" }
+    - { file: "{{ role_bind_dist.service_config }}" }
+  loop_control:
+    label: "file: {{ item.dest |default(item.file) }}"
+  notify: restart bind
+
+
+- name: Bind DNS | config - install files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ var_file_dest }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  vars:
+    var_file_dest: "{{ item.file |replace('/etc/named', role_bind_dist.etc ) }}"
+  with_items:
+    - { file: "/etc/named/named.conf",          owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/named.conf.options",  owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/named.conf.acls",     owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/named.conf.logs",     owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/named.conf.raw",      owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/named.conf.zones",    owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/zones.root",          owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/zones.d/default.zone-empty.db",       owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/zones.d/default.reverse-empty.db",    owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/zones.d/default.zone-localhost.db",   owner: "root",  group: "{{ role_bind_dist.group }}" }
+    - { file: "/etc/named/zones.d/default.reverse-127.db",      owner: "root",  group: "{{ role_bind_dist.group }}" }
+  loop_control:
+    label: "{{ var_file_dest }}"
+  notify: ['validate bind config', 'reload bind' ]
+
+
+# loop over bind_zones_dns - each entry has a single template
+# notice: the usual 'item' variable is renamed to 'thisDnsZone' for readability as it is accessible inside the template
+- name: Bind DNS | config - install zones templates
+  template:
+    src: "{{ thisDnsZone.zone_template }}"
+    dest: "{{ role_bind_dist.etc }}/zones.d/{{ var_dns_zone_name }}.{{ thisDnsZone.zone_type }}"
+    owner: "root"
+    group: "{{ role_bind_dist.group }}"
+    mode: "{{ thisDnsZone.zone_template_mode |default('0644') }}"
+    # validate the .db files with checkzone
+    validate: "/bin/bash -c \"if [ '{{ thisDnsZone.zone_type }}' =='db' ]; then /usr/sbin/named-checkzone {{ var_dns_zone_name }} %s; fi\""
+  with_items:
+    - "{{ bind_zones_dns }}"
+  vars:
+    # remove any . at the end of the name
+    var_dns_zone_name: "{{ thisDnsZone.name |regex_replace('\\.$', '') }}"
+  when: thisDnsZone.zone_type in [ 'zone', 'db', 'reverse' ]
+  loop_control:
+    loop_var: thisDnsZone
+    label: "{{ var_dns_zone_name }} => type: {{ thisDnsZone.zone_type }} => file: {{ thisDnsZone.zone_template }}"
+  notify: ['validate bind config', 'reload bind' ]
+

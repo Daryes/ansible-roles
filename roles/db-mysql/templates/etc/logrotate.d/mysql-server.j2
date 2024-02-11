@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+
+/var/log/mysql.log
+{{ role_mysql_dist.log }}/*.log {
+        daily
+        rotate {{ mysql_system_log_rotate_days }}
+        copytruncate
+
+        compress
+        delaycompress
+
+        missingok
+
+        dateext
+        dateyesterday
+        create 640 {{ role_mysql_dist.log_user }} {{ role_mysql_dist.log_group }}
+}
+

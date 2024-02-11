@@ -1,0 +1,16 @@
+---
+# {{ ansible_managed }}
+
+# list of remote addresses monitored by prometheus' blackbox using the icmp module
+{% for loopHost in prometheus_job_icmp |default([]) |flatten %}
+
+- targets: [ '{{ loopHost.target }}' ]
+  labels:
+    # target name
+    name: '{{ loopHost.name }}'
+{#  # import extra template  #}
+{%  include 'labels-inventory.include.j2' %}
+    # specific url labels
+    {{ loopHost.labels |default([]) |flatten |to_nice_yaml(indent=0) |regex_replace('- |\[|\]', '') |indent(4) }}
+{% endfor %}
+

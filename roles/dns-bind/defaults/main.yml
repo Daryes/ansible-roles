@@ -1,0 +1,123 @@
+---
+# Bind Named DNS default settings
+
+# listen ip addresses - default to localhost IPv4+v6 only
+# change it to "0.0.0.0/0" or any specific ip
+# "0.0.0.0" without /0 will listen to localhost only
+# "any" is accepted for all available ip
+# "none" is accepted to disable listening for the protocol
+bind_listen_ipv4_list:
+  - "127.0.0.1"
+
+bind_listen_ipv6_list:
+  - "none"
+
+# default dns port
+bind_listen_port: 53
+
+# extra service options
+bind_service_options: ""
+
+
+# extra configuration settings
+# each line is taken as-is, must be terminated with a ";" when required
+bind_raw_settings: []
+
+
+# maximum memory for an individual cache database per view - can be a percent (default: 90%) or absolute memory size (ex: 256M)
+# requires Bind 9.16+, leave empty on a lower version to prevent an unknown parameter error
+bind_cache_max_size: ""
+
+
+# cache duration (in seconds) - might be silently trucated by bind to 90 sec
+bind_cache_max_ttl: ""
+
+
+# dns external forwarders
+# If set to your ISP or any public ns IP, this can provide resolution for internet zones
+# For more specific settings, use a dedicated template
+# example:
+#   - "8.8.8.8"
+#   - "9.9.9.9"
+bind_forwarders: []
+
+
+# Set forwarders using the default "." zone
+# This will use forwarders for unknown zones - this is the usual configuration using your provider's dns
+# Notice: don't forget to fill _recursion_allow_acls
+bind_zone_root_use_forwarders: yes
+
+
+# Set the forwarders globally - exclusive with _zone_root_use_forwarders
+# Notice: requests are sent first to the forwarders before being answered locally - use this only for a cache server
+bind_options_forwarders_global: no
+# if _forwarders_global is activated, don't search on local zones, only use the forwarders (and cache)
+bind_options_forwarders_global_forward_only: yes
+
+
+# activate automatic empty zones for rfc1918 and rfc1912 zones shouldn't be required as the rfc6303 is natively implemented since 9.6
+bind_options_empty_zones: yes
+# the rfc6303 is natively implemented since 9.6 but sometimes the empty zones are still not automatically created
+bind_option_empty_zones_rfc1918_force_load: no
+
+
+# additional acl definitions
+# example:
+#  - name: "my_name"
+#    addresses:
+#      - "192.168.1.0/24"
+#      - "192.168.0.0/16"
+#  - name: "other acl"
+#    ...
+bind_acl_definitions: []
+
+
+# acl for the local network
+# name: acl_local_net
+# value: the default setting reuses the ansible_default_ipv4 fact, which should be the first network interface.
+# examples
+#   - "192.168.0.0/24"
+#   - "10.0.0.0/16"
+#
+# splited in a separate parameter for reusability purpose
+bind_acl_local_range_ansible_fact: "{{ (ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask) | ipaddr('network/prefix') }}"
+bind_acl_local_addresses:
+  - "{{ bind_acl_local_range_ansible_fact }}"
+
+
+# Additional templates
+# they will be set under /etc/bind/zones.d/ using the "name" property as the filenames
+# supported type : "zone", "db", "reverse"
+# the minimum is a "zone" file.
+# the "db" or "reverse" must have also a "zone" file.
+# "reverse" is not required
+#
+# examples:
+#  - name: "mysub.domain.tld"
+#    file: "templates/etc/named/zones.d/sample.domain.zone.j2"
+#    type: "zone"
+#  - name: "mysub.domain.tld"
+#    file: "templates/etc/named/zones.d/sample.domain.db.j2"
+#    type: "db"
+#  - name: "another.doma.in"
+#    file: ...
+bind_zones_dns: []
+
+
+# general transfert zones - accepted acl
+# list of acl authorized to ask for zone transferts for all zones (unless if redefined in a zone)
+bind_option_transfert_allow_acls:
+  - "none"
+
+# general query - accepted acl
+# list of acl allowed to query the server for all zones (unless if redefined in a zone)
+bind_options_query_allow_acls:
+  - "acl_local_network"
+
+
+# general query recursion - accepted acl
+# list of acl allowed to ask for recursive query to the server for all zones (unless if redefined in a zone)
+# notice: this is required when using forwarders
+bind_options_query_recursion_allow_acls:
+  - "acl_local_network"
+

@@ -1,0 +1,26 @@
+---
+
+# used for filling ansible arch shortcoming
+role_system_arch_mapping:
+  i386: '386'
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armhf'
+  armv6l: 'armv6'
+
+role_system_arch: "{{ role_system_arch_mapping[ ansible_architecture ] |default(ansible_architecture) }}"
+
+
+# prometheus packages ref: https://prometheus.io/download/
+# yamllint disable-line rule:line-length
+role_prometheus_package_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ ansible_system |lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_alertmanager_package_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_version }}/alertmanager-{{ prometheus_alertmanager_version }}.{{ ansible_system |lower }}-{{ role_system_arch }}.tar.gz"
+
+
+# requirement packages
+role_prometheus_requirement_packages:
+  common: []
+  debian: []
+  redhat: []
+

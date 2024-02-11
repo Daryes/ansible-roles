@@ -1,0 +1,49 @@
+// {{ ansible_managed }}
+logging {
+
+        channel debug_log {
+                file "{{ role_bind_dist.log }}/debug.log";
+                severity debug 0;       // use 1 for ns request, 3 if debug is required
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+        channel query_log {
+                file "{{ role_bind_dist.log }}/query.log";
+                // severity warning;
+                severity dynamic;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        channel bind_log {
+                file "{{ role_bind_dist.log }}/bind.log";
+                severity warning;       // info
+                print-time yes;
+                print-category  yes;
+                print-severity  yes;
+        };
+
+        channel transfer_log {
+                file "{{ role_bind_dist.log }}/transfer.log";
+                severity info;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+
+        // syslog instead:  category default { default_syslog; default_debug; };
+        category default { bind_log; };
+        category config { bind_log; };
+        category general { bind_log; };
+        category resolver { debug_log; };
+        category security { debug_log; };
+        // uncomment queries only when required
+        // category queries { query_log; };
+        category xfer-in  { transfer_log; };
+        category xfer-out { transfer_log; };
+        category unmatched { null; };
+};
+

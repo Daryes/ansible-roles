@@ -1,0 +1,8 @@
+---
+
+- name: Linux | distrib Rocky - add support
+  set_fact:
+    cacheable: yes
+    ansible_os_family: "Redhat"
+    ansible_distribution: "CentOS"
+

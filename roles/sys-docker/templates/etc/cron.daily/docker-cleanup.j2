@@ -1,0 +1,23 @@
+#!/bin/bash
+# {{ ansible_managed }}
+#
+# Docker clean up of obsolete data
+
+# exit silently if docker is not installed
+if ! command -v docker &>/dev/null; then exit 0; fi
+
+# remove builder cache
+{% if docker_cron_clean_build_cache |bool %}
+sRet=$( docker builder prune --all --force  2>&1 )
+if [ $? -ne 0 ]; then echo "$sRet"; exit 1; fi
+{% else %}
+# => the ansible variable 'docker_cron_clean_build_cache' is not activated
+{% endif %}
+
+# remove stopped containers
+{% if docker_cron_clean_container_stopped |bool %}
+sRet=$( docker container prune --force  2>&1 )
+if [ $? -ne 0 ]; then echo "$sRet"; exit 1; fi
+{% else %}
+# => the ansible variable 'docker_cron_clean_container_stopped' is not activated
+{% endif %}

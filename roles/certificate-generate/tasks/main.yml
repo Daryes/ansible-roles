@@ -1,0 +1,104 @@
+---
+
+- name: Certificate Generate | parameters validation
+  assert:
+    that:
+      - local_ca_type in [ 'variable', 'file' ]
+    fail_msg: "Error: local_ca_type does not have a supported value"
+    quiet: yes
+
+
+- name: Certificate Generate | verify the certificate presence
+  stat: path={{ role_server_certificate_path }}  get_checksum=no  get_mime=no
+  register: task_cert_file_stat
+  changed_when: not task_cert_file_stat.stat.exists
+  become: yes
+
+
+# required as the remote servers do not have the python crypto library required by x509_certificate_info
+# => read the content with slurp, and use it on the _cert_info module
+- name: Certificate Generate | retrieve the public certificate
+  slurp:
+    path: "{{ role_server_certificate_path }}"
+  when: task_cert_file_stat.stat.exists
+  register: task_cert_data
+  become: yes
+
+
+# Notice: starting with ansible v2.10+, the module openssl_certificate_info is renamed to x509_certificate_info
+- name: Certificate Generate | analyze the certificate data
+  community.crypto.x509_certificate_info:
+    content: "{{ task_cert_data.content | b64decode }}"
+    valid_at:
+      valid_next_days: "+7d"
+  ignore_errors: True
+  register: task_cert_infos
+  when: task_cert_file_stat.stat.exists
+  # required as the remote servers do not have the python crypto library
+  delegate_to: localhost
+  become: no
+
+
+- name: Certificate Generate | validate expiration and subject informations
+  assert:
+    that:
+      - task_cert_infos.valid_at.valid_next_days |bool
+      - task_cert_infos.subject['commonName'] |default('') == server_certificate_subject_name
+      - task_cert_infos.subject_alt_name == server_certificate_alt_name
+      - server_certificate_force_replacement |bool == false
+    fail_msg: "Warning: the existing certificate is expired or differs from the parameters - it will be recreated"
+    quiet: yes
+  ignore_errors: True
+  register: task_cert_validity
+  changed_when: task_cert_validity is failed
+  when: task_cert_file_stat.stat.exists
+
+
+- name: Certificate Generate | load the certificate generator
+  include_tasks: certificate_openssl_generate.yml
+  when: >
+    not task_cert_file_stat.stat.exists
+    or task_cert_validity is failed
+
+
+# some webserver require a single file combining the pem and key certificates
+# using splitext returns a filename in 2 elements: [ filename_without_ext, ext]
+- name: Certificate Generate | create combined pem
+  assemble:
+    src: "{{ role_server_certificate_path |dirname }}/"
+    dest: "{{ role_server_certificate_combined_path }}"
+    regexp: "^{{ role_server_certificate_path |basename |splitext |first }}.(pem|key)$"
+  become: yes
+
+
+- name: Certificate Generate | enforce owner and permissions
+  file:
+    path: "{{ item }}"
+    mode: "0600"
+    owner: "{{ server_certificate_owner }}"
+    group: "{{ server_certificate_group |default(server_certificate_owner, true) }}"
+  with_items:
+    - "{{ role_server_certificate_path }}"
+    - "{{ role_server_certificate_privatekey_path }}"
+    - "{{ role_server_certificate_combined_path }}"
+  become: yes
+
+
+- name: Certificate Generate | clean-up cache {{ role_cache_dir }} if requested
+  file:
+    path: "{{ role_cache_dir }}/"
+    state: "absent"
+  when: >
+    server_certificate_delete_certs_in_ansible_cache |bool
+    and role_cache_dir |length > 1
+  delegate_to: localhost
+  run_once: True
+
+
+# create new data as the task variable contains the full certificates and keys
+- name: Certificate Generate | ansible - register execution status in a fact
+  set_fact:
+    _certificate_generate_status: { "changed": "{{ task_status is defined and task_status is changed }}" }
+    cacheable: yes
+  # task_status is registered in the included subtask
+  changed_when: task_status is defined and task_status is changed

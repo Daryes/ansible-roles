@@ -1,0 +1,19 @@
+---
+
+- name: "{{ arg_move_data_comment }} | move data to new location - verify source presence"
+  stat:
+    path: "{{ arg_move_data_source_path }}"
+    get_checksum: no
+    get_mime: no
+  register: task_stat_path_src
+  changed_when: false
+
+
+- name: "{{ arg_move_data_comment }} | move data to new location - verify destination presence"
+  stat:
+    path: "{{ arg_move_data_dest_path }}"
+    get_checksum: no
+    get_mime: no
+  register: task_stat_path_dest
+  changed_when: false
+

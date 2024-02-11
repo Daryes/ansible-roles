@@ -1,0 +1,6 @@
+---
+
+- name: "{{ arg_install_comment }} | pkg down+install - default installer for unsupported distribution"
+  fail:
+    msg: "FAILURE: not supported, the ansible facts were : family({{ ansible_os_family|lower }}) dist({{ ansible_distribution|lower }}) dist_version({{ ansible_distribution_version }})"
+

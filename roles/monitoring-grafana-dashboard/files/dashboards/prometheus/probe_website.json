@@ -1,0 +1,872 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 31,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [
+        "server"
+      ],
+      "targetBlank": false,
+      "title": "Servers",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [
+        "app"
+      ],
+      "targetBlank": false,
+      "title": "Applications",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [
+        "webserver"
+      ],
+      "targetBlank": false,
+      "title": "Webservers",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [
+        "db"
+      ],
+      "targetBlank": false,
+      "title": "Databases",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    },
+    {
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "home"
+      ],
+      "type": "dashboards"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${dsdashboard}"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 42,
+      "links": [],
+      "options": {
+        "content": "<div style=\"text-align:center;font-size:1.3em\" >\n  Domain ${__org.name}\n  <hr style=\"background-image:linear-gradient(to right, goldenrod, firebrick);height:1px;border:0; margin:auto 42%\" />\n  Module web sites\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "9.1.8",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "refId": "A"
+        }
+      ],
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${dsdashboard}"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "id": 44,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "$server - Recap",
+      "type": "row"
+    },
+    {
+      "columns": [],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${dsdashboard}"
+      },
+      "description": "",
+      "filterNull": false,
+      "fontSize": "90%",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "height": "200",
+      "hideTimeOverride": true,
+      "id": 41,
+      "interval": "$probe_interval",
+      "links": [],
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "desc": false
+      },
+      "styles": [
+        {
+          "$$hashKey": "object:615",
+          "alias": "Instance",
+          "align": "auto",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "/instance.*/",
+          "type": "string"
+        },
+        {
+          "$$hashKey": "object:616",
+          "alias": "Error status",
+          "align": "center",
+          "colorMode": "row",
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "decimals": 0,
+          "pattern": "/.*[Ee]rror.*/",
+          "thresholds": [
+            "1"
+          ],
+          "type": "number",
+          "unit": "none"
+        },
+        {
+          "$$hashKey": "object:911",
+          "alias": "Query duration",
+          "align": "center",
+          "colorMode": "row",
+          "colors": [
+            "#32ac2df7",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "/.*http_duration/",
+          "thresholds": [
+            "0.300",
+            ".0.750"
+          ],
+          "type": "number",
+          "unit": "s"
+        },
+        {
+          "$$hashKey": "object:170",
+          "alias": "Last modification",
+          "align": "center",
+          "colorMode": "cell",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "#32ac2df7"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "link": false,
+          "mappingType": 1,
+          "pattern": "/.*http_last_modified/",
+          "thresholds": [
+            "3888000",
+            "1296000"
+          ],
+          "type": "number",
+          "unit": "ms"
+        },
+        {
+          "$$hashKey": "object:2145",
+          "alias": "http version",
+          "align": "center",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "/.*http_version/",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:2415",
+          "alias": "Redirect count",
+          "align": "center",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "/.*http_redirect/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "probe_http_duration_seconds{geo=\"$geodc\",instance_hostname=\"$server\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "http_duration"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "probe_http_redirects{geo=\"$geodc\",instance_hostname=\"$server\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "http_redirect"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "probe_http_last_modified_timestamp_seconds{geo=\"$geodc\",instance_hostname=\"$server\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "http_last_modified"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "probe_http_version{geo=\"$geodc\",instance_hostname=\"$server\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "http_version"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "1 - probe_success{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\",target=~\"^http.*\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "error"
+        }
+      ],
+      "title": "website statistics",
+      "transform": "table",
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Time": {
+                "aggregations": []
+              },
+              "Value #A": {
+                "aggregations": [
+                  "last"
+                ]
+              },
+              "Value #cert_expiration": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value #chain_expiration": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value #error": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value #expiration": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value #http_duration": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #http_last_modified": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "groupby"
+              },
+              "Value #http_redirect": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "groupby"
+              },
+              "Value #http_version": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "__name__": {
+                "aggregations": []
+              },
+              "env": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "geo": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "instance": {
+                "aggregations": []
+              },
+              "instance_hostname": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "job": {
+                "aggregations": []
+              },
+              "name": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "target": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "url": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
+            }
+          }
+        }
+      ],
+      "type": "table-old"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 48,
+      "panels": [],
+      "repeat": "remote_url_name",
+      "repeatDirection": "h",
+      "title": "Website: $remote_url_name",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${dsdashboard}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 40,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/error/i"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Error status"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/total/i"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2f575e",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 32,
+      "interval": "$probe_interval",
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "9.1.1",
+      "repeat": "server",
+      "repeatDirection": "v",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "1 - probe_success{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\",name=\"$remote_url_name\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "errors",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "probe_http_duration_seconds{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\",name=\"$remote_url_name\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "{{phase}}",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(probe_http_duration_seconds{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\",name=\"$remote_url_name\"}) by (geo,instance_hostname)",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "total time",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "$remote_url_name : Connection duration per phase (from $geodc: $server)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": [
+    "webserver",
+    "network"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "description": "Datasource to use for this dashboard",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "dsdashboard",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "/Prometheus/i",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "description": "prometheus exporter selector",
+        "hide": 2,
+        "name": "job",
+        "query": "website",
+        "skipUrlSync": false,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "fr-mpl",
+          "value": "fr-mpl"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${dsdashboard}"
+        },
+        "definition": "up{job=~\"$job\"}",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Dc:",
+        "multi": false,
+        "name": "geodc",
+        "options": [],
+        "query": {
+          "query": "up{job=~\"$job\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/geo=\"(?<value>[^\"]+)/g",
+        "skipUrlSync": false,
+        "sort": 5,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${dsdashboard}"
+        },
+        "definition": "up{job=~\"$job\",geo=\"$geodc\"}",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Server:",
+        "multi": false,
+        "name": "server",
+        "options": [],
+        "query": {
+          "query": "up{job=~\"$job\",geo=\"$geodc\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/instance_hostname=\"(?<value>[^\"]+)/g",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": "",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${dsdashboard}"
+        },
+        "definition": "probe_success{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\"}",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Website:",
+        "multi": false,
+        "name": "remote_url_name",
+        "options": [],
+        "query": {
+          "query": "probe_success{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/,name=\"(?<value>[^\"]+)/g",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": "",
+        "current": {
+          "selected": false,
+          "text": "https://dashboard.reseau.local",
+          "value": "https://dashboard.reseau.local"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${dsdashboard}"
+        },
+        "definition": "probe_success{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\",name=~\"$remote_url_name\"}",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Url:",
+        "multi": false,
+        "name": "remote_url_target",
+        "options": [],
+        "query": {
+          "query": "probe_success{job=~\"$job\",geo=\"$geodc\",instance_hostname=\"$server\",name=~\"$remote_url_name\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/,target=\"(?<value>[^\"]+)/g",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "description": "Set the probe interval in case it is greater than the default interval in the datasource",
+        "hide": 2,
+        "name": "probe_interval",
+        "query": "1m",
+        "skipUrlSync": false,
+        "type": "constant"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-2d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "web: websites",
+  "uid": "probe_http_prom",
+  "description": "Custom dashboard by HAL",
+  "version": 3,
+  "weekStart": ""
+}

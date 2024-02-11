@@ -1,0 +1,30 @@
+---
+
+- name: Monitoring Grafana | provisioning - dashboards directories creation
+  file:
+    path: "{{ var_provisioning_dest }}"
+    state: directory
+    # no mode as rsync will adjust them using the templates/toolbox directory
+  vars:
+    var_provisioning_dest: "{{ task_provisioning_dest_root }}/{{ item.dest |default( item.source |basename) }}/"
+  loop_control:
+    label: "{{ var_provisioning_dest }}"
+  with_items: "{{ task_provisioning_transferts }}"
+
+
+# archive: yes => enables recursive, links, perms, times, owner, group flags and -D.
+# Notice: the / at the end of source and dest is to ensure only the contents are synchronized, without deleting anything else
+- name: Monitoring Grafana | provisioning - dashboards directories sync
+  synchronize:
+    src: "{{ item.source }}/"
+    dest: "{{ var_provisioning_dest }}"
+    mode: push
+    delete: yes
+    archive: yes
+  vars:
+    var_provisioning_dest: "{{ task_provisioning_dest_root }}/{{ item.dest |default( item.source |basename) }}/"
+  loop_control:
+    label: "src: {{ item.source }}, dest: {{ var_provisioning_dest }}"
+  with_items: "{{ task_provisioning_transferts }}"
+  when: item.source | length > 1
+

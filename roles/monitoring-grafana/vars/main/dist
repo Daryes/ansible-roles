@@ -1,0 +1,20 @@
+---
+
+role_grafana_dist:
+  user: "grafana"
+  conf: "/etc/grafana"
+  config_file: "/etc/grafana/grafana.ini"
+  service: "grafana-server.service"
+  data: "/var/lib/grafana"
+  log: "/var/log/grafana"
+  cli_bin: "/usr/sbin/grafana-cli"
+  # provisionning subdirs under conf
+  provisioning:
+    dashboard_subdir: "provisioning/dashboards"
+    datasource_subdir: "provisioning/datasources"
+    notifiers_subdir: "provisioning/notifiers"
+    alerting_subdir: "provisioning/alerting"
+    plugins_subdir: "provisioning/plugins"
+  # plugin dir under data
+  data_plugin_subdir: "plugins"
+

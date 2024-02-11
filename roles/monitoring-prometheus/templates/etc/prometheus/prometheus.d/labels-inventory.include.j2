@@ -1,0 +1,32 @@
+{# template to import                                    -#}
+{# Usage: {% include 'labels-inventory.include.j2' %}    -#}
+{# To make use of the label using host variables, use a call like other templates which create a hostvarsCache variable -#}
+{# #}
+{% if hostvarsCache is defined %}
+    # basic labels
+    os_type: "{{ hostvarsCache.ansible_system |default('unknown', true) |lower }}"
+    os_desc: "{{ hostvarsCache.ansible_lsb.description |default('unknown', true) |lower |replace('red hat enterprise linux', 'rhel') }}"
+{%   if prometheus_job_all_labels_variable_name |length > 0 %}
+    # labels from variable names set in the inventory
+{%     for loopVarItem in prometheus_job_all_labels_variable_name |flatten %}
+{%       set loopVarItemElt = loopVarItem |dict2items |first %}
+    {{ loopVarItemElt.key }}: "{{ hostvarsCache[ loopVarItemElt.value ] |default('unknown', true) |regex_replace('\[|\]', '') }}"
+{%     endfor %}
+{%-  else %}
+    # => no labels from _all_labels_variable_name
+{%   endif %}
+{% endif %}
+{# #}
+    # static labels set in the inventory
+{# Tricky situation - need to remove any duplicate labels between _labels_static[] and prevent duplicate with _variable_name[] -#}
+{# So, create an empty list, manage each label one by one, skip already existing labels in the new list, print and add to the new list what remains -#}
+{% set ns = namespace( varMergeLabels = [] ) %}
+{% for loopLstItem in ( prometheus_job_secondary_labels_static + prometheus_job_all_labels_static ) |flatten %}
+{%   set loopEltItem = loopLstItem |dict2items |first %}
+{%   if ( hostvarsCache is not defined
+          or prometheus_job_all_labels_variable_name |flatten |selectattr(loopEltItem.key, "defined") |list |length == 0
+        ) and ns.varMergeLabels |selectattr(loopEltItem.key, "defined") |list |length == 0 %}
+{%     set ns.varMergeLabels = ns.varMergeLabels + [ loopLstItem ] %}
+    {{ loopEltItem.key }}: "{{ loopEltItem.value |regex_replace('\[|\]', '') }}"
+{%   endif %}
+{% endfor %}

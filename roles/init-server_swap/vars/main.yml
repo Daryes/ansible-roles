@@ -1,0 +1,12 @@
+---
+
+role_swap_dist:
+  # on older kernels the file type must be 'swap', and not 'none'
+  mount_name: "{{ ansible_kernel is version('4.0.0', '>=') |ternary('none', 'swap' ) }}"
+  # while fallocate is faster, dd is mandatory for older kernels
+  allocate_cmd_format: >
+    {{ ansible_kernel is version('4.0.0', '>=')  |ternary(
+      'fallocate -l %dm %s',
+      'dd if=/dev/zero bs=1M count=%d of=%s'
+    ) }}
+

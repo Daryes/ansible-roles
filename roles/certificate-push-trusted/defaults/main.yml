@@ -1,0 +1,24 @@
+---
+
+# list with the full path of the public trusted certificate files to send into servers CA store.
+local_certificates_public_push: []
+# examples:
+#  - "/etc/ssl/private/ca/my_own_ca.pem"
+#  - "/opt/ansible/templates/my_ca.pem"
+#  - "/opt/ansible/templates/self_signed_domain.tld.pem"
+
+
+# list with the content of the public trusted certificate data to send into servers CA store.
+data_certificates_public_push: []
+# examples:
+#  # the raw content of a public certificate
+#  - name: "self_signed_domain.tld"
+#    pem: |
+#      -----BEGIN CERTIFICATE-----
+#      MIIFvj...
+#      ...
+#      -----END CERTIFICATE-----
+#  # retrieve a certificate stored under the variable "vault.certificates.my_own_ca.pem" in an ansible vault
+#  - name: "my_own_ca"
+#    pem: "{{ vault.certificates.my_own_ca.pem }}"
+#  - ...

@@ -1,0 +1,28 @@
+---
+
+# list of agent ports
+role_system_agent_port:
+  prometheus: 9090
+  alertmanager: 9093
+  alertmanager_cluster: 9094
+  # node exporter - must be <'node_' + ansible_system> in lower case
+  node_linux: "9100"
+  node_windows: "9182"
+  # others - same port on all systems
+  grafana: 3000
+  pushgateway: "9091"
+  haproxy: "9101"
+  telegraf: "9102"
+  mysql: "9104"
+  blackbox: "9115"
+  snmp: "9116"
+  apache: "9117"
+  cadvisor: "9135"
+  oracledb: "9161"
+  postgresql: "9187"
+  mongodb: "9216"
+  smokeping: "9374"
+  script: "9469"
+  smartctl: "9633"
+  jmx: "aleatoire - multi-instances"
+

@@ -1,0 +1,53 @@
+---
+
+# in case the user is managed by an external system but we still need the homedir to exists
+# mkhomedir will only activate on a new session, so it is required to impersonate the user
+# notice: bash will translate ~username to the user's homedir path
+- name: User mgr | create user home directories using pam_mkhomedir
+  shell:
+    cmd: 'if [ ! -d $( bash -c "echo ~{{ item.username }}" ) ]; then echo "impersonate"; sudo su - {{ item.username }} -c "true"; fi '
+    warn: no
+  with_items:
+    - "{{ users_accounts_all |selectattr('ssh_pub_keys', 'defined') |selectattr('skip_create_user', 'defined') |list }}"
+    - "{{ users_accounts_host |selectattr('ssh_pub_keys', 'defined') |selectattr('skip_create_user', 'defined')  |list }}"
+    - "{{ task_users_accounts_merged |selectattr('ssh_pub_keys', 'defined') |selectattr('skip_create_user', 'defined') |list }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : user={{ item.username }}"
+  when: >
+    item.username is defined
+    and item.skip_create_user |default(false) |bool
+    and item.local |default(false) |bool
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+  register: task_mkhomedir_status
+  # in a loop, the registered variable does not yet have the .result[] property, stdout is usable directly
+  changed_when: task_mkhomedir_status.stdout == "impersonate"
+
+
+# doc : http://docs.ansible.com/ansible/latest/modules/authorized_key_module.html
+# the selectattr filter is filtering out the users without a ssh_pub_keys entry, hiding all the skipped message for the users without keys
+- name: User mgr | insert local SSH public keys
+  authorized_key:
+    user: "{{ item.username }}"
+    key: "{{ item.ssh_pub_keys |join('\n')  }}"
+    exclusive: "{{ item.exclusive_keys |default('no') }}"
+    manage_dir: yes
+  with_items:
+    - "{{ users_accounts_all |selectattr('ssh_pub_keys', 'defined') |list }}"
+    - "{{ users_accounts_host |selectattr('ssh_pub_keys', 'defined') |list }}"
+    - "{{ task_users_accounts_merged |selectattr('ssh_pub_keys', 'defined') |list }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : user={{ item.username }}"
+  when: >
+    item.username is defined
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+
+
+- name: User mgr | global ssh directory
+  include_tasks: ssh_dir_sync.yml
+  when: >
+    user_mngt_sync_ssh_keys |default(false) |bool
+    and user_mngt_sync_ssh_keys_ansible_source |length > 0
+    and user_mngt_sync_ssh_keys_dir_dest |length > 0
+

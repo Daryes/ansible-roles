@@ -1,0 +1,29 @@
+---
+
+# load the related task only for the entries having mode="one of the supported types"
+- name: Monitoring Grafana | provisioning - dashboards panels
+  include_tasks: "dashboards_{{ thisMode }}.yml"
+  vars:
+    task_provisioning_transferts: "{{ grafana_provisioning_dashboards_transferts |selectattr('mode', 'equalto', thisMode) |list }}"
+    task_provisioning_dest_root: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.dashboard_subdir }}"
+  loop_control:
+    loop_var: thisMode
+  with_items:
+    - "file"
+    - "dirsync"
+  when: grafana_provisioning_dashboards_transferts |selectattr('mode', 'equalto', thisMode) |list |length > 0
+
+
+- name: Monitoring Grafana | provisioning - dashboards
+  template:
+    src: "templates/{{ item.template }}"
+    dest: "{{ grafana_conf_dir }}/{{ item.module }}/{{ item.template |basename |replace('.j2', '') }}"
+    owner: "root"
+    group: "{{ role_grafana_dist.user }}"
+    mode: "0640"
+    # no validation here
+  with_items:
+    - { template: "provisioning/dashboards.yml.j2",  module: "{{ role_grafana_dist.provisioning.dashboard_subdir }}" }
+  notify: stop grafana
+  become: yes
+

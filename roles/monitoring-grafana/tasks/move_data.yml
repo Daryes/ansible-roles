@@ -1,0 +1,34 @@
+---
+
+# this will move the directories from the default location to the new location
+# and create redirecting symlinks
+
+- name: Monitoring Grafana | move location - config dir
+  include_role: name=_include-data_move_location
+  vars:
+    arg_move_data_comment: "Monitoring Grafana - conf"
+    arg_move_data_source_path: "{{ role_grafana_dist.conf }}"
+    arg_move_data_dest_path: "{{ grafana_conf_dir }}"
+    arg_move_data_dest_owner: "{{ role_grafana_dist.user }}"
+    arg_move_data_dest_group: "{{ role_grafana_dist.user }}"
+    arg_move_data_dest_mode: "755"
+    arg_move_data_service_stop: "{{ role_grafana_dist.service }}"
+    arg_move_data_both_exist_fail: no
+    arg_move_data_both_exist_delete_source: yes
+  when: role_grafana_dist.conf != grafana_conf_dir
+
+
+- name: Monitoring Grafana | move location - data dir
+  include_role: name=_include-data_move_location
+  vars:
+    arg_move_data_comment: "Monitoring Grafana - data"
+    arg_move_data_source_path: "{{ role_grafana_dist.data }}"
+    arg_move_data_dest_path: "{{ grafana_data_dir }}"
+    arg_move_data_dest_owner: "{{ role_grafana_dist.user }}"
+    arg_move_data_dest_group: "{{ role_grafana_dist.user }}"
+    arg_move_data_dest_mode: "750"
+    arg_move_data_service_stop: "{{ role_grafana_dist.service }}"
+    arg_move_data_both_exist_fail: no
+    arg_move_data_both_exist_delete_source: yes
+  when: role_grafana_dist.data != grafana_data_dir
+

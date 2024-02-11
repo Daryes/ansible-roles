@@ -1,0 +1,35 @@
+---
+
+- name: Monitoring Prometheus agent | node - create directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: no
+  with_items:
+    - { path: "{{ role_prometheus_agent_dist.conf }}" }
+    - { path: "{{ role_prometheus_agent_dist.data }}",  owner: "{{ role_prometheus_agent_dist.user }}" }
+    - { path: "{{ role_prometheus_agent_dist.log }}",   owner: "{{ role_prometheus_agent_dist.log_user }}",  group: "{{ role_prometheus_agent_dist.log_group }}" }
+  become: yes
+
+
+- name: Monitoring Prometheus agent | node - install system files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ var_file_dest }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  vars:
+    var_file_dest: "{{ item.dest |default(item.file) }}"
+  with_items:
+    - { file: "/etc/logrotate.d/prometheus-agents-exporter" }
+    # passwords are crypted with bcrypt, no need to activate no_log
+    - { file: "{{ role_prometheus_agent_dist.webconfig }}", owner: "{{ role_prometheus_agent_dist.user }}",  mode: "0600" }
+  loop_control:
+    label: "file: {{ var_file_dest }}"
+  register: task_config_global
+  become: yes
+

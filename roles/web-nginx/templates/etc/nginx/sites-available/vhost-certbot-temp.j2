@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+
+# template used with certbot the first time to create a certificate
+# nginx does not allow to start a vhost with a conditional on a missing certificate
+
+server {
+    listen {{ thisVhost.listen_ip |default('*') }}:80;
+    {# thisVhost is a variable from the web-nginx role, containing the informations from <app-group>_nginx -#}
+    server_name {{ thisVhost.server_name }};
+
+    access_log {{ role_nginx_log }}/vhost-default_access.log;
+    error_log  {{ role_nginx_log }}/vhost-default_error.log  error;
+
+
+    # let's encrypt support
+    # Using a regex to skip checking for other locations
+    location ^~ /.well-known/ {
+        auth_basic off;
+        auth_request off;
+
+        # Extra security: this path must be the same as in /etc/letsencrypt/cli.ini => "webroot-path"
+        # root /var/www/common/letsencrypt/.well-known/acme-challenge/;
+
+        try_files $uri $uri/ =404;
+    }
+
+
+    # close connexion
+    return 410;
+}
+

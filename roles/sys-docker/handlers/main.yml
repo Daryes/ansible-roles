@@ -1,0 +1,35 @@
+---
+
+- name: reload systemd-daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: yes
+
+
+- name: reload rsyslog
+  service:
+    name: "rsyslog"
+    # rsyslog service doesn't support reload
+    state: "restarted"
+
+
+# must be before restart containerd & docker
+- name: validate dockerd config
+  shell: "if command -v dockerd >/dev/null; then dockerd --validate --config-file '/etc/docker/daemon.json'; fi"
+
+
+- name: restart containerd
+  service:
+    name: "containerd"
+    state: restarted
+
+
+# _pkg_install_status comes from the _include-pkg_install role
+# docker doesn't work well with restart when there's an error in the configuration, it should be stopped, then started
+- name: restart docker
+  service:
+    name: "docker"
+    state: restarted
+  # only if it wasn't installed in the same execution
+  when: _pkg_install_status is defined and not _pkg_install_status is changed
+

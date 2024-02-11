@@ -1,0 +1,48 @@
+---
+
+# additional variable manipulation to retrieve the list of packages required for the modules
+# map will do the switch but will also add 'Undefined' for each missing attribute
+# the select('defined') is required to filter such entries.
+# The second select() will remove empty entries.
+# sum() is used to add a default value [] and flatten the list, from [a,b],c,[d] to [ a,b,c,d ]
+- name: webserver apache | assemble modules system packages variable
+  set_fact:
+    task_modules_extra_packages_merged:
+      common: "{{ task_web_apache_merged |map(attribute='modules_system_packages') |map(attribute='common') |select('defined') |select() |list |sum(start=[]) }}"
+      debian: "{{ task_web_apache_merged |map(attribute='modules_system_packages') |map(attribute='debian') |select('defined') |select() |list |sum(start=[]) }}"
+      redhat: "{{ task_web_apache_merged |map(attribute='modules_system_packages') |map(attribute='redhat') |select('defined') |select() |list |sum(start=[]) }}"
+
+
+# import the package install role
+- name: webserver apache | install packages
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "webserver apache"
+    arg_install_packages: "{{ role_webserver_apache_install_packages }}"
+
+
+# import the package install role
+- name: webserver apache | install additional modules packages
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "webserver apache - modules"
+    arg_install_packages: "{{ task_modules_extra_packages_merged }}"
+  when: >
+    task_modules_extra_packages_merged.common |length > 0
+    or task_modules_extra_packages_merged.debian |length > 0
+    or task_modules_extra_packages_merged.redhat |length > 0
+
+
+- name: webserver apache | system - configuration files
+  template:
+    src: "templates/{{ item.src }}.j2"
+    dest: "{{ item.dst }}"
+    owner: "root"
+    group: "root"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    # the logrotate filename and .sh location will change depending of the target system
+    - { src: "/etc/logrotate.d/apache2",                        dst: "/etc/logrotate.d/{{ role_apache_dist.logrotate }}" }
+    #- { src: "/etc/apache2/apache_serverstatus_scoreboard.sh",  dst: "{{ role_apache_dist.etc }}/apache_serverstatus_scoreboard.sh",  mode: "0755" }
+    #- { src: "/etc/cron.d/apache-scoreboard",                   dst: "/etc/cron.d/apache-scoreboard" }
+

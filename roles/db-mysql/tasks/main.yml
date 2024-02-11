@@ -1,0 +1,40 @@
+---
+
+# packages installation
+- import_tasks: install.yml
+
+
+# move the data directories in a different location
+- import_tasks: move_data.yml
+
+
+# configuration
+- import_tasks: config.yml
+
+
+- block:
+  # stop the service if the configuration wasn't present while already installed
+  # _pkg_install_status comes from the _include-pkg_install role
+  - name: MySQL/MariaDB | config - stop service on configuration change
+    service:
+      name: "mysqld"
+      state: stopped
+    when: >
+      task_mysql_config is changed
+      or _pkg_install_status is changed
+
+
+  - name: MySQL/MariaDB | system - enable and start the service
+    service:
+      name: "mysqld"
+      state: started
+      enabled: yes
+
+  # block end - ensure one server is restarted at a time due to galera
+  become: yes
+  throttle: 1
+
+
+# load user and db manager task
+- import_tasks: mysql_manager.yml
+

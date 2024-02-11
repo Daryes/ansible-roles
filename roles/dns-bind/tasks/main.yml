@@ -1,0 +1,18 @@
+---
+
+- import_tasks: installation.yml
+
+
+- import_tasks: configuration.yml
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+- name: Bind DNS | service - enable and start
+  service:
+    name: "{{ role_bind_dist.service }}"
+    state: "started"
+    enabled: "yes"
+

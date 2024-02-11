@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Set the command-line arguments to pass to the server.
+# Due to shell scaping, to pass backslashes for regexes, you need to double
+# them (\\d for \d). If running under systemd, you need to double them again
+# (\\\\d to mean \d), and escape newlines too.
+ARGS='--web.listen-address="{{ prometheus_agent_mysql_listen }}"  --web.config.file={{ role_prometheus_agent_dist.webconfig }}  --config.my-cnf={{ role_prometheus_agent_mysql_dist.auth }}  {{ prometheus_agent_mysqld_service_extra_args }}'
+

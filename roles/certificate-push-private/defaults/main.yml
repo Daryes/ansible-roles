@@ -1,0 +1,17 @@
+---
+
+# List of private certificates to copy on targeted servers
+# they will be installed into the directory "/etc/ssl/private/<name>/"
+#
+# certificates_private_push:
+#   - name: cert1
+#     pem: "<public certificate content in pem format>"
+#     key: "<private certificate content>"
+#     combined_create: no                          # (optional) create a single file combining the key+pem files
+#     target_hosts: [ "server1", "server2", ... ]  # (optional) limit the copy to this server list
+#
+#   - name: cert2
+#     pem: "<public certificate content in pem format>"
+#     ...
+certificates_private_push: []
+

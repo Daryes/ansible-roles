@@ -1,0 +1,86 @@
+---
+
+# docker data dir - can be changed to <new fs mount point>/<new docker data dir>"
+# example: "/opt/sys-docker"
+docker_data_dir: "/var/lib/docker"
+
+
+# docker-compose version - must be set in the inventory
+# do no specifiy the "v" in front of the version number
+docker_compose_version: "CHANGE_ME_IN_INVENTORY_GROUPVARS"
+
+# leave the hash checksum empty to skip the check step - they don't provide the hash information with their releases
+docker_compose_version_hash: ""
+
+
+# add a symlink to docker-compose under /usr/bin/
+docker_compose_usrbin_symlink: false
+
+
+# application data dir - specify a dedicated drive mount point
+# this is used by the optional docker-compose@.service unit
+project_root: "/opt"
+
+
+# redirect docker-compose logs to syslog then to a file
+docker_compose_log_redirect: true
+docker_compose_log_dir: "/var/log/docker"
+
+
+# docker hello world image
+# set to empty to skip docker validation by pulling and running this image
+docker_image_helloworld: "hello-world"
+
+
+# cron job for cleaning build cache and stopped containers
+docker_cron_clean_build_cache: yes
+docker_cron_clean_container_stopped: no
+
+
+# proxy configuration
+# ref: https://docs.docker.com/config/daemon/systemd/#httphttps-proxy
+# notice: general proxy usage, and not a hub mirror - the ports must also always be set
+# examples: "http://proxy.example.com:80"
+#           "https://proxy.example.com:443"
+docker_proxy_http_url: ""
+docker_proxy_https_url: ""
+# comma list of domains that should be excluded from proxying
+docker_proxy_no_proxy: ""
+
+
+# Extra configuration in /etc/docker/daemon.json
+# ref: https://docs.docker.com/config/daemon/
+# ref: https://docs.docker.com/engine/reference/commandline/dockerd/
+# conf: log driver, can be journald, syslog, ... - the driver 'json-file' will be used if empty
+docker_config_log_driver: "json-file"
+# conf: log driver opts, all the json parameters must be as a string on a single line
+docker_config_log_opts: '"max-size": "10m", "max-file": "3"'
+
+# conf: registry mirrors list, syntax: [ "https://myregistry.domain.tld", "http://myregistry2:5002", ... ]
+docker_config_registry_mirrors: []
+# conf: registry not using tls, syntax: [ "myregistry.domain.tld:80", "myregistry2:5002", ... ]
+docker_config_insecure_registries: []
+# conf: ipv6 usage for containers, set to 'yes' to activate
+docker_config_ipv6: no
+# conf: network address pool used for bridge networks, base=the full range, size=single network range -  will use the default values if empty.
+# syntax:
+#  - base: "172.30.0.0/16"
+#    size: "24"
+#
+#  - base: "172.31.0.0/16"
+#    size: "24"
+docker_config_default_address_pools: []
+
+
+# list of plugins to disable in containerd
+# use "ctr plugins ls -d" to retrieve the complete list
+docker_containerd_plugin_disable:
+  # not used anymore
+  - "aufs"
+  # requires a ZFS storage fs
+  - "zfs"
+  # requires a btrfs storage fs
+  - "btrfs"
+  # still beta
+  - "devmapper"
+

@@ -1,0 +1,83 @@
+---
+
+# mandatory system packages
+role_webserver_apache_install_packages:
+  common:
+    # required in the module activation/deactivation tasks
+    - "findutils"
+  debian:
+    - "apache2"
+  redhat:
+    - "httpd"
+
+
+# mandatory default modules
+role_apache_default_modules: []
+
+
+# mandatory default configuration files - full path to each templates
+role_apache_default_config:
+  - "templates/etc/apache2/conf-available/security.conf.j2"
+  - "templates/etc/apache2/conf-available/ssl-listen-security.conf.j2"
+  - "templates/etc/apache2/conf-available/servername.conf.j2"
+  - "templates/etc/apache2/conf-available/conf_mod_mpm_event.conf.j2"
+  - "templates/etc/apache2/conf-available/conf_mod_deflate.conf.j2"
+  - "templates/etc/apache2/conf-available/conf_mod_expires.conf.j2"
+
+
+# mandatory default vhost
+role_apache_default_sites:
+  - server_name: "server-status"
+    site_vhost_template: "templates/etc/apache2/sites-available/server-status.conf.j2"
+    modules_activate: [ 'status', 'rewrite', 'vhost_alias' ]
+
+
+# specific distribution service and path
+role_apache_dist_family:
+  debian:
+    service: "apache2"
+    etc: "/etc/apache2"
+    log: "/var/log/apache2"
+    user: "www-data"
+    group: "www-data"
+    log_user: "www-data"
+    log_group: "adm"
+    logrotate: "apache2"
+    web_root: "/var/www"
+    a2conf: "/etc/apache2/apache2.conf"
+
+  redhat:
+    service: "httpd"
+    etc: "/etc/httpd"
+    user: "apache"
+    group: "apache"
+    log: "/var/log/httpd"
+    log_user: "root"
+    log_group: "root"
+    logrotate: "httpd"
+    web_root: "/var/lib/httpd"
+    a2conf: "/etc/httpd/conf/httpd.conf"
+
+
+role_apache_dist:
+  service: "{{ role_apache_dist_family[ ansible_os_family |lower ].service }}"
+  etc: "{{ role_apache_dist_family[ ansible_os_family |lower ].etc }}"
+  user: "{{ role_apache_dist_family[ ansible_os_family |lower ].user }}"
+  group: "{{ role_apache_dist_family[ ansible_os_family |lower ].group }}"
+  log: "{{ role_apache_dist_family[ ansible_os_family |lower ].log }}"
+  log_user: "{{ role_apache_dist_family[ ansible_os_family |lower ].log_user }}"
+  log_group: "{{ role_apache_dist_family[ ansible_os_family |lower ].log_group }}"
+  logrotate: "{{ role_apache_dist_family[ ansible_os_family |lower ].logrotate }}"
+  web_root: "{{ role_apache_dist_family[ ansible_os_family |lower ].web_root }}"
+  a2conf: "{{ role_apache_dist_family[ ansible_os_family |lower ].a2conf }}"
+
+
+# selinux handling
+role_apache_selinux:
+  detect_cmd: "/sbin/getenforce"
+  status_active_regex: "[Ee]nforc(ed|ing)"
+  setype_http: "http_port_t"
+  rules:
+    - "httpd_can_network_connect"
+    - "httpd_can_network_connect_db"
+

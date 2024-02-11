@@ -1,0 +1,36 @@
+---
+
+# user creation before common
+- import_tasks: user.yml
+
+
+# common system parts
+- import_tasks: system-common.yml
+
+
+# install node exporter
+- include_tasks: agents/node.yml
+  when: prometheus_agent_node_install |bool
+
+
+# install other exporters
+- name: Monitoring Prometheus agent | other agents - load installation task
+  include_tasks: "agents/{{ thisAgent.module }}.yml"
+  with_items:
+    - { module: "blackbox",    when: "{{ prometheus_agent_blackbox_install   |bool }}" }
+    - { module: "pushgateway", when: "{{ prometheus_agent_pushgateway_install|bool }}" }
+    - { module: "mysql",       when: "{{ prometheus_agent_mysql_install      |bool }}" }
+    - { module: "postgresql",  when: "{{ prometheus_agent_postgresql_install |bool }}" }
+    - { module: "mongodb",     when: "{{ prometheus_agent_mongodb_install    |bool }}" }
+    - { module: "oracledb",    when: "{{ prometheus_agent_oracledb_install   |bool }}" }
+    - { module: "apache",      when: "{{ prometheus_agent_apache_install     |bool }}" }
+    - { module: "snmp",        when: "{{ prometheus_agent_snmp_install       |bool }}" }
+    - { module: "jmx",         when: "{{ prometheus_agent_jmx_install        |bool }}" }
+    - { module: "smokeping",   when: "{{ prometheus_agent_smokeping_install  |bool }}" }
+    - { module: "smartctl",    when: "{{ prometheus_agent_smartctl_install   |bool }}" }
+
+  loop_control:
+    # required to prevent any conflict with the keyword "item" in the included tasks
+    loop_var: thisAgent
+  when: thisAgent.when |default(false) |bool
+

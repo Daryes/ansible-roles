@@ -1,0 +1,15 @@
+// {{ ansible_managed }}
+{# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
+
+// forward queries to external dns
+zone "{{ thisDnsZone.name |regex_replace('\\.$', '') }}" IN {
+        type forward;
+
+        forward only;
+        forwarders {
+{% for loopIp in thisDnsZone.forwarders |flatten %}
+            {{ loopIp }};
+{% endfor %}
+        };
+};
+

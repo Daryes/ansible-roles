@@ -1,0 +1,36 @@
+# {{ ansible_managed }}
+
+# accesslist configuration with the geo module
+# note : variables are evaluated only when called
+# Warning : nginx accepts ip range like x.x.x.x/24, /16, ... but the x.x.x.x/32 range can be refused. Just remove the /32 to have it working.
+
+# corp addresses --------------
+geo $remote_addr $corp_access {
+    include             conf.d/geo_ip_revproxy.include;
+
+    default              0;
+    127.0.0.1            1;    # localhost
+
+    # non-internet ip addresses
+    172.16.0.0/12        1;    # internal reserved range 172.16->172.31 used by docker
+
+    # other addresses ---------
+    # permanent addresses
+{% for loop_items in nginx_global_access_ip_list |default( [] |flatten ) %}
+    {{ '%-20s'|format( loop_items.ip ) }} 1;    # {{ loop_items.description }}
+{% endfor %}
+
+    # extra addresses
+{# Single template : will loop on each group to find those with the target 'group+suffix' variable and repeat the full template #}
+{% set loopSuffixFilter = '_web_access_ip_list' %}
+{% for loopGroup in hostvars[inventory_hostname]['group_names'] %}
+{%   if hostvars[inventory_hostname][loopGroup + loopSuffixFilter ] is defined %}
+{%     set loopOutput = hostvars[inventory_hostname][loopGroup + loopSuffixFilter ] %}
+{%     for loop_items in loopOutput |flatten  %}
+    {{ '%-20s'|format( loop_items.ip ) }} 1;    # {{ loop_items.description }}
+{%     endfor %}
+{%   endif %}
+{% endfor %}
+    
+}
+

@@ -1,0 +1,21 @@
+---
+
+# prometheus packages ref: https://github.com/prometheus/jmx_exporter
+# java 7+ agent
+role_prometheus_agent_jmx_package_file: "jmx_prometheus_javaagent-{{ prometheus_agent_jmx_version }}.jar"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_jmx_package_url: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ prometheus_agent_jmx_version }}/{{ role_prometheus_agent_jmx_package_file }}"
+
+
+# java 6 and lower agent
+role_prometheus_agent_jmx_package_file_java6: "jmx_prometheus_javaagent_java6-{{ prometheus_agent_jmx_version }}.jar"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_jmx_package_url_java6: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent_java6/{{ prometheus_agent_jmx_version }}/{{ role_prometheus_agent_jmx_package_file_java6  }}"
+
+
+# no service for this agent - jar plugin to add into the java command line
+role_prometheus_agent_jmx_dist:
+  bin: "{{ role_prometheus_agent_dist.bin_dir  }}/jmx_prometheus_javaagent.jar"
+  bin_java6: "{{ role_prometheus_agent_dist.bin_dir  }}/jmx_prometheus_javaagent_java6.jar"
+  config: "{{ role_prometheus_agent_dist.conf }}/jmx.yml"
+

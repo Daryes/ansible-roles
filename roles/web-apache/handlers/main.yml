@@ -1,0 +1,25 @@
+---
+
+# this will also validate the configuration
+- name: restart apache validate config
+  shell: /usr/sbin/apachectl -t
+  become: yes
+  notify: restart apache service
+
+
+- name: reload apache validate config
+  shell: /usr/sbin/apachectl -t
+  become: yes
+  notify: reload apache service
+
+
+- name: restart apache service
+  service:
+    name: "{{ role_apache_dist.service }}"
+    state: restarted
+
+
+- name: reload apache service
+  service:
+    name: "{{ role_apache_dist.service }}"
+    state: reloaded

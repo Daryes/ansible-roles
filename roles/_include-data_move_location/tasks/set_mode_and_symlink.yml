@@ -1,0 +1,40 @@
+---
+
+# use a loop to have each values visible in the log
+- name: "{{ arg_move_data_comment }} | move data to new location - update and set dest owner and mode"
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+    state: "{{ item.type }}"
+  with_items:
+    # yamllint disable-line rule:line-length
+    - { path: "{{ arg_move_data_dest_path }}",  owner: "{{ arg_move_data_dest_owner }}", group: "{{ arg_move_data_dest_group }}", mode: "{{ arg_move_data_dest_mode }}", type: "{{ arg_move_data_dest_type }}" }
+  when: arg_move_data_dest_type in [ 'directory', 'file' ]
+
+
+# no need of another detailled log output
+- name: "{{ arg_move_data_comment }} | move data to new location - update recursively owner and group"
+  file:
+    path: "{{ arg_move_data_dest_path }}"
+    owner: "{{ arg_move_data_dest_owner }}"
+    group: "{{ arg_move_data_dest_group }}"
+    recurse: yes
+  # only for directories
+  when: >
+    arg_move_data_dest_type in [ 'directory' ]
+    and arg_move_data_dest_owner_group_update_recursive |bool
+
+
+- name: "{{ arg_move_data_comment }} | move data to new location - create symlink in source"
+  file:
+    src: "{{ item.src }}"
+    state: link
+    owner: "{{ arg_move_data_dest_owner }}"
+    group: "{{ arg_move_data_dest_group }}"
+    dest: "{{ item.link }}"
+    force: no
+  with_items:
+    - { src: "{{ arg_move_data_dest_path }}",  link: "{{ arg_move_data_source_path }}" }
+  when: arg_move_data_create_symlink |bool

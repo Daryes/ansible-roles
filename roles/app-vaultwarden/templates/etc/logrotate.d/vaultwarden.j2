@@ -1,0 +1,15 @@
+/server/vaultwarden/log/*.log
+{
+    daily
+    rotate 7
+    copytruncate
+
+    missingok
+    notifempty
+
+    compress
+    delaycompress
+
+    dateext
+    dateyesterday
+}

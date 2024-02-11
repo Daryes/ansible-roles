@@ -1,0 +1,34 @@
+---
+
+# not used currently
+#- include_role: name=_include-pkg_install
+#  vars:
+#    arg_install_comment: "Monitoring Prometheus"
+#    arg_install_packages: "{{ role_prometheus_requirement_packages }}"
+
+
+- include_role: name=_include-exe_download_copy
+  vars:
+    arg_install_comment: "Monitoring Prometheus | prometheus"
+    arg_install_exe_fullpath: "{{ role_prometheus_dist.prometheus_bin }}"
+    arg_install_exe_version: "{{ prometheus_version }}"
+    arg_install_exe_version_arg: "--version"
+    arg_install_exe_hash: "{{ prometheus_version_hash }}"
+    arg_install_exe_download_url: "{{ role_prometheus_package_url }}"
+    arg_install_exe_is_compressed_archive: yes
+    arg_install_exe_compressed_archive_binaries_to_link: [ "prometheus", "promtool" ]
+    arg_install_exe_service: "{{ role_prometheus_dist.service }}"
+
+
+- include_role: name=_include-exe_download_copy
+  vars:
+    arg_install_comment: "Monitoring Prometheus | alertmanager"
+    arg_install_exe_fullpath: "{{ role_prometheus_dist.alertmanager_bin }}"
+    arg_install_exe_version: "{{ prometheus_alertmanager_version }}"
+    arg_install_exe_version_arg: "--version"
+    arg_install_exe_hash: "{{ prometheus_alertmanager_version_hash }}"
+    arg_install_exe_download_url: "{{ role_prometheus_alertmanager_package_url }}"
+    arg_install_exe_is_compressed_archive: yes
+    arg_install_exe_compressed_archive_binaries_to_link: [ "alertmanager", "amtool" ]
+    arg_install_exe_service: "{{ role_prometheus_dist.alertmanager_service }}"
+

@@ -1,0 +1,46 @@
+# {{ ansible_managed }}
+
+# accesslist configuration with the geo module
+# note : variables are evaluated only when called
+# Warning : nginx accepts ip range like x.x.x.x/24, /16, ... but the x.x.x.x/32 range can be refused. Just remove the /32 to have it working.
+
+# bitbucker ip addresses
+# doc : https://confluence.atlassian.com/bitbucket/what-are-the-bitbucket-cloud-ip-addresses-i-should-use-to-configure-my-corporate-firewall-343343385.html
+# doc2: https://support.atlassian.com/organization-administration/docs/ip-addresses-and-domains-for-atlassian-cloud-products/
+# list: https://ip-ranges.atlassian.com/
+geo $remote_addr $bitbucket_access {
+    # reverse proxy settings
+    include             conf.d/geo_ip_revproxy;
+
+    default             0;
+
+    # NOTICE: this error "nginx: [emerg] unexpected "}" in /etc/nginx/conf.d/geo_ip_allow" means some entries do not have a .0/mask
+
+    # ref: curl --silent https://ip-ranges.atlassian.com/ | grep cidr | cut -d '"' -f4 | sort -h | awk '{ printf "    %-24s 1;\n",$1 }'
+    13.236.8.128/25     1;
+    13.52.5.0/25        1;
+    18.136.214.0/25     1;
+    18.184.99.128/25    1;
+    18.205.93.0/27      1;
+    18.234.32.128/25    1;
+    18.246.31.128/25    1;
+    34.199.54.113/32    1;
+    34.216.18.129/32    1;
+    34.218.156.209/32   1;
+    34.218.168.212/32   1;
+    34.232.119.183/32   1;
+    34.232.25.90/32     1;
+    34.236.25.177/32    1;
+    35.155.178.254/32   1;
+    35.160.177.10/32    1;
+    35.171.175.212/32   1;
+    52.202.195.162/32   1;
+    52.203.14.55/32     1;
+    52.204.96.37/32     1;
+    52.215.192.128/25   1;
+    52.41.219.63/32     1;
+    52.54.90.98/32      1;
+    104.192.136.0/21    1;
+    185.166.140.0/22    1;
+
+}

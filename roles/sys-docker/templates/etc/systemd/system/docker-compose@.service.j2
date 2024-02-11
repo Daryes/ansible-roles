@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+# file: /etc/systemd/system/docker-compose@.service
+[Unit]
+Description=docker-compose launcher for %i
+After=network.target docker.service nfs-server.service nfsd.service
+Requires=docker.service
+
+
+[Service]
+# use Type=oneshot + RemainAfterExit=yes for 'compose up -d', otherwise Type=simple
+Type=oneshot
+RemainAfterExit=yes
+
+
+# config file - only one of the 2 options should be active
+EnvironmentFile=-/etc/default/docker-compose.%i
+EnvironmentFile=-/etc/default/docker-compose@%i
+
+
+
+# docker-compose.yml location for this service
+WorkingDirectory={{ project_root }}/%i/
+
+ExecStart={{ role_docker_compose_fullpath }} $COMPOSE_ARGS up -d $COMPOSE_UP_EXTRA_ARGS
+ExecStop={{ role_docker_compose_fullpath }} $COMPOSE_ARGS down  $COMPOSE_DOWN_EXTRA_ARGS
+
+# refresh the images for reload
+ExecReload={{ role_docker_compose_fullpath }} pull --quiet || /bin/true
+ExecReload={{ role_docker_compose_fullpath }} up -d $COMPOSE_UP_EXTRA_ARGS
+
+
+# not supported for Type=oneshot
+#Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

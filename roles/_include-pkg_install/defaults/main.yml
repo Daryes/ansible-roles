@@ -1,0 +1,75 @@
+---
+
+# Name visible as a prefix for each task description in the ansible output
+#
+# default value
+arg_install_comment: "CHANGE ME pkg_install include"
+
+
+# list of packages to install for an ansible group
+# common, debian and redhat are mandatory. Use [] if there's no package, ex:  redhat: []
+# syntax :
+# arg_install_packages:
+#   common:
+#     - "package1"
+#     - "package2"
+#     - "..."
+#   debian:
+#     - "package1"
+#     - "..."
+#   redhat:
+#     - "package1"
+#     - "..."
+#
+# must stay commented to trap possible undefined variables
+#arg_install_packages:
+#  common: []
+#  debian: []
+#  redhat: []
+
+
+#
+# Use the same for removing packages
+# defaut values
+arg_remove_packages:
+  common: []
+  debian: []
+  redhat: []
+
+
+# variables for debian type to install additional PPA
+# Each of the parameters is optional.
+# note : apt_key_url and key_server+key_id are exclusives
+# syntax:
+# arg_install_ppa:
+# - name: <module name>
+#   apt_key_url: "http://domain.tld/linux/gpg"
+#   apt_key_server: "keyserver.ubuntu.com"
+#   apt_key_id: "...key hash..."
+#   apt_repository: "deb http://ppa.launchpad.net/<...ppa...>/ubuntu {{ ansible_distribution_release |lower }} main"
+#   apt_filename: "filename.list under sources.list.d/"
+#
+# - name: <module name 2>
+#   apt_repository: "deb-src http..."
+#   ...
+#
+# alternative syntax for apt_repsitory: "ppa:<team>/ppa"
+#
+# default values
+arg_install_ppa: []
+
+
+# variables for redhat type to install additional repo
+# syntax:
+# arg_install_yumrepo:
+# - name: <module name>
+#   yumrepo_file: "file name to store the repo information (without the path) - optional when already integrated in the system"
+#   yumrepo_description: "(optional) ... repo description ...""
+#   yumrepo_baseurl: "(optional) https://..."
+#   yumrepo_gpgkey: "(optional) url https://... to the gpg key"
+#   yumrepo_module_hotfixes: (optional) False (default) or True
+#   yumrepo_enabled: (optional) True (default) or False - mandatory to enable a repo already integrated
+#   yumrepo_module_disable: "(optional) integrated module name to disable with 'dnf disable module'"
+#   yumrepo_exclude: "(optional) package1 packs*2 - list of packages to exclude from updates or installs"
+arg_install_yumrepo: []
+

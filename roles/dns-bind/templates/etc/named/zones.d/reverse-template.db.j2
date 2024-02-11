@@ -1,0 +1,63 @@
+; {{ ansible_managed }}
+{# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
+{# Handle the possibility the .records_domain is empty or ends with a '.' which is not expected -#}
+{% set cleaned_records_domain = ( thisDnsZone.records_domain |default('') |length > 0 ) |ternary( thisDnsZone.records_domain |regex_replace('\\.$', '') + ".", '' ) %}
+;
+; WARNING: do not use # for comments, but ;
+; to validate the zone:  named-checkzone {{ thisDnsZone.name |regex_replace('\\.$', '') }}  {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.db
+;
+
+; default ttl
+$TTL 600
+; zone authority
+$ORIGIN {{ thisDnsZone.name |regex_replace('\\.$', '') }}.
+@       IN      SOA     {{ thisDnsZone.ns |first |lower }}. {{ thisDnsZone.email |default('nobody@nowhere.com') |replace('@','.') }}.  (
+                {{ thisDnsZone.serial }}	;	Serial
+                {{ thisDnsZone.refresh |default( 3600 ) }}	;	Refresh time
+                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Retry time
+                {{ thisDnsZone.expire |default( 1209600 ) }}	;	Expire time
+                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Minimum / Negative Cache TTL
+)
+
+
+; zone ns server
+{% for loopNS in thisDnsZone.ns %}
+@                             IN      NS      {{ loopNS |lower }}.
+{% endfor %}
+
+
+; PTR records for the ansible inventory
+{# # skip localhost/127.0.0.1 which are duplicates and those without the [ansible_facts] data  #}
+{% for loopHost in hostvars if loopHost not in ['127.0.0.1','::1','localhost'] %}
+{%   set currentHost = hostvars[loopHost]  %}
+{%   if thisDnsZone.allow_ipv4 |default(true) |bool  and currentHost.ansible_facts is defined %}
+{%     for loopRange in thisDnsZone.allow_ipv4_cidr |default( ['0.0.0.0/0'] )  %}
+{#       # ansible_facts.all_ipv4_addresses has all the known ip of the server - look for those in the allowed ranges  #}
+{%       if currentHost['ansible_facts'].all_ipv4_addresses is defined  %}
+{%         for loopIpAddr in currentHost['ansible_facts']['all_ipv4_addresses'] |ipaddr(loopRange)  %}
+{{ '%-29s'|format( loopIpAddr |ipaddr('revdns') ) }} IN      PTR     {{ hostvars[loopHost].inventory_hostname |lower }}.{{ cleaned_records_domain }}
+{%         endfor %}
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+{# #}
+{#   # same for ipv6 if activated  #}
+{%   if thisDnsZone.allow_ipv6 |default(true) |bool  and currentHost.ansible_facts is defined %}
+{%     for loopRange in thisDnsZone.allow_ipv6_cidr |default( ['::/0'] )  %}
+{%       if currentHost['ansible_facts'].all_ipv6_addresses is defined  %}
+{%         for loopIpAddr in currentHost['ansible_facts']['all_ipv6_addresses'] |ipaddr(loopRange)  %}
+{{ '%-29s'|format( loopIpAddr |ipaddr('revdns') ) }} IN      PTR     {{ hostvars[loopHost].inventory_hostname |lower }}.{{ cleaned_records_domain }}
+{%         endfor %}
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+{# #}
+{% endfor %}
+
+{% if thisDnsZone.records_raw |default([]) | length > 0 %}
+; raw records
+{%   for loopExtra in thisDnsZone.records_raw |flatten %}
+{{ loopExtra }}
+{%   endfor %}
+
+{% endif %}

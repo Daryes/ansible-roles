@@ -1,0 +1,102 @@
+---
+# {{ ansible_managed }}
+# ref: https://github.com/prometheus/blackbox_exporter/blob/master/CONFIGURATION.md
+
+modules:
+  http_2xx:
+    prober: http
+    http:
+      tls_config:
+        insecure_skip_verify: {{ prometheus_agent_blackbox_conf_tls_insecure_skip_verify }}
+
+  http_post_2xx:
+    prober: http
+    http:
+      method: POST
+      tls_config:
+        insecure_skip_verify: {{ prometheus_agent_blackbox_conf_tls_insecure_skip_verify }}
+
+  tcp_connect:
+    prober: tcp
+    timeout: 7s
+
+  tls_connect:
+    prober: tcp
+    timeout: 7s
+    tcp:
+      tls: true
+      tls_config:
+        insecure_skip_verify: {{ prometheus_agent_blackbox_conf_tls_insecure_skip_verify }}
+
+  imap_starttls:
+    prober: tcp
+    tcp:
+      query_response:
+        - expect: "OK.*STARTTLS"
+        - send: ". STARTTLS"
+        - expect: "OK"
+        - starttls: true
+        - send: ". capability"
+        - expect: "CAPABILITY IMAP4rev1"
+
+  smtp_starttls:
+    prober: tcp
+    tcp:
+      query_response:
+        - expect: "^220 ([^ ]+) ESMTP (.+)$"
+        - send: "EHLO prometheus\r"
+        - expect: "^250-STARTTLS"
+        - send: "STARTTLS\r"
+        - expect: "^220"
+        - starttls: true
+        - send: "EHLO prometheus\r"
+        - expect: "^250-AUTH"
+        - send: "QUIT\r"
+
+  pop3s_banner:
+    prober: tcp
+    tcp:
+      query_response:
+      - expect: "^+OK"
+      tls: true
+      tls_config:
+        insecure_skip_verify: false
+
+
+  grpc:
+    prober: grpc
+    grpc:
+      tls: true
+      preferred_ip_protocol: "ip4"
+
+  grpc_plain:
+    prober: grpc
+    grpc:
+      tls: false
+      preferred_ip_protocol: "ip4"
+      service: "service1"
+
+
+  ssh_banner:
+    prober: tcp
+    tcp:
+      query_response:
+      - expect: "^SSH-2.0-"
+      - send: "SSH-2.0-blackbox-ssh-check"
+
+  irc_banner:
+    prober: tcp
+    tcp:
+      query_response:
+      - send: "NICK prober"
+      - send: "USER prober prober prober :prober"
+      - expect: "PING :([^ ]+)"
+        send: "PONG ${1}"
+      - expect: "^:[^ ]+ 001"
+
+  icmp:
+    prober: icmp
+    icmp:
+      preferred_ip_protocol: "ip4"
+      payload_size: {{ prometheus_agent_blackbox_conf_icmp_payload_size }}
+

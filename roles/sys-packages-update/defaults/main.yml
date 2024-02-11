@@ -1,0 +1,37 @@
+---
+
+# the setting will determine the update process behavior
+# supported values :
+#   "security-only"     # update only packages with updates marked as security
+#   "normal"            # update most of installed packages, services will be restarted automatically when updated
+#   "full-with-kernel"  # same as normal, and also update the kernel and other packages requiring a reboot
+#
+system_package_update_mode: "normal"
+
+
+# if the kernel is updated, will follow with a reboot if required.
+# set to no to prevent any reboot
+system_package_update_reboot: yes
+
+
+# reboot timeout in sec
+system_package_update_reboot_timeout: 600
+
+
+# host list to never reboot
+# the ansible server (or a group) must be present, otherwise the role will fail
+# syntax:
+#   - "{{ groups['ansible'] }}"
+#   - "server1"
+#   - "{{ groups['mygroup'] }}"
+#   - "..."
+#
+system_package_update_reboot_skip_hosts:
+  # ansible control server - the group must be created
+  - "{{ groups['ansible'] }}"
+  # other servers or groups ...
+
+
+# disable in update-manager the automatic upgrade to the next LTS release when one is available
+system_package_update_ubuntu_disable_upgrade_next_lts: yes
+

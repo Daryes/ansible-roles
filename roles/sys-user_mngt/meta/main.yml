@@ -1,0 +1,14 @@
+---
+
+# minimal meta file for ansible-galaxy
+galaxy_info:
+  authors:
+    - "Alex.Heitz"
+  license:
+    - "CC-BY-4.0"
+  galaxy_tags:
+    - system
+    - security
+    - user
+    - authentication
+

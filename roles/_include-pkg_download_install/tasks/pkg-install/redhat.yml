@@ -1,0 +1,23 @@
+---
+
+# this fact is accessible by other roles as this one is called with include:
+# the stdout_lines[1:] allows to skip the first line
+- name: "{{ arg_install_comment }} | pkg down+install - check if install/update is required"
+  command: yum list installed {{ arg_install_pkg_name }}
+  args:
+    warn: no
+  register: _pkg_install_status
+  become: yes
+  failed_when: _pkg_install_status.rc > 1
+  changed_when: >
+    _pkg_install_status.stdout is defined
+    and (
+      _pkg_install_status.rc == 1
+      or _pkg_install_status.stdout_lines[1:] is not search( arg_install_pkg_version )
+    )
+
+
+- name: "{{ arg_install_comment }} | pkg down+install - load the install/update module"
+  include_tasks: redhat_proc-install.yml
+  when: _pkg_install_status is changed
+

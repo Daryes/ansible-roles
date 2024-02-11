@@ -1,0 +1,56 @@
+---
+
+# map will retrieve only the elements with the targeted attribute
+# select() will remove empty entries.
+# sum() is used to flatten the list, from [a,b],c,[d] to [ a,b,c,d ]
+- name: webserver apache | combine module variables from vhosts
+  set_fact:
+    task_config_module_activate: "{{ task_web_apache_merged | map(attribute='modules_activate', default=[]) |select() |list |sum(start=[]) }}"
+    task_config_module_disabled: "{{ task_web_apache_merged | map(attribute='modules_disable', default=[]) |select() |list |sum(start=[]) }}"
+
+
+# Apache comes with the a2en / a2dis and apachectl utilities, but they will also check the configuration validity and return an error if invalid
+- name: webserver apache | modules - retrieve modules currently active
+  command: "find {{ role_apache_dist.etc }}/mods-enabled/ ! -type d  -printf '%f\n'"
+  changed_when: false
+  register: task_config_module_currently_enabled
+
+
+# some modules can have a .conf file in addition to the .load file => need to use the apache2_module
+# as there's another configuration check later, this step shouldn't fail for any configuration mistake
+- name: webserver apache | modules - disable unwanted modules
+  apache2_module:
+    state: "absent"
+    name: "{{ item }}"
+    ignore_configcheck: true
+  with_items:
+    - "{{ apache_global_modules_disable }}"
+    - "{{ task_config_module_disabled }}"
+  when: item + '.' in task_config_module_currently_enabled.stdout
+  register: task_module_deactivation_result
+  #  '.rc|default(0)' is required as the property is missing when an error other than a syntax error occurs
+  failed_when: >
+    task_module_deactivation_result.rc |default(0) != 0
+    and not 'to activate ' in task_module_deactivation_result|dict2items|join( ' ' )|lower
+  #' changed_when is also required
+  changed_when: task_module_activation_result.rc |default(0) == 0
+  notify: reload apache validate config
+
+
+- name: webserver apache | modules - activate new modules
+  apache2_module:
+    state: "present"
+    name: "{{ item }}"
+    ignore_configcheck: true
+  with_items:
+    - "{{ role_apache_default_modules }}"
+    - "{{ apache_global_modules_activate }}"
+    - "{{ task_config_module_activate }}"
+  when: item + '.' not in task_config_module_currently_enabled.stdout
+  register: task_module_activation_result
+  changed_when: task_module_activation_result.rc |default(0) == 0
+  failed_when: >
+    task_module_activation_result.rc |default(0) != 0
+    and not 'to activate ' in task_module_activation_result|dict2items|join( ' ' )|lower
+  notify: reload apache validate config
+

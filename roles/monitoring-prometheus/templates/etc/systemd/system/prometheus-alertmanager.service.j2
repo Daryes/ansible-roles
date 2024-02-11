@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+# ref: debian .deb package
+
+[Unit]
+Description=Alertmanager for prometheus
+Documentation=https://prometheus.io/docs/alerting/alertmanager/
+After=network-online.target
+Requires=local-fs.target
+After=local-fs.target
+
+
+[Service]
+User={{ role_prometheus_dist.user }}
+
+EnvironmentFile={{ role_prometheus_dist.alertmanager_service_conf }}
+Environment="LOGFILE={{ role_prometheus_dist.log }}/alertmanager.log"
+
+# using /bin/bash -c "exec ..." to start a forking process without an absolute path and without bash staying as resident
+ExecStart=/bin/bash -c "exec {{ role_prometheus_dist.alertmanager_bin }} ${ARGS} &>>${LOGFILE}"
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+
+[Install]
+WantedBy=multi-user.target
+Alias=alertmanager.service

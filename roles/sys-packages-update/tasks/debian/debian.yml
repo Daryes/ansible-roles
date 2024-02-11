@@ -1,0 +1,29 @@
+---
+
+- name: System Update | APT | cache - refresh
+  apt: update_cache=yes
+  become: yes
+
+
+# not using apt-check which has been removed on Debian
+# alternative: apt -o 'Apt::Cmd::Disable-Script-Warning=true' list --upgradeable --quiet=2
+- name: System Update | APT | check if updates are available
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get dist-upgrade --simulate --quiet=2"
+  args:
+    warn: false
+  register: task_update_available
+  changed_when: task_update_available.stdout |default('') |length > 0
+  become: yes
+
+
+- name: System Update | APT | load corresponding mode
+  include_tasks: "update-{{ display_mode.mode }}.yml"
+  # mostly for log output purpose - visible when skipped
+  loop_control:
+    loop_var: display_mode
+  with_items:
+    - { mode: "{{ system_package_update_mode }}", available_updates: "{{ task_update_available is changed |ternary('yes', 'none') }}" }
+  when: >
+    system_package_update_mode in role_supported_modes
+    and task_update_available is changed
+

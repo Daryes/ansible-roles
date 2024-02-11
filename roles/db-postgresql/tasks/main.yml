@@ -1,0 +1,24 @@
+---
+
+# installation
+- import_tasks: install.yml
+
+
+# move the data directories in a different location - must be after the distribtion_others step
+- import_tasks: move_data.yml
+
+
+# configuration
+- import_tasks: config.yml
+
+
+- name: PostgreSQL | system - enable and start the service
+  service:
+    name: "{{ role_postgresql_dist.service }}"
+    state: started
+    enabled: yes
+
+
+# load user and db manager task after the service is restarted
+- import_tasks: pgsql_manager.yml
+

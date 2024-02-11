@@ -1,0 +1,58 @@
+---
+
+# specify the postgresql major version: XX
+postgresql_version: "CHANGE_ME_IN_INVENTORY_GROUPVARS"
+
+postgresql_version_major: "{{ postgresql_version.split('.') |first }}"
+
+
+# listen IP and port - specify "*" for all IP
+postgresql_listen_address: "localhost"
+postgresql_listen_port: "5432"
+
+
+# remote ip allowed to connect - only used if listen_address is not set on localhost
+postgresql_listen_allowed_range_v4: "0.0.0.0/0"
+postgresql_listen_allowed_range_v6: "::/0"
+
+
+postgresql_listen_auth_crypt_method: "scram-sha-256"
+
+
+# PostgreSQL directories - default values
+postgresql_conf_dir: "{{ role_postgresql_dist.conf }}"
+postgresql_data_dir: "{{ role_postgresql_dist.data }}"
+postgresql_log_dir: "{{ role_postgresql_dist.log }}"
+
+# Example to move everything under '<project>/db-postgresql/' :
+# postgresql_root_dir: "{{ project_root }}/db-postgresql"
+# postgresql_conf_dir: "{{ postgresql_root_dir }}/conf"
+# postgresql_data_dir: "{{ postgresql_root_dir }}/data"
+# postgresql_log_dir: "{{ postgresql_root_dir }}/log"
+
+# set to yes to ignore the source when both source and dest exist - usually the case when reinstalling the server
+postgresql_move_data_both_exist_ignore_source: no
+
+
+# add raw settings to the postgresql configuration file
+# ref: https://www.postgresql.org/docs/current/runtime-config.html
+postgresql_config_settings_raw: []
+
+
+# variables to create databases and users
+#<group name>_postgresql_db:
+#- db:               database name
+#  encoding:         database encoding (use UTF8 if you don't know)
+#  lc_collate:       optional (def: auto)
+#  tablespace_name:  optional, tablespace name associated to the db
+#  conn_limit        optional (def: -1), concurrent connection limit to the db
+#
+#<group name>_postgresql_user:
+#- name:             user login name
+#  password:         user login password
+#  db:               optional, main db for the user
+#  privs:            optional, user privileges on the target db
+#  expiration:       optional (def: infinity), user expiration date
+#  state:            optional (def: present), specify if the user need to be 'present' (created) or 'absent' (deleted)
+#
+

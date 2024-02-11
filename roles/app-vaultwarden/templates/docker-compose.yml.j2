@@ -1,0 +1,39 @@
+# {{ ansible_managed }}
+version: '3.7'
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:${VAULTWARDEN_VERSION}
+    container_name: vaultwarden-server
+    restart: unless-stopped
+    env_file:
+      - ".env"
+    ports:
+      - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:80"
+      - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT_WS}:3012"
+    volumes:
+      - ./data/vaultwarden:/data
+      - ./log:/log
+    networks:
+      - vaultwarden
+{% if vaultwarden_db == "psql" %}
+    depends_on:
+      - vaultwarden-db
+
+  vaultwarden-db:
+    image: 'postgres:latest'
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    networks:
+      - vaultwarden
+{% endif %}
+
+
+networks:
+  vaultwarden:
+

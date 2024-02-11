@@ -1,0 +1,77 @@
+---
+
+role_docker_data_dir_default: "/var/lib/docker"
+
+
+# old or distribution packages
+role_docker_remove_packages:
+  common:
+    - docker
+    - docker-engine
+    - docker-client
+    - containerd
+    - docker.io
+    - podman
+    - podman-docker
+  debian: []
+  redhat: []
+
+
+# package requirements
+role_docker_install_packages:
+  common:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    # other tools
+    - curl
+    - gnupg2
+    # required for docker-compose installation
+    - rsync
+    - ca-certificates
+  debian:
+    - apt-transport-https
+  redhat: []
+
+
+role_compose_dist_family:
+  debian:
+    log_user: "{{ 'syslog' if ansible_distribution |lower == 'ubuntu' else 'root' }}"
+    log_group: "adm"
+    data_mode: "0711"
+  redhat:
+    log_user: "root"
+    log_group: "root"
+    data_mode: "0710"
+
+
+# docker-compose informations
+role_docker_compose_fullpath: "/usr/local/bin/docker-compose"
+role_docker_compose_download:
+  url_v1: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+  url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-{{ ansible_system |lower }}-{{ ansible_architecture }}"
+
+
+# docker syslog logging
+role_docker_compose_log_dir:
+  path: "{{ docker_compose_log_dir }}"
+  owner: "{{ role_compose_dist_family[ ansible_os_family |lower ].log_user }}"
+  group: "{{ role_compose_dist_family[ ansible_os_family |lower ].log_group }}"
+  mode: "750"
+
+
+role_docker_install_ppa:
+- name: docker-ce
+  apt_key_url: "https://download.docker.com/linux/{{ ansible_distribution |lower }}/gpg"
+  apt_repository: "deb https://download.docker.com/linux/{{ ansible_distribution |lower }} {{ ansible_distribution_release |lower }} stable"
+  apt_filename: "docker.list"
+
+
+role_docker_install_yumrepo:
+- name: docker-ce
+  yumrepo_file: "docker-ce.repo"
+  yumrepo_description: "Docker Engine repo on docker.com"
+  yumrepo_gpgkey: "https://download.docker.com/linux/centos/gpg"
+  # bug in the documentation: https://github.com/docker/for-linux/issues/1111
+  yumrepo_baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+

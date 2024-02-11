@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+
+# BIND named process options
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# OPTIONS="whatever"     --  These additional options will be passed to named
+#                            at startup. Don't add -t here, enable proper
+#                            -chroot.service unit file.
+#
+# NAMEDCONF=/etc/named/alternate.conf
+#                        --  Don't use -c to change configuration file.
+#                            Extend systemd named.service instead or use this
+#                            variable.
+#
+# DISABLE_ZONE_CHECKING  --  By default, service file calls named-checkzone
+#                            utility for every zone to ensure all zones are
+#                            valid before named starts. If you set this option
+#                            to 'yes' then service file doesn't perform those
+#                            checks.
+NAMEDCONF={{ role_bind_dist.etc }}/named.conf
+
+OPTIONS="{% if bind_listen_ipv4_list |length == 0 or 'none' in bind_listen_ipv4_list %} -6 {% endif %}{% if bind_listen_ipv6_list |length == 0 or 'none' in bind_listen_ipv6_list %} -4 {% endif %} {{ bind_service_options }}"
+

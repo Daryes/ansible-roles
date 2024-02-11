@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+{# thisVhost is a variable from the web-apache role, containing the informations from <my_group>_apache  -#}
+{# -#}
+{% set current_vhost_log_dir = thisVhost.site_vhost_log_dir |default( role_apache_dist.log )  -%}
+{% set current_vhost_log_name = thisVhost.site_vhost_log_name |default("vhost-" + thisVhost.server_name)  -%}
+{# -#}
+
+<VirtualHost {{ thisVhost.listen_ip |default('*') }}:80>
+    ServerName {{ thisVhost.server_name }}
+{% for sCurrentAlias in thisVhost.server_alias |default( [] ) %}
+    ServerAlias {{ sCurrentAlias }}
+{% endfor %}
+
+
+    RewriteEngine On
+    RewriteOptions Inherit
+
+    CustomLog "{{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_access.log" combined
+    ErrorLog  "{{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_error.log"
+
+{% for loopRaw in thisVhost.raw_settings |default( [] ) |flatten %}
+    {{ loopRaw }}
+{% endfor %}
+
+</VirtualHost>

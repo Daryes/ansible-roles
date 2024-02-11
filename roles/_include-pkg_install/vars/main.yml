@@ -1,0 +1,23 @@
+---
+
+# mandatory packages
+role_includepkginstall_mandatory_packages:
+  common: []
+  debian:
+    - gnupg2
+    - apt-transport-https
+    - software-properties-common
+  redhat:
+    - yum-utils
+
+
+# used for filling ansible arch shortcoming
+role_system_arch_mapping:
+  i386: '386'
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armhf'
+  armv6l: 'armv6'
+
+role_system_arch: "{{ role_system_arch_mapping[ ansible_architecture ] |default(ansible_architecture) }}"
+

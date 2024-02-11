@@ -1,0 +1,59 @@
+---
+
+# downloaded file will be stored in a dedicated directory on the ansible master
+- name: "{{ arg_install_comment }} | pkg down+install - create binaries storage dir on master"
+  local_action:
+    module: ansible.builtin.file
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - "{{ role_archive_storage_dir }}"
+  become: true
+  run_once: true
+
+
+- name: "{{ arg_install_comment }} | pkg down+install - check binary availability on master"
+  local_action:
+    module: stat
+    path: "{{ role_archive_storage_dir }}/{{ task_install_pkg_target_file }}"
+  register: task_pkg_available
+  changed_when: task_pkg_available.stat.exists == false
+  become: false
+  run_once: true
+
+
+# download the pkg to ansible master only
+- name: "{{ arg_install_comment }} | pkg down+install - download pkg v{{ arg_install_pkg_version }} file"
+  local_action:
+    module: get_url
+    url: "{{ task_install_pkg_target_url }}"
+    dest: "{{ role_archive_storage_dir }}/{{ task_install_pkg_target_file }}"
+    checksum: "{{ task_install_pkg_target_hash }}"
+  register: task_pkg_downloaded
+  when: task_pkg_available.stat.exists == false
+  become: false
+  run_once: true
+
+
+# upload pkg from ansible master to each server
+- name: "{{ arg_install_comment }} | pkg down+install - send pkg file to servers"
+  synchronize:
+    src: "{{ role_archive_storage_dir }}/{{ task_install_pkg_target_file }}"
+    dest: /tmp/{{ task_install_pkg_target_file }}
+
+
+# stop the service - ignore if not yet installed
+- name: "{{ arg_install_comment }} | pkg down+install - stop service"
+  service:
+    name: "{{ arg_install_pkg_service }}"
+    state: stopped
+  when: >
+    arg_install_pkg_service |default('') |length > 0
+    and _pkg_install_status.rc == 0
+  register: task_service_status
+  failed_when: >
+    task_service_status is failed
+    and task_service_status.msg |lower |regex_search( role_service_not_found_regex ) |length == 0
+

@@ -1,0 +1,5 @@
+---
+
+# Must be defined under the inventory variables : "group_vars/linux" and/or "host_vars/<hostname>"
+# An example file is available under <this role>/default/main.yml
+

@@ -1,0 +1,97 @@
+---
+
+# ref: https://grafana.com/docs/grafana/v9.0/developers/http_api/admin/#global-users
+# ref: https://grafana.com/docs/grafana/latest/developers/http_api/org/
+
+# required to extract the users ID
+- name: Monitoring Grafana | provisioning - refresh the users list
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/users"
+    method: GET
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  register: task_grafana_api_user_list
+
+
+# TODO: only the first org is supported - move all the "org users" tasks in a dedicated file, then run include + loop on it using the orgid from the user list
+- name: Monitoring Grafana | provisioning - retrieve org users
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/orgs/1/users"
+    method: GET
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  register: task_grafana_api_org_user_list
+
+
+- name: Monitoring Grafana | provisioning - create missing users in org
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/orgs/1/users"
+    method: POST
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    body: |
+      {
+      "loginOrEmail":"{{ item.login }}",
+      "role":"{{ var_user_role_case }}"
+      }
+    body_format: json
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  vars:
+    # the role name must have the first char in  upper case, rest in lower case
+    var_user_role_case: "{{ item.role |default('Viewer') |title }}"
+  loop_control:
+    label: "{{ item.name |default(item.login) }}, role={{ var_user_role_case }}"
+  with_items: "{{ grafana_provisioning_users |flatten }}"
+  # The api user list is a json list of users with a 'login' attribute - look for the user login
+  when: task_grafana_api_org_user_list.json |default([]) |selectattr( "login", "eq",  item.login ) |list |length == 0
+  changed_when: true
+  # no_log: true
+
+
+- name: Monitoring Grafana | provisioning - update users role in org
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/orgs/1/users/{{ var_user_id }}"
+    method: PATCH
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    body: |
+      {
+      "role":"{{ var_user_role_case }}"
+      }
+    body_format: json
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  vars:
+    # the role name must have the first char in  upper case, rest in lower case
+    var_user_role_case: "{{ item.role |default('Viewer') |title }}"
+    # retrieve the user id from the main user list
+    var_user_id: '{{ task_grafana_api_user_list.json |selectattr( "login", "eq", item.login ) |map(attribute="id") |list |first }}'
+    # retrieve the user data from the org user list
+    var_user_org_data: '{{ task_grafana_api_org_user_list.json |default([]) |selectattr( "login", "eq", item.login ) |list }}'
+  loop_control:
+    label: "{{ item.name |default(item.login) }}, userid={{ var_user_id }}, role={{ var_user_role_case }}"
+  with_items: "{{ grafana_provisioning_users |flatten }}"
+  when: >
+    var_user_role_case in role_grafana_organization_roles
+    and var_user_org_data |length > 0
+    and var_user_org_data[0].role not in var_user_role_case
+  changed_when: true
+  # no_log: true
+

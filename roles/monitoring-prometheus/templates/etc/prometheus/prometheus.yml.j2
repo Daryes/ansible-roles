@@ -1,0 +1,270 @@
+# {{ ansible_managed }}
+# doc: https://github.com/prometheus/prometheus/blob/main/docs/configuration/configuration.md
+# doc: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+global:
+  scrape_interval: {{ prometheus_scrape_interval }}
+  evaluation_interval: {{ prometheus_scrape_interval }}
+  scrape_timeout: {{ prometheus_scrape_timeout }}
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+{% if prometheus_job_external_labels_static |length > 0 %}
+    {{ prometheus_job_external_labels_static  |flatten |to_nice_yaml(indent=0) |regex_replace('- |\[|\]', '') |indent(4) }}
+{%- else %}
+    # => no _external_labels
+{% endif %}
+
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+      - targets: ['localhost:{{ prometheus_alertmanager_listen_port }}']
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-prometheus.include.j2" %}
+{%  endfilter %}
+
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "{{ role_prometheus_dist.conf }}/alert.rules"
+
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config
+  - job_name: 'prometheus'
+    # Override the global default
+    scrape_interval: 1m
+    scrape_timeout: 5s
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+    metrics_path: /metrics
+
+    static_configs:
+      - targets: ['localhost:{{ prometheus_listen_port }}']
+        labels:
+{#        # add the "all labels" template with correct indentation relative to "targets:" #}
+{%        filter indent(width=6, first=True) %}
+{%        include "prometheus.d/labels-inventory.include.j2" %}
+{%        endfilter %}
+    relabel_configs:
+      # override the instance label
+      - target_label: instance
+        replacement: {{ inventory_hostname }}
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-prometheus.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'node'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-node*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'node-realtime'
+    scrape_interval: {{ prometheus_scrape_interval_realtime }}
+    scrape_timeout: {{ prometheus_scrape_interval_realtime }}
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/realtime-node*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+      # rewrite the realtime job_name with the standard one
+      - target_label: job
+        replacement: node
+      # add the realtime marker and frequency
+      - target_label: job_mode
+        replacement: realtime
+      - target_label: job_interval
+        replacement: "{{ prometheus_scrape_interval_realtime }}"
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'database'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-db*.yml'
+    relabel_configs:
+     # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'database-realtime'
+    scrape_interval: {{ prometheus_scrape_interval_realtime }}
+    scrape_timeout: {{ prometheus_scrape_interval_realtime }}
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/realtime-db*.yml'
+    relabel_configs:
+     # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+      # rewrite the realtime job_name with the standard one
+      - target_label: job
+        replacement: database
+      # add the realtime marker and frequency
+      - target_label: job_mode
+        replacement: realtime
+      - target_label: job_interval
+        replacement: "{{ prometheus_scrape_interval_realtime }}"
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'apache'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-websrv_apache*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'pushgateway'
+    scrape_interval: 5m
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-pushgateway*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'cadvisor'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-cadvisor*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'jmx'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-jmx*.yml'
+    # no relabel - need to keep the instance port
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'snmp'
+    metrics_path: /snmp
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/probe-snmp*.yml'
+    relabel_configs:
+      # snmp specific config
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:{{ role_system_agent_port[ "snmp" ] }}
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+{# # Blackbox - instead of repeating the same block for each job, create a dict of { 'name': 'module name' } and loop over it #}
+{% set aBlackboxJobs = { 'website': 'http_2xx', 'certificate': 'tls_connect', 'icmp': 'icmp' }  %}
+{% for loopBlackbox in prometheus_job_blackbox |default([]) |flatten %}
+{%   for loopJobName, loopJobModule in aBlackboxJobs.items() %}
+  - job_name: '{{ loopJobName }}'
+    metrics_path: /probe
+    scrape_interval: {{ prometheus_job_website_scrape_interval |default(prometheus_scrape_interval) }}
+    params:
+      module: [{{ loopJobModule }}]
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/probe-{{ loopJobName }}*.yml'
+    relabel_configs:
+      # blackbox specific config
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: {{ loopBlackbox }}:{{ role_system_agent_port[ "blackbox" ] }}
+      # add the server name doing the polling
+      - target_label: instance_hostname
+        replacement: {{ (loopBlackbox|lower in [ 'localhost', '127.0.0.1', '::1'] ) |ternary( inventory_hostname, loopBlackbox )  }}
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+{%   endfor %}
+{% endfor %}
+  - job_name: 'smokeping'
+    metrics_path: /metrics
+    scrape_interval: {{ prometheus_job_smokeping_scrape_interval |default(prometheus_scrape_interval) }}
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-smokeping*.yml'
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
+  - job_name: 'grafana'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-grafana*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  if prometheus_job_grafana_ssl |bool %}
+    # specific https/auth for grafana exporter
+    scheme: https
+    tls_config:
+      insecure_skip_verify: {{ prometheus_job_grafana_ssl_insecure_skip_verify }}
+{%  endif %}
+
+
+{% for loopRaw in prometheus_job_raw_settings |default( [] ) |flatten %}
+    {{ loopRaw }}
+{% endfor %}
+

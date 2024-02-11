@@ -1,0 +1,44 @@
+---
+
+
+- name: System Update | parameters validation"
+  assert:
+    that:
+      - system_package_update_mode |length > 0
+      - system_package_update_mode in [ "security-only", "normal", "full-with-kernel" ]
+    fail_msg: "Error: one of the mandatory parameters is either not set, empty, or with an unexpected value"
+    quiet: yes
+
+
+# package install role => system & network tools
+- name: System Update | requirements
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "System Update | requirements"
+    arg_install_packages: "{{ role_pkg_install_reqs }}"
+
+
+# Packages updates
+- name: System Update | load the corresponding family tasks
+  include_tasks: "{{ include_item }}"
+  with_first_found:
+    - files:
+      - "{{ ansible_os_family|lower }}.{{ ansible_distribution|lower }}-{{ ansible_distribution_version }}.yml"
+      - "{{ ansible_os_family|lower }}.{{ ansible_distribution|lower }}.yml"
+      - "{{ ansible_os_family|lower }}.yml"
+      - "defaults.yml"
+      paths:
+      - "debian/"
+      - "redhat/"
+  loop_control:
+    loop_var: include_item
+
+
+#  Using import_tasks with an empty file raise a warning message - this does not happen with include_tasks
+- name: System Update | load custom tasks before reboot
+  include_tasks: custom_pre_reboot.yml
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+

@@ -1,0 +1,20 @@
+---
+
+# configuration differences between distrib families
+role_certs_dist_family:
+  debian:
+    ca_dir: "/usr/local/share/ca-certificates"
+    ca_update_cmd: "/usr/sbin/update-ca-certificates --fresh"
+    # debian utilities expect the certificates only with a .crt extension under /usr/local/share/ca-certificates
+    cert_pem_ext: ".crt"
+
+  redhat:
+    ca_dir: "/usr/share/pki/ca-trust-source/anchors"
+    ca_update_cmd: "/usr/bin/update-ca-trust"
+    # multiple extensions are supported on RHEL, .pem is more common
+    cert_pem_ext: ".pem"
+
+role_certs_dist:
+  ca_dir: "{{ role_certs_dist_family[ ansible_os_family |lower ].ca_dir }}"
+  ca_update_cmd: "{{ role_certs_dist_family[ ansible_os_family |lower ].ca_update_cmd }}"
+  cert_pem_ext: "{{ role_certs_dist_family[ ansible_os_family |lower ].cert_pem_ext }}"

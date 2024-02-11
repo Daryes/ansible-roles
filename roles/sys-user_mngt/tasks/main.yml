@@ -1,0 +1,59 @@
+---
+
+# The .extend() in "if var.extend(value) %}{% endif" is a jinja2 v2.9- hack to insert data in a loop. Check namespace for jinja2 v2.10+
+# The .extend() is NOT set to ([ ]), as the variable to insert is already a dict
+# the >- expand to everything after as a string, while removing the carriage return.
+- name: User mgr | concatenate inventory group variables
+  set_fact:
+    task_users_accounts_merged: >-
+      {%- set groupSuffix = '_users_accounts' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( hostvars[inventory_hostname][loopGroup + groupSuffix] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput }}
+
+#- debug: var=task_users_accounts_merged
+
+
+# When an error in the syntax is present under group_vars or host_vars, it's possible ansible won't report it
+# The error message won't be clear, but still contains the bad item name.
+- name: User mgr | check variables validity
+  fail:
+    msg: "users_accounts_all, users_accounts_host, or one of the  <app>_users_accounts is not correctly defined, or is missing an entry in the vault"
+  when: >
+    users_accounts_all is not defined
+    or users_accounts_host is not defined
+    or task_users_accounts_merged is not defined
+
+
+# default system settings for user creation and umask
+- name: User mgr | enforce default settings for user creation
+  lineinfile:
+    path: "{{ item.file }}"
+    regexp: "{{ item.regex }}"
+    line: "{{ item.line }}"
+    state: present
+    insertafter: "{{ item.insertafter | default('EOF') }}"
+  with_items:
+    - { file: "/etc/adduser.conf", line: 'DIR_MODE={{ users_default_home_access_mode }}',        regex: '^DIR_MODE=.*',         when: "{{ ansible_os_family |lower == 'debian' }}" }
+    - { file: "/etc/login.defs",   line: 'HOME_MODE       {{ users_default_home_access_mode }}', regex: '^HOME_MODE\s*[0-9]+',  when: "{{ ansible_os_family |lower == 'redhat' }}" }
+    - { file: "/etc/login.defs",   line: 'UMASK           {{ users_default_umask }}',            regex: '^UMASK\s*[0-9]+',  insertafter: '^KILLCHAR\s*.*',  when: true }
+  loop_control:
+    label: "{{ item.file }} : {{ item.line }}"
+  when: item.when |bool
+
+
+- import_tasks: groups-users_create.yml
+
+
+- import_tasks: groups-users_delete.yml
+
+
+- import_tasks: ssh_keys.yml
+
+
+- import_tasks: sudoers.yml
+

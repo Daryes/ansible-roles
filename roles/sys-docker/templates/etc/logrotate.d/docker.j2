@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+
+{{ role_docker_compose_log_dir.path }}/*.log {
+    daily
+    rotate 14
+    copytruncate
+
+    compress
+    delaycompress
+
+    missingok
+    notifempty
+
+    dateext
+    dateyesterday
+}
+

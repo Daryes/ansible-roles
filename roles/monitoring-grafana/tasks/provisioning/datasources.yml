@@ -1,0 +1,15 @@
+---
+
+- name: Monitoring Grafana | provisioning - datasources
+  template:
+    src: "templates/{{ item.template }}"
+    dest: "{{ grafana_conf_dir }}/{{ item.module }}/{{ item.template |basename |replace('.j2', '') }}"
+    owner: "root"
+    group: "{{ role_grafana_dist.user }}"
+    mode: "0640"
+    # no validation here
+  with_items:
+    - { template: "provisioning/datasources.yml.j2", module: "{{ role_grafana_dist.provisioning.datasource_subdir }}" }
+  notify: stop grafana
+  become: yes
+

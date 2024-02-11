@@ -1,0 +1,12 @@
+{# # add the https scheme when using a certificate - insecure activated as it is a localhost access anyway #}
+{% if prometheus_ssl_cert_pem |length > 0 %}
+scheme: https
+tls_config:
+  insecure_skip_verify: true
+{% endif %}
+{# # add the same basic_auth if prometheus_scrape _auth_basic_user is set #}
+{% if prometheus_auth_basic_users |length > 0 %}
+basic_auth:
+  username: '{{ prometheus_scrape_auth_basic_user }}'
+  password_file: 'web-config.scrape'
+{% endif %}

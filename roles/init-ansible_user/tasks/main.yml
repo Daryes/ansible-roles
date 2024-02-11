@@ -1,0 +1,55 @@
+---
+
+# Warning : this role isn't executed as sudo / become : when required, it must be explicitely activated
+
+- name: Init | Bootstrap - parameters validation"
+  assert:
+    that:
+      - ansible_user is defined
+      - ansible_user |length > 0
+      # not mandatory as the remote user can allow ssh using a key and sudo without password
+      # - ansible_ssh_pass is defined
+      # - ansible_ssh_pass |length > 0
+      - domain_ansible_user |length > 0
+      - domain_ansible_user_uid |int > 0
+      - domain_ansible_group |length > 0
+      - domain_ansible_group_guid |int > 0
+    fail_msg: "Error: one of the mandatory parameters (ansible_user, ansible_ssh_pass, domain_ansible_*) is either not set or empty"
+    quiet: yes
+
+
+# retrieve target IPs and clear the local server key cache
+- import_tasks: local_key_cache.yml
+
+
+# fill local /etc/hosts file when no domain dns server is present
+- import_tasks: system-dns_hosts.yml
+  when: not ( network_dns_dedicated |default(false) |bool )
+
+
+# install sudo if missing
+- import_tasks: raw-sudo.yml
+
+
+# install python if missing
+- import_tasks: raw-python.yml
+
+
+- name: Init | Bootstrap - refresh ansible facts
+  setup:
+
+
+# reload variables for the host and the system group - special case after python installation on the targets
+- include_vars:
+    file: "{{ item }}"
+  with_fileglob:
+    - "{{ inventory_dir }}/group_vars/{{ ansible_os_family|lower }}"
+    - "{{ inventory_dir }}/group_vars/{{ ansible_distribution|lower }}"
+    - "{{ inventory_dir }}/group_vars/{{ ansible_system|lower }}"
+    - "{{ inventory_dir }}/group_vars/{{ ansible_system|lower }}/*"
+    - "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}"
+
+
+# user creation
+- import_tasks: ansible-usr.yml
+

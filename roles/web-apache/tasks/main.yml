@@ -1,0 +1,85 @@
+---
+
+# The .extend() in "if var.extend(value) %}{% endif" is a jinja2 v2.9- hack to insert data in a loop. Check namespace for jinja2 v2.10+
+# The .extend() is set to ([ ]) to add the variable as a new entry in a dict
+# the >- expands the following lines as a string, while removing the carriage return.
+- name: webserver apache | concatenate inventory group variables
+  set_fact:
+    task_web_apache_merged: >-
+      {%- set groupSuffix = '_apache' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( [ hostvars[inventory_hostname][loopGroup + groupSuffix] ] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput |flatten }}
+
+# - debug: var=task_web_apache_merged
+
+
+# When an error in the syntax is present under group_vars or host_vars, it's possible ansible won't report it
+# The error message won't be clear, but still contains the bad item name.
+- name: webserver apache | check merged variables validity
+  fail:
+    msg: "one of the <group>_apache is not correctly defined, or is missing an entry in the vault"
+  when: task_web_apache_merged is not defined
+
+
+- name: webserver apache | selinux - detect presence
+  stat:
+    path: "{{ role_apache_selinux.detect_cmd }}"
+    get_checksum: no
+  register: task_selinux_status
+  changed_when: false
+
+
+# import section
+- name: webserver apache | selinux - load dedicated task
+  include_tasks: system_selinux.yml
+  when: task_selinux_status.stat.exists |default(false) |bool
+
+
+- import_tasks: system_install-dir-conf.yml
+
+
+- import_tasks: move_data.yml
+
+
+# specific RHEL changes to have the default limited configuration more alike the debian advanced one
+- name: webserver apache | system - RHEL specific enhancements
+  include_tasks: system_rhel_enhancements.yml
+  when: ansible_os_family |lower == "redhat"
+
+
+- import_tasks: config_general.yml
+
+- import_tasks: config_modules.yml
+
+- import_tasks: config_websites.yml
+
+
+# cannot be done before as the configuration is validated as a whole
+- name: webserver apache | validate the configuration
+  command: "/usr/sbin/apachectl -t"
+  changed_when: false
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+# Role certificate_push_private generate a fact if a change occured to a certificate
+- name: webserver apache | stop the service in case of certificate renewal
+  service:
+    name: "{{ role_apache_dist.service }}"
+    state: "stopped"
+  when: _certificate_push_private_status is defined and _certificate_push_private_status is changed
+
+
+- name: webserver apache | enable and start the service
+  service:
+    name: "{{ role_apache_dist.service }}"
+    state: "{{ apache_global_service_state }}"
+    enabled: "{{ apache_global_service_enabled }}"
+

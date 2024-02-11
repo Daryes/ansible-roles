@@ -1,0 +1,70 @@
+// {{ ansible_managed }}
+{# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
+
+{% if thisDnsZone.dnssec |default(false) |bool %}
+{%   if thisDnsZone.dnssec_secret |default('') |length > 0 %}
+        key "{{ thisDnsZone.dnssec_key }}" {
+                algorithm {{ thisDnsZone.dnssec_algorithm }};
+                secret "{{ thisDnsZone.dnssec_secret  }}";
+        };
+{%   endif %}
+
+{%   for loopEntry in thisDnsZone.masters |default([]) |flatten %}
+        server {{ loopEntry }} {
+                keys { {{ thisDnsZone.dnssec_key }}; };
+        };
+{%   endfor %}
+{% endif %}
+
+
+zone "{{ thisDnsZone.name |regex_replace('\\.$', '') }}" IN {
+        type slave;
+
+        // the file will be generated / updated by bind itself - required to allow queries if the master server is missing at startup
+        file "{{ role_bind_dist.cache }}/transfers/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.db";
+
+        // ip to use as client to query the master
+{% if thisDnsZone.transfer_source |default('') |length > 0 %}
+        transfer-source {{ thisDnsZone.transfer_source }};
+{% endif %}
+{% if thisDnsZone.transfer_source_v6 |default('') |length > 0 %}
+        transfer-source-v6 {{ thisDnsZone.transfer_source_v6 }};
+{% endif %}
+        use-alt-transfer-source yes;
+
+        // zone master servers
+        masters {
+{% for loopEntry in thisDnsZone.masters |default([]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+
+        // remote servers allowed to notify this server when a zone change occured
+        allow-notify {
+{% for loopEntry in thisDnsZone.masters |default([]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+
+        // validate the zone for compliance with RFC 952 and RFC 1123 - must not be set to fail (default) if relaxed chars like _ are present
+        check-names warn;
+
+        // force a different min/max refresh time - if defined
+        {% if thisDnsZone.refresh_min_time is not defined %}// unused: {% endif %}min-refresh-time {{ thisDnsZone.refresh_min_time |default('') }};
+        {% if thisDnsZone.refresh_max_time is not defined %}// unused: {% endif %}max-refresh-time {{ thisDnsZone.refresh_max_time |default('') }};
+
+        // remote servers allowed to transfer this zone to themselves
+        allow-transfer {
+{% for loopEntry in thisDnsZone.allow_transfert |default([ 'none' ]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+
+        // remote server to notify when a change occured
+        also-notify {
+{% for loopEntry in thisDnsZone.also_notify |default([]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+};
+

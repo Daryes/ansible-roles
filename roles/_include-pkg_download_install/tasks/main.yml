@@ -1,0 +1,37 @@
+---
+
+#- debug: var=arg_install_comment
+#- debug: var=arg_install_pkg_name
+#- debug: var=arg_install_pkg_version
+#- debug: var=arg_install_pkg_deb_url
+#- debug: var=arg_install_pkg_deb_hash
+#- debug: var=arg_install_pkg_rpm_url
+#- debug: var=arg_install_pkg_rpm_hash
+
+
+- name: "{{ arg_install_comment }} | pkg down+install - parameters validation"
+  assert:
+    that:
+      - arg_install_pkg_name |length > 0
+      - arg_install_pkg_name |regex_search('change[_ ]me', ignorecase=True) is none
+      - arg_install_pkg_version |length > 0
+      - arg_install_pkg_version |regex_search('change[_ ]me', ignorecase=True) is none
+      - arg_install_pkg_deb_url |length > 0 or arg_install_pkg_rpm_url > 0
+    fail_msg: "Error: one of the mandatory parameters (arg_install_*) is either not set, empty, or still with a default 'CHANGE_ME' value"
+    quiet: yes
+
+
+# Packages updates
+- name: "{{ arg_install_comment }} | pkg down+install - load the corresponding installer"
+  include_tasks: "{{ include_item }}"
+  with_first_found:
+    - files:
+      - "{{ ansible_os_family|lower }}.{{ ansible_distribution|lower }}-{{ ansible_distribution_version }}.yml"
+      - "{{ ansible_os_family|lower }}.{{ ansible_distribution|lower }}.yml"
+      - "{{ ansible_os_family|lower }}.yml"
+      - "defaults.yml"
+      paths:
+      - pkg-install/
+  loop_control:
+    loop_var: include_item
+

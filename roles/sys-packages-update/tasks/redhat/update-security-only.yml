@@ -1,0 +1,11 @@
+---
+
+# notice: "upgrade-minimal" and "update-minimal" are aliases for dnf on rhel8+ but not with yum on rhel7
+# on rhel7 "yum upgrade" == "yum --obsoletes update" which are not the same
+# notice 2: "update-minimal" will retrieve the closest update with the security fix while "update" will retrieve the latest update
+- name: System Update | YUM | update - security patches only
+  shell: "yum update-minimal -y --security --exclude='kernel*'"
+  args:
+    warn: false
+  become: yes
+

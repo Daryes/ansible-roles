@@ -1,0 +1,25 @@
+---
+
+role_grafana_reqs_packages:
+  common: []
+  debian:
+    # required only on debian
+    - "libfontconfig1"
+  redhat: []
+
+
+role_grafana_install_ppa:
+- name: grafana-oss
+  apt_key_url: "https://packages.grafana.com/gpg.key"
+  apt_repository: "deb https://packages.grafana.com/oss/deb stable main"
+  apt_filename: "grafana.list"
+
+
+role_grafana_install_yumrepo:
+- name: grafana-oss
+  yumrepo_file: "grafana.repo"
+  yumrepo_description: "Grafana repo on grafana.com"
+  yumrepo_baseurl: "https://packages.grafana.com/oss/rpm"
+  yumrepo_gpgkey: "https://packages.grafana.com/gpg.key"
+  yumrepo_exclude: "grafana-enterprise*"
+

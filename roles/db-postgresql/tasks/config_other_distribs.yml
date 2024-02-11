@@ -1,0 +1,47 @@
+---
+
+- name: PostgreSQL | config - retrieve log dir information
+  stat:
+    path: "{{ role_postgresql_dist.log_normalized }}"
+    get_checksum: no
+    get_mime: no
+  register: task_stat_pgsql_log_normalized
+  changed_when: false
+
+
+- name: PostgreSQL | config - create normalized directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: "{{ item.recurse |default('no') }}"
+    follow: yes
+  with_items:
+    - { path: "{{ role_postgresql_dist.conf_normalized }}",  owner: "{{ role_postgresql_dist.user }}",  mode: "{{ role_postgresql_dist.conf_mode }}" }
+    - { path: "{{ role_postgresql_dist.conf_d_normalized }}",  owner: "{{ role_postgresql_dist.user }}",  mode: "{{ role_postgresql_dist.conf_mode }}", recurse: yes }
+
+
+- name: PostgreSQL | config - create log symlink under /var/log
+  file:
+    src: "{{ item.src }}"
+    state: link
+    dest: "{{ item.link }}"
+    force: yes
+  with_items:
+    - { src: "{{ role_postgresql_dist.log }}",  link: "{{ role_postgresql_dist.log_normalized }}" }
+  when: >
+    role_postgresql_dist.log_normalized != role_postgresql_dist.log
+    and not task_stat_pgsql_log_normalized.stat.exists
+
+
+# alteration to the main configuration file - already existing in debian config
+- name: PostgreSQL | config - main settings in postgresql.conf
+  lineinfile:
+    dest: "{{ role_postgresql_dist.conf }}/postgresql.conf"
+    line: "include_dir = '{{ role_postgresql_dist.conf_d_normalized }}'                  # include files ending in '.conf' from"
+    regexp: "^include_dir = "
+    state: present
+  register: task_postgresql_config_main
+

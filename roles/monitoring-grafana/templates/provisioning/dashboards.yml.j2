@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+# file version
+apiVersion: {{ grafana_provisioning_dashboards.apiVersion | default(1) }}
+
+{% if grafana_provisioning_dashboards.providers |default([]) |length > 0 %}
+providers:
+  {{ grafana_provisioning_dashboards.providers |to_nice_yaml(indent=1) |indent(2)   }}
+{% endif %}
+

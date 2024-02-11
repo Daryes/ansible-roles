@@ -1,0 +1,31 @@
+---
+
+- name: PostgreSQL | config - specific settings for non-debian distributions
+  include_tasks: config_other_distribs.yml
+  when: ansible_os_family |lower != "debian"
+
+
+# copy configuration file - might require to be done before the installation
+- name: PostgreSQL | config - extra settings
+  template:
+    src: "templates/etc/postgresql/{{ item|basename }}.j2"
+    dest: "{{ item }}"
+    owner: "{{ role_postgresql_dist.user }}"
+    group: "{{ role_postgresql_dist.user }}"
+    mode: "{{ role_postgresql_dist.conf_mode }}"
+  with_items:
+    - "{{ role_postgresql_dist.conf }}/pg_hba.conf"
+    - "{{ role_postgresql_dist.conf_d_normalized }}/defaults.conf"
+  register: task_postgresql_config
+
+
+# restart the service if the configuration wasn't present while already installed
+# _pkg_install_status come from the _include-pkg_install role
+- name: PostgreSQL | config - stop service on configuration change
+  service:
+    name: "{{ role_postgresql_dist.service }}"
+    state: stopped
+  when: >
+    task_postgresql_config is changed
+    or _pkg_install_status is changed
+

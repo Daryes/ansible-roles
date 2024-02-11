@@ -1,0 +1,73 @@
+---
+
+# specify the module with the full path to the template to use
+# It can be either a string or a list as: [ string1, string2, ...]
+nginx_global_extra_modules: []
+
+
+# sites to remove globally - do not specify 'default' nor the .conf
+nginx_global_vhost_disable: []
+
+
+# list of corporate address ip to give access to
+# syntax:
+#  - { ip: "x.x.x.x",  description: "text" }
+#  - { ip: ... }
+nginx_global_access_ip_list: []
+
+# activate bitbucket cloud ip access for ip filtering
+# disabled by default to reduce load
+nginx_geoip_access_bitbucket: no
+
+
+# list of reverse proxy in front of nginx to trust
+# syntax:
+#  - { ip: "x.x.x.x",  description: "text" }
+#  - { ip: ... }
+nginx_global_revproxy_list: []
+
+
+# option to disable the service if required
+# state:  either "started" or "stopped"
+# enabled: set to no to have the service not started at boot
+nginx_global_service_state: "started"
+nginx_global_service_enabled: yes
+
+
+# list of user and crypted password to be used by auth_basic
+# ref1: https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/
+# ref2: https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html#auth_basic_user_file
+# use to generate: htpasswd -n <user>
+# syntax:
+#   - user: "username"
+#     pass: "$apr1$ already crypted hash"
+#     comment: "(optional) description or other comment - can be omitted"
+#
+#   - user: "user2"
+#     pass: "$apr1$..."
+#
+nginx_global_auth_user_list: []
+
+
+# global parameters for nginx http module with their default values
+nginx_global_http_server_names_hash_max_size: 1024
+nginx_global_http_server_names_hash_bucket_size: 64
+nginx_global_http_proxy_headers_hash_max_size: 1024
+nginx_global_http_proxy_headers_hash_bucket_size: 128
+
+
+# path to the ssl cert to use for the default website
+nginx_default_site_ssl_cert_pem: ""
+nginx_default_site_ssl_cert_key: ""
+
+
+# listen address (ip or socket) for the default website
+nginx_default_site_listen_ip: "*"
+
+
+# selinux: add tcp ports to the "http_port_t" rule type
+# examples:
+#   - 8991
+#   - 10000-10100
+nginx_selinux_open_ports: []
+

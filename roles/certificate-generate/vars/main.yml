@@ -1,0 +1,16 @@
+---
+
+# local cache
+role_cache_dir: "{{ ansible_cache_root_dir }}/{{ role_name |basename }}"
+
+
+role_server_certificate_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}.pem"
+role_server_certificate_csr_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}.csr"
+role_server_certificate_privatekey_path: "{{ server_certificate_privatekey_dir }}/{{ server_certificate_subject_name }}.key"
+role_server_certificate_combined_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}.combined.pem"
+
+
+# required to access the /etc/ssl/private directory
+# ansible/issues/23530 : when using delegate_to, ansible_user variable is missing when not globally set in the inventory
+role_ansible_user: "{{ ansible_user | default(ansible_env.SUDO_USER, true) | default(ansible_env.USER, true) | default(ansible_user_id) }}"
+

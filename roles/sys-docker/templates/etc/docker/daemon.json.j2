@@ -1,0 +1,28 @@
+{
+  "data-root": "{{ docker_data_dir }}",
+{% if docker_config_log_driver |length > 0 %}
+  "log-driver": "{{ docker_config_log_driver }}",
+{% endif %}
+  "log-opts": {
+    {{ docker_config_log_opts }}
+  },
+  "ipv6": {{ docker_config_ipv6 |bool |lower }},
+{% if docker_config_default_address_pools |length > 0 %}
+  "default-address-pools": {{ docker_config_default_address_pools |flatten |to_json(indent=2) |indent(2) }},
+{% endif %}
+{% if docker_config_registry_mirrors |length > 0 %}
+  "registry-mirrors": {{ docker_config_registry_mirrors |flatten |replace("'", '"') }},
+{% endif %}
+{% if docker_config_insecure_registries |length > 0 %}
+  "insecure-registries": {{ docker_config_insecure_registries |flatten |replace("'", '"') }},
+{% endif %}
+{% if docker_config_tls |default(False) |bool %}
+  "tls": true,
+{%   if docker_config_tlscacert |length > 0 %}
+  "tlscacert": "{{ docker_config_tlscacert }}",
+{%   endif %}
+  "tlscert": "{{ docker_config_tlscert }}",
+  "tlskey": "{{ docker_config_tlskey }}",
+{% endif %}
+  "experimental": false
+}

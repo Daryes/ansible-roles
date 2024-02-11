@@ -1,0 +1,75 @@
+---
+
+# no reload: there is an automatic reread from prometheus for these files
+- name: Monitoring Prometheus | config - prometheus job files
+  template:
+    src: "templates/{{ dest_file }}.j2"
+    dest: "{{ dest_file }}"
+    owner: "{{ role_prometheus_dist.user }}"
+    group: "{{ role_prometheus_dist.user }}"
+    mode: "{{ item.mode |default('0644') }}"
+    # no validation here, not possible without the main config file
+  vars:
+    dest_file: "{{ role_prometheus_dist.conf_d }}/{{ item |basename |regex_replace('\\.j2$','') }}"
+  with_items: "{{ query('fileglob', 'templates/{{ role_prometheus_dist.conf_d }}/*.yml.j2') |sort }}"
+  loop_control:
+    label: "file: {{ dest_file }}"
+  # no notify required, the files under prometheus.d/ are automatically reloaded
+  become: yes
+  # async+poll is not supported by the "template" module, cannot generate the files in parallel
+
+
+- name: Monitoring Prometheus | config - other files (log output disabled)
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ item.dest |default(item.file) }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner |default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { file: "/etc/prometheus/web-config.scrape", owner: "{{ role_prometheus_dist.user }}", mode: "0600" }
+  loop_control:
+    label: "file: {{ item.dest |default(item.file) }}"
+  notify: reload prometheus
+  become: yes
+  no_log: yes
+
+
+- name: Monitoring Prometheus | config - prometheus main file
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ dest_file }}"
+    owner: "{{ role_prometheus_dist.user }}"
+    group: "{{ role_prometheus_dist.user }}"
+    mode: "{{ item.mode |default('0644') }}"
+    validate: "{{ role_prometheus_dist.promtool_bin }} check {{ item.type }} %s "
+  vars:
+    dest_file: "{{ item.dest |default(item.file) }}"
+  with_items:
+    # order is important, prometheus.yml must be last
+    - { type: "rules",       file: "{{ role_prometheus_dist.conf }}/alert.rules" }
+    - { type: "web-config",  file: "{{ role_prometheus_dist.conf }}/web-config.prometheus.yml",  mode: "0600" }
+    - { type: "config",      file: "{{ role_prometheus_dist.conf }}/prometheus.yml" }
+  loop_control:
+    label: "file: {{ dest_file }}"
+  notify: [ "stop prometheus", "stop alertmanager" ]
+  become: yes
+
+
+- name: Monitoring Prometheus | config - alertmanager main files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ dest_file }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+    validate: "{{ role_prometheus_dist.amtool_bin }} check-config %s "
+  vars:
+    dest_file: "{{ item.dest |default(item.file) }}"
+  with_items:
+    - { file: "{{ role_prometheus_dist.conf }}/alertmanager.yml", owner: "{{ role_prometheus_dist.user }}" }
+  loop_control:
+    label: "file: {{ dest_file }}"
+  notify: reload alertmanager
+  become: yes
+

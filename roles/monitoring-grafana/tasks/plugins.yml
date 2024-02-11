@@ -1,0 +1,31 @@
+---
+
+- name: Monitoring Grafana | config - retrieve plugin list
+  shell:
+    cmd: "{{ role_grafana_dist.cli_bin }} plugins ls"
+  register: task_grafana_plugins_list
+  changed_when: false
+  become: yes
+
+
+- name: Monitoring Grafana | config - install plugins
+  shell:
+    cmd: "{{ role_grafana_dist.cli_bin }} plugins install {{ item }}"
+  with_items: "{{ grafana_plugins_install |default([]) |flatten }}"
+  when: item not in task_grafana_plugins_list.stdout
+  notify: stop grafana
+  become: yes
+  # TODO: activate become_* when ansible 2.9 will be dropped
+  #become_user: "{{ role_grafana_dist.user }}"
+  #become_flags: '-s /bin/bash'
+
+
+- name: Monitoring Grafana | config - update plugins
+  shell:
+    cmd: "{{ role_grafana_dist.cli_bin }} plugins upgrade-all"
+  when: grafana_plugins_update_all |default(false) |bool
+  become: yes
+  # TODO: activate become_* when ansible 2.9 will be dropped
+  #become_user: "{{ role_grafana_dist.user }}"
+  #become_flags: '-s /bin/bash'
+

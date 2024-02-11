@@ -1,0 +1,42 @@
+---
+
+# this will move the directories in the initial location to the new location
+# and create redirecting symlinks
+
+- name: "{{ arg_move_data_comment }} | move data to new location - parameters validation"
+  assert:
+    that:
+      - arg_move_data_source_path |length > 0
+      - arg_move_data_dest_path |length > 0
+      - arg_move_data_dest_type in [ 'directory', 'file' ]
+    fail_msg: "Error: one of the mandatory parameters (arg_install_*) is either not set, empty, or still with a default 'CHANGE_ME' value"
+    quiet: yes
+
+
+- name: "{{ arg_move_data_comment }} | move data to new location - show source and dest args"
+  command: "/bin/true"
+  with_items:
+    - "source => '{{ arg_move_data_source_path }}', dest => '{{ arg_move_data_dest_path }}'"
+  changed_when: false
+  delegate_to: localhost
+
+
+# retrieve the directories stat data
+- import_tasks: directories_stat.yml
+
+
+- block:
+    # move data only if the source path is a real file or directory
+    - include_tasks: move_data.yml
+      when: >
+        task_stat_path_src.stat.exists
+        and not task_stat_path_src.stat.islnk
+
+
+    - import_tasks: set_mode_and_symlink.yml
+
+  # block end
+  when: >
+    arg_move_data_source_path != arg_move_data_dest_path
+    and arg_move_data_source_path not in [ '/', '' ]
+    and arg_move_data_dest_path   not in [ '/', '' ]

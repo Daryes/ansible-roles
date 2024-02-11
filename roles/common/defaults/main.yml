@@ -1,0 +1,5 @@
+---
+
+# environment name or type - added as a group named: env_<type>
+envir_type: "unknown"
+

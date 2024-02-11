@@ -1,0 +1,114 @@
+---
+
+- name: Certificate Generate | OpenSSL - create cache dir on ansible server
+  file:
+    path: "{{ role_cache_dir }}/"
+    state: "directory"
+    mode: "0700"
+    owner: "{{ role_ansible_user }}"
+    group: "{{ role_ansible_user }}"
+  delegate_to: localhost
+  run_once: true
+  become: true
+
+
+# The block / throttle (or serial) limit the number of processes to prevent creating different keys/certs for the same information
+- name: Certificate Generate | OpenSSL - local generation
+  block:
+
+  - name: Certificate Generate | OpenSSL - Private key local generation
+    community.crypto.openssl_privatekey:
+      path: "{{ role_cache_dir }}/{{ role_server_certificate_privatekey_path | basename }}"
+      size: "{{ server_certificate_privatekey_size }}"
+      type: "{{ server_certificate_privatekey_type }}"
+      passphrase: "{{ server_certificate_privatekey_passphrase |default(omit, true) }}"
+      cipher: "{{ 'auto' if server_certificate_privatekey_passphrase |length > 0 else omit }}"
+      mode: "0600"
+      owner: "{{ role_ansible_user }}"
+      group: "{{ role_ansible_user }}"
+    no_log: yes
+
+
+  - name: Certificate Generate | OpenSSL - CSR local generation
+    community.crypto.openssl_csr:
+      path: "{{ role_cache_dir }}/{{ role_server_certificate_csr_path | basename }}"
+      privatekey_path: "{{ role_cache_dir }}/{{ role_server_certificate_privatekey_path | basename }}"
+      privatekey_passphrase: "{{ server_certificate_privatekey_passphrase |default(omit, true) }}"
+      common_name: "{{ server_certificate_common_name }}"
+      subject_alt_name: "{{ server_certificate_alt_name }}"
+      country_name: "{{ server_certificate_country_name }}"
+      organization_name: "{{ server_certificate_organization_name }}"
+      organizational_unit_name: "{{ server_certificate_organization_unit | default(omit) }}"
+      email_address: "{{ server_certificate_email_address }}"
+      digest: "{{ server_certificate_digest }}"
+      mode: "0600"
+      owner: "{{ role_ansible_user }}"
+      group: "{{ role_ansible_user }}"
+
+
+  - name: Certificate Generate | OpenSSL - Signed certificate local generation
+    community.crypto.x509_certificate:
+      path: "{{ role_cache_dir }}/{{ role_server_certificate_path | basename }}"
+      csr_path: "{{ role_cache_dir }}/{{ role_server_certificate_csr_path | basename }}"
+      provider: ownca
+      force: "{{ server_certificate_force_replacement |bool }}"
+      # validity for the certificate to generate
+      ownca_not_after: "{{ server_certificate_validity_duration }}"
+      ownca_not_before: "-1d"   # valid since yesterday
+      # manage ownca source types
+      ownca_path: "{{ local_ca_path if local_ca_type == 'file' else omit }}"
+      ownca_privatekey_path: "{{ local_ca_privatekey_path if local_ca_type == 'file' else omit }}"
+      ownca_content: "{{ local_ca_content if local_ca_type != 'file' else omit }}"
+      ownca_privatekey_content: "{{ local_ca_privatekey_content if local_ca_type != 'file' else omit }}"
+      # other parameters
+      ownca_privatekey_passphrase: "{{ local_ca_privatekey_passphrase }}"
+      mode: "0600"
+      owner: "{{ role_ansible_user }}"
+      group: "{{ role_ansible_user }}"
+    become: yes
+
+
+  - name: Certificate Generate | OpenSSL - Insert the CA certificate pem as a chain
+    blockinfile:
+      path: "{{ role_cache_dir }}/{{ role_server_certificate_path | basename }}"
+      # lookup('file') is executed outside the task and does not benefit of become=yes => use lookup(pipe) + sudo instead
+      block: "{{ lookup('pipe' , 'sudo cat ' + local_ca_path) if local_ca_type == 'file' else local_ca_content }}"
+      insertafter: "EOF"
+      # prevent the module to insert commented lines
+      marker: ""
+      backup: no
+    when: server_certificate_chain_add_ca_public_cert |bool
+    become: yes
+
+
+  # block ending
+  delegate_to: localhost
+  throttle: 1
+
+
+- name: Certificate Generate | Send to server - create base directory
+  file:
+    path: "{{ item }}"
+    state: "directory"
+    mode: "0750"
+    owner: "{{ server_certificate_owner }}"
+    group: "{{ server_certificate_group |default(server_certificate_owner, true) }}"
+  with_items:
+    - "{{ role_server_certificate_path | dirname }}"
+  become: yes
+
+
+- name: Certificate Generate | Send to server
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ server_certificate_owner }}"
+    group: "{{ server_certificate_group |default(server_certificate_owner, true) }}"
+    mode: "0600"
+  with_items:
+    - { src: "{{ role_cache_dir }}/{{ role_server_certificate_path |basename }}",  dest: "{{ role_server_certificate_path }}" }
+    - { src: "{{ role_cache_dir }}/{{ role_server_certificate_privatekey_path |basename }}",  dest: "{{ role_server_certificate_privatekey_path }}"}
+  register: task_status
+  become: yes
+  no_log: yes
+

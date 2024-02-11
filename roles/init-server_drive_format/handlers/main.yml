@@ -1,0 +1,7 @@
+---
+
+# in ansible facts, all drives, partitions and volumes are under the hardware subset
+- name: refresh drive facts
+  setup:
+    gather_subset: [ "hardware" ]
+

@@ -1,0 +1,30 @@
+---
+
+
+- name: Monitoring Grafana | provisioning - dashboards directories creation
+  file:
+    path: "{{ var_provisioning_dest }}"
+    state: directory
+    owner: "{{ role_grafana_dist.user }}"
+    group: "{{ role_grafana_dist.user }}"
+    mode: "0755"
+  vars:
+    var_provisioning_dest: "{{ task_provisioning_dest_root }}/{{ item.dest |default( item.source |basename) }}/"
+  loop_control:
+    label: "{{ var_provisioning_dest }}"
+  with_items: "{{ task_provisioning_transferts }}"
+
+
+- name: Monitoring Grafana | provisioning - dashboards file copy
+  copy:
+    src: "{{ item.source }}"
+    dest: "{{ var_provisioning_dest }}"
+    owner: "{{ role_grafana_dist.user }}"
+    mode: '0644'
+  vars:
+    var_provisioning_dest: "{{ task_provisioning_dest_root }}/{{ item.dest |default( item.source |dirname |basename + '/') )}"
+  loop_control:
+    label: "source: {{ item.source }}, dest: {{ var_provisioning_dest }}"
+  with_items: "{{ task_provisioning_transferts }}"
+  when: item.source | length > 1
+

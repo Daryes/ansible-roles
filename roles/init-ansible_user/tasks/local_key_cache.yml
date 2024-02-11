@@ -1,0 +1,46 @@
+---
+
+# Warning : this role isn't executed as sudo / become : when required, it must be explicitely activated
+
+
+# extract ip address, as gather_facts is disabled, ansible doesn't provide ip automatically
+- name: ansible | new servers - gathering ipv4 addresses
+  shell: "getent ahostsv4 {{ inventory_hostname }}| awk '{ print $1 ; exit }'"
+  register: hostname_ipv4
+  changed_when: false
+  ignore_errors: true
+  become: false
+  delegate_to: 127.0.0.1
+
+
+- name: ansible | new servers - gathering ipv6 addresses
+  shell: "getent ahostsv6 {{ inventory_hostname }}| awk '{ print $1 ; exit }'"
+  register: hostname_ipv6
+  changed_when: false
+  ignore_errors: true
+  become: false
+  delegate_to: 127.0.0.1
+
+
+# the ssh/known_hosts file can be missing when the user is freshly created, causing an error with ssh-keygen
+- name: ansible | new servers - ensure known_hosts exists
+  file:
+    path: "~/.ssh/known_hosts"
+    state: touch
+  changed_when: false
+  become: false
+  delegate_to: 127.0.0.1
+
+
+# cleaning ssh/known_hosts on ansible master
+- name: ansible | new servers - removing from known_hosts ssh security
+  shell: "[ ! -z '{{ item }}' ] && ssh-keygen -R {{ item }}"
+  with_items:
+    - "{{ inventory_hostname }}"
+    - "{{ ansible_host |default('') }}"
+    - "{{ hostname_ipv4.stdout }}"
+    - "{{ hostname_ipv6.stdout }}"
+  when: item != ""
+  become: false
+  delegate_to: 127.0.0.1
+

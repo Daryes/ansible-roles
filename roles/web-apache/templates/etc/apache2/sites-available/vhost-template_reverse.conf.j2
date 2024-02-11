@@ -1,0 +1,56 @@
+# {{ ansible_managed }}
+
+{# thisVhost is a variable from the web-apache role, containing the informations from <app-group>_apache  -#}
+{# -#}
+{% set current_vhost_log_dir = thisVhost.site_vhost_log_dir |default( role_apache_dist.log )  -%}
+{% set current_vhost_log_name = thisVhost.site_vhost_log_name |default("vhost-" + thisVhost.server_name)  -%}
+{# -#}
+
+# http with redirect to https
+<VirtualHost {{ thisVhost.listen_ip |default('*') }}:80>
+    ServerName {{ thisVhost.server_name }}
+{% for sCurrentAlias in thisVhost.server_alias |default( [] ) %}
+    ServerAlias {{ sCurrentAlias }}
+{% endfor %}
+
+    RewriteEngine On
+    # letsencrypt exclusion
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^/\.well-known/.+ - [END]
+    
+    # mandatory https redirect
+    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [NE,END,R=307]
+</VirtualHost>
+
+<VirtualHost {{ thisVhost.listen_ip |default('*') }}:443 >
+    ServerName {{ thisVhost.server_name }}
+{% for sCurrentAlias in thisVhost.server_alias |default( [] ) %}
+    ServerAlias {{ sCurrentAlias }}
+{% endfor %}
+
+
+    <IfModule mod_ssl.c>
+        SSLEngine on
+{% if thisVhost.ssl_cert_pem |default('') | length > 0 %}
+        ssl_certificate     {{ thisVhost.ssl_cert_pem }};
+        ssl_certificate_key {{ thisVhost.ssl_cert_key }};
+{% endif %}
+    </IfModule>
+
+    RewriteEngine On
+    RewriteOptions Inherit
+
+    CustomLog "{{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_access.log" combined
+    ErrorLog  "{{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_error.log"
+
+{% for loopRaw in thisVhost.raw_settings |default( [] ) |flatten %}
+    {{ loopRaw }}
+{% endfor %}
+
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyPass /server-status !
+    ProxyPass "{{ thisVhost.proxypass_subdir |default('/') }}" "{{ thisVhost.proxypass_target }}"
+    ProxyPassReverse "{{ thisVhost.proxypass_subdir |default('/') }}" "{{ thisVhost.proxypass_target }}"
+
+</VirtualHost>

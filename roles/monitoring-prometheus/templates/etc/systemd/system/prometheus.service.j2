@@ -1,0 +1,49 @@
+# {{ ansible_managed }}
+# ref: debian .deb package
+
+[Unit]
+Description=Monitoring system and time series database
+Documentation=https://prometheus.io/docs/introduction/overview/ man:prometheus(1)
+Requires=local-fs.target
+After=local-fs.target
+After=time-sync.target
+
+
+[Service]
+Restart=on-failure
+User={{ role_prometheus_dist.user }}
+
+EnvironmentFile={{ role_prometheus_dist.service_conf }}
+Environment="LOGFILE={{ role_prometheus_dist.log }}/prometheus.log"
+
+# using /bin/bash -c "exec ..." to start a forking process without an absolute path and without bash staying as resident
+ExecStart=/bin/bash -c "exec {{ role_prometheus_dist.prometheus_bin }} ${ARGS} &>>${LOGFILE}"
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+# systemd hardening-options
+AmbientCapabilities=
+CapabilityBoundingSet=
+DeviceAllow=/dev/null rw
+DevicePolicy=strict
+LimitMEMLOCK=0
+LimitNOFILE=8192
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+PrivateUsers=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=full
+RemoveIPC=true
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

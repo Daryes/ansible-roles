@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+[Service]
+{% if docker_proxy_http_url |length > 0 %}
+Environment="HTTP_PROXY={{ docker_proxy_http_url }}"
+{% endif %}
+{% if docker_proxy_https_url |length > 0 %}
+Environment="HTTPS_PROXY={{ docker_proxy_https_url }}"
+{% endif %}
+Environment="NO_PROXY=localhost,127.0.0.0/8{% if docker_proxy_no_proxy |length > 0 %},{{ docker_proxy_no_proxy }}{% endif %}"
+

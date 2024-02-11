@@ -1,0 +1,29 @@
+---
+
+- name: System Update | YUM | cache - refresh
+  yum: update_cache=yes
+  become: yes
+
+
+# check-update will return rc=100 when updates are available
+- name: System Update | YUM | check if updates are available
+  shell: "yum check-update"
+  args:
+    warn: false
+  register: task_update_available
+  changed_when: task_update_available.rc == 100
+  failed_when: task_update_available.rc > 0 and task_update_available.rc != 100
+  become: yes
+
+
+- name: System Update | YUM | load corresponding mode
+  include_tasks: "update-{{ display_mode.mode }}.yml"
+  # mostly for log output purpose - visible when skipped
+  loop_control:
+    loop_var: display_mode
+  with_items:
+    - { mode: "{{ system_package_update_mode }}", available_updates: "{{ task_update_available is changed |ternary('yes', 'none') }}" }
+  when: >
+    system_package_update_mode in role_supported_modes
+    and task_update_available is changed
+

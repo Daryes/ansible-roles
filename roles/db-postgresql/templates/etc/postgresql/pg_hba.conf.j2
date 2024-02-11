@@ -1,0 +1,52 @@
+# {{ ansible_managed }}
+#
+# PostgreSQL Client Authentication Configuration File
+# ===================================================
+#
+# Reference: https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
+# Refer to the "Client Authentication" section in the PostgreSQL
+# documentation for a complete description of this file.  A short
+# synopsis follows.
+#
+# This file controls: which hosts are allowed to connect, how clients
+# are authenticated, which PostgreSQL user names they can use, which
+# databases they can access.  Records take one of these forms:
+#
+# local         DATABASE  USER  METHOD  [OPTIONS]
+# host          DATABASE  USER  ADDRESS  METHOD  [OPTIONS]
+# hostssl       DATABASE  USER  ADDRESS  METHOD  [OPTIONS]
+# hostnossl     DATABASE  USER  ADDRESS  METHOD  [OPTIONS]
+# hostgssenc    DATABASE  USER  ADDRESS  METHOD  [OPTIONS]
+# hostnogssenc  DATABASE  USER  ADDRESS  METHOD  [OPTIONS]
+#
+# (The uppercase items must be replaced by actual values.)
+
+
+# Put your actual configuration here
+# ----------------------------------
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+{% if postgresql_listen_address not in [ 'localhost', '127.0.0.1', '::1' ] %}
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             all             {{ postgresql_listen_allowed_range_v4 }}               {{ postgresql_listen_auth_crypt_method }}
+host    all             all             {{ postgresql_listen_allowed_range_v6 }}               {{ postgresql_listen_auth_crypt_method }}
+{% endif %}
+
+
+# ----------------------------------
+# DO NOT DISABLE!
+# Database administrative login by Unix domain socket
+local   all             postgres                                peer
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     peer
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            {{ postgresql_listen_auth_crypt_method }}
+# IPv6 local connections:
+host    all             all             ::1/128                 {{ postgresql_listen_auth_crypt_method }}
+# Allow replication connections from localhost, by a user with the replication privilege.
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            {{ postgresql_listen_auth_crypt_method }}
+host    replication     all             ::1/128                 {{ postgresql_listen_auth_crypt_method }}
+

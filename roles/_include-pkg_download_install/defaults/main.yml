@@ -1,0 +1,52 @@
+---
+
+# Name visible as a prefix for each task description in the ansible output
+#
+# default value
+arg_install_comment: "CHANGE ME - pkg_download_install include"
+
+
+# package short name as used by the package manager
+arg_install_pkg_name: "CHANGE_ME_PACKAGE"
+
+# package version to deploy
+arg_install_pkg_version: "CHANGE_ME"
+
+
+# service name created by the package to stop / start
+arg_install_pkg_service: ""
+
+
+# debian package name
+arg_install_pkg_deb_name: "{{ arg_install_pkg_name }}"
+
+# debian package filename
+arg_install_pkg_deb_file: ""
+
+# url to the debian package file
+arg_install_pkg_deb_url: ""
+
+# hash for the debian file, in format: "sha256:xxxxx"
+arg_install_pkg_deb_hash: ""
+
+
+# rpm package name
+arg_install_pkg_rpm_name: "{{ arg_install_pkg_name }}"
+
+# rpm package filename
+arg_install_pkg_rpm_file: ""
+
+# url to the rhel/centos rpm package file
+arg_install_pkg_rpm_url: ""
+
+# hash for the rpm file, in format: "sha256:xxxxx"
+arg_install_pkg_rpm_hash: ""
+
+
+# gpg key url for the rpm file, ex : "https://packages.domain.tld/repo/gpgkey"
+arg_install_pkg_rpm_gpg_url: ""
+
+
+# local directory on ansible server for cache dir
+ansible_cache_root_dir: "/opt/ansible/cache"
+

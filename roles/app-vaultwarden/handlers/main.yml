@@ -1,0 +1,7 @@
+---
+
+- name: reload vaultwarden conf
+  service:
+    name: "{{ role_vaultwarden_service }}"
+    state: "restarted"
+

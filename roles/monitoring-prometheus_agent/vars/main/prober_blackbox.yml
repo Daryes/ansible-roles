@@ -1,0 +1,34 @@
+---
+
+# prometheus packages ref: https://prometheus.io/download/
+role_prometheus_agent_blackbox_package_file: "blackbox_exporter-{{ prometheus_agent_blackbox_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_blackbox_package_url: "https://github.com/prometheus/blackbox_exporter/releases/download/v{{ prometheus_agent_blackbox_version }}/{{ role_prometheus_agent_blackbox_package_file }}"
+
+
+# none of theses packages are a real requitement but they are handy for debugging
+role_monitoring_agent_blackbox_requirements:
+  common:
+    - "nmap"
+    - "tcpdump"
+  debian:
+    - "inetutils-traceroute"
+    - "knot-dnsutils"
+    - "iperf"
+    - "fping"
+    - "sqlite3"
+  redhat:
+    - "traceroute"
+    - "bind-utils"
+    # requires EPEL
+    # - "iperf"
+    # - "fping"
+    # - "sqlite3"
+
+
+role_prometheus_agent_blackbox_dist:
+  service: "prometheus-blackbox-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-blackbox-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir  }}/blackbox_exporter"
+  config: "{{ role_prometheus_agent_dist.conf }}/blackbox.yml"
+

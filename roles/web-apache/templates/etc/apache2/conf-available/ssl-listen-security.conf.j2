@@ -1,0 +1,70 @@
+# {{ ansible_managed }}
+
+<IfModule mod_ssl.c>
+    SSLRandomSeed startup builtin
+    SSLRandomSeed connect builtin
+
+
+{% if ansible_os_family |lower == "redhat" %}
+    # If you add NameVirtualHost *:443 here, you will also have to change
+    # the VirtualHost statement in /etc/apache2/sites-available/default-ssl
+    # to <VirtualHost *:443>
+    # Server Name Indication for SSL named virtual hosts is currently not
+    # supported by MSIE on Windows XP.
+
+    Listen 443
+
+{% endif %}
+    # certificate files - must be either globally or in each vhost
+{% if apache_default_site_ssl_cert_pem |default('') |length > 0 %}
+    # use first the fullchain PEM cert if you have, otherwise the basic PEM cert
+    SSLCertificateFile {{ apache_default_site_ssl_cert_pem }}
+    SSLCertificateKeyFile {{ apache_default_site_ssl_cert_key }}
+{% endif %}
+
+    <IfModule mime_module>
+        AddType application/x-x509-ca-cert .cer
+        AddType application/x-pkcs7-crl    .crl
+    </IfModule>
+
+
+    # SSL allowed protocols -----------
+    # alt form : SSLProtocol -all +TLSv1.2 +TLSv1.3
+    SSLProtocol all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+
+    SSLHonorCipherOrder on
+    #SSLCipherSuite ALL:!aNULL:!eNULL:!LOW:!EXP:!RC4:!3DES:!MEDIUM:+HIGH:!DH:!aECDH:!EXPORT	# !DH:!aECDH must be removed for iOS 6.x
+    SSLCipherSuite EECDH+AESGCM:EECDH+CHACHA20:EDH+AESGCM:ECDH+CHACHA20:AES256+EECDH:AES256+EDH
+
+
+    # Security settings ---------------
+    # Requires Apache >= 2.4 - must be off
+    SSLCompression off
+    # Requires Apache >= 2.4.11 - must be off
+    SSLSessionTickets Off
+
+    # cache the SSL sessions
+    SSLSessionCache shmcb:log/ssl_gcache_data(512000)
+
+    # request OCSP and cache the issuer certificate
+    # can cause delays when the OCSP is under load - also must be disabled for self signed CA
+    # SSLUseStapling on
+    # SSLStaplingCache "shmcb:logs/stapling-cache(150000)"
+    SSLUseStapling off
+
+
+    # Security headers ----------------
+    <IfModule mod_headers.c>
+        # never activate the "preload" parameter on Strict Transport
+        Header add Strict-Transport-Security "max-age=15552000;includeSubdomains"
+
+        # Use 'X-Frame-Options DENY' for hosts shared by different clients
+        Header always set X-Frame-Options sameorigin
+        Header always set X-Content-Type-Options nosniff
+        Header always set X-XSS-Protection "1; mode=block"
+    </IfModule>
+
+
+    # disable the global SSLEngine globally - this allows for each vhost to manage a :80 redirect to :443
+    SSLEngine off
+</IfModule>

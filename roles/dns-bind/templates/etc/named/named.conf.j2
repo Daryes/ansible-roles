@@ -1,0 +1,16 @@
+// {{ ansible_managed }}
+//
+// command to validate: named-checkconf -z {{ role_bind_dist.etc }}/named.conf
+
+include "{{ role_bind_dist.etc }}/named.conf.acls";
+include "{{ role_bind_dist.etc }}/named.conf.options";
+include "{{ role_bind_dist.etc }}/named.conf.logs";
+
+include "{{ role_bind_dist.etc }}/named.conf.raw";
+
+include "{{ role_bind_dist.etc }}/named.conf.zones";
+
+
+// provided with the distribution package
+include "{{ role_bind_dist.etc_root_key }}";
+

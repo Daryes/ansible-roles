@@ -1,0 +1,39 @@
+---
+
+# CA public certificate variables
+# ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/
+
+# directory storing the certificate on the server and the file basename
+ca_certificate_dir: "/etc/ssl/private"
+ca_certificate_filename_no_ext: "testCA"
+# number of day the certificate will be valid - format: "+????d"
+ca_certificate_validity_duration: "+7200d"
+# Possible usages: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html => "Key Usage"
+# for a CA, keyCertSign is mandatory, cRLSign is optional (used to sign cert revocations)
+ca_certificate_usages:
+  - keyCertSign
+  - cRLSign
+
+ca_certificate_force_replacement: no
+
+# CA Private key variables
+# private key passphrase - can be empty if really required
+ca_certificate_privatekey_passphrase: "CHANGE_ME_ASAP"
+# private key type and size - carefull to the upper/lower case
+ca_certificate_privatekey_type: "RSA"
+ca_certificate_privatekey_size: 4096
+
+
+# CA certificate CSR variables
+ca_certificate_common_name: "My Own CA"
+ca_certificate_email_address: "someone@wsomewhere.tld"
+ca_certificate_country_name: "FR"
+ca_certificate_organization_name: "company"
+ca_certificate_organization_unit: "branch"
+ca_certificate_digest: "sha512"
+
+
+# should be under this_role/vars/
+role_ca_certificate_path: "{{ ca_certificate_dir }}/{{ ca_certificate_filename_no_ext }}.pem"
+role_ca_certificate_csr_path: "{{ ca_certificate_dir }}/{{ ca_certificate_filename_no_ext }}.csr"
+role_ca_certificate_privatekey_path: "{{ ca_certificate_dir }}/{{ ca_certificate_filename_no_ext }}.key"

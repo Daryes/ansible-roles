@@ -1,0 +1,49 @@
+---
+
+#- debug: var=arg_install_comment
+#- debug: var=arg_install_exe_version
+#- debug: var=arg_install_exe_fullpath
+#- debug: var=arg_install_exe_version_arg
+#- debug: var=arg_install_exe_version_string
+#- debug: var=arg_install_exe_download_url
+#- debug: var=arg_install_exe_hash
+#- debug: var=arg_install_exe_owner
+#- debug: var=arg_install_exe_mode
+
+
+- name: "{{ arg_install_comment }} | executable down+install - parameters validation"
+  assert:
+    that:
+      - arg_install_exe_version |length > 0
+      - arg_install_exe_version |regex_search('change[_ ]me', ignorecase=True) is none
+      - arg_install_exe_download_url |length > 0
+      - arg_install_exe_download_url |regex_search('change[_ ]me', ignorecase=True) is none
+      - arg_install_exe_fullpath |length > 0
+      - arg_install_exe_version_arg |length > 0
+      - arg_install_exe_version_string |length > 0
+      - arg_install_exe_version_altcmd |length > 0
+    fail_msg: "Error: one of the mandatory parameters (arg_install_exe_*) is either not set, empty, or still with a default 'CHANGE_ME' value"
+    quiet: yes
+
+
+# Using with_items allows to make use of loop control to provide a custom log output with the targeted binary and version
+- name: "{{ arg_install_comment }} | executable down+install - verify version"
+  shell: "{{ item.exe }} {{ item.arg }} 2>&1 || echo 'missing'"
+  args:
+    warn: false
+  with_items:
+    - { exe: "{{ arg_install_exe_version_altcmd }}", arg: "{{ arg_install_exe_version_arg }}" }
+  loop_control:
+    label: "{{ item.exe }} => version={{ arg_install_exe_version }}"
+  ignore_errors: true
+  register: _pkg_download_copy_status
+  changed_when: >
+    _pkg_download_copy_status.rc == 1
+    or not _pkg_download_copy_status.stdout is search(arg_install_exe_version_string)
+  become: no
+
+
+- name: "{{ arg_install_comment }} | executable down+install - load install module"
+  include_tasks: exe_proc-install.yml
+  when: _pkg_download_copy_status is changed
+

@@ -1,0 +1,60 @@
+---
+
+# get the list of swap devices, replace 'spaces' with ':' and keep only lines with ':file:'
+# final output : /swapfile:file:483800:0:-2     => size is in kb
+- name: system | swap - retrieve current swap devices
+  shell: >
+    if [ $(cat /proc/swaps | wc -l ) -gt 1 ]; then
+      sed --regexp-extended '1d;s/[[:space:]]+/:/g;/:file:/!d' /proc/swaps ;
+    fi
+  args:
+    warn: false
+  register: task_swap_device_list
+  changed_when: false
+
+
+# notice: the variables might be stored as a string
+- name: system | swap - calculate swap size requirements
+  set_fact:
+    # current swap size
+    # notice: ansible caculation only count the permanent files in fstab
+    task_swap_device_size_total_mb: "{{ ansible_memory_mb.swap.total }}"
+    # calculate the amount to increase the current swap size
+    # using a floor division ( //10 ) to prevent any interferences with only 1mb or 2mb difference
+    task_swap_device_size_increase_mb: "{{ ( system_swap_size_mb|int - ansible_memory_mb.swap.total|int ) // 10 * 10 }}"
+    # automatic calculation for a default value
+    task_swap_device_size_auto_mb: "{{
+      ansible_memory_mb.real.total // 2.5        if ansible_memory_mb.real.total >= 1200
+      else ansible_memory_mb.real.total // 1.5   if ansible_memory_mb.real.total >= 600
+      else ansible_memory_mb.real.total // 1.33
+      }}"
+    # new swap filename (ex: "/swapfile" + "." + ( number of swapfiles +1 )
+    task_swap_device_file_increase: "{{ system_swap_file }}{{ '.' + ( task_swap_device_list.stdout_lines |length + 1 )|string  if task_swap_device_list.stdout_lines |length != 0 }}"
+    # retrieve the filesystem free space - initial size is in bytes
+    task_swap_file_fs_size_mb: "{{ ( ansible_mounts |json_query( '[?mount == `' + system_swap_file |dirname + '`].size_available' ) |first |default(0) /1024 /1024 ) |int }}"
+
+
+# yamllint disable-line rule:line-length
+#- debug: msg="swap size = current {{ task_swap_device_size_total_mb }}, increase required {{ task_swap_device_size_increase_mb }}, extra filename {{ task_swap_device_file_increase }}, automatic size {{ task_swap_device_size_auto_mb }}, size left on fs {{ task_swap_file_fs_size_mb }}"
+#- debug: var=task_swap_device_list
+
+
+- name: system | swap - disable swap if requested
+  include_tasks: swap_disable.yml
+  when: >
+    system_swap_disable_force |bool
+    and system_swap_size_mb |int == 0
+    and ansible_memory_mb.swap.total |int > 0
+
+
+- name: system | swap - set initial size or increase current if more than 10mb difference
+  include_tasks: swap_increase.yml
+  # only for log purpose
+  with_items:
+    - { swap_current: "{{ task_swap_device_size_total_mb }}", requested: "{{ system_swap_size_mb }}" }
+  loop_control:
+    loop_var: display_me
+  when: >
+    system_swap_size_mb |int > 0
+    and task_swap_device_size_increase_mb |int > 0
+

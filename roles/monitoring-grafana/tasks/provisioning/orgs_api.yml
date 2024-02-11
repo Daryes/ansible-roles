@@ -1,0 +1,41 @@
+---
+
+# ref: https://grafana.com/docs/grafana/v9.0/developers/http_api/admin/#global-users
+# ref: https://grafana.com/docs/grafana/latest/developers/http_api/user/
+
+- name: Monitoring Grafana | provisioning - retrieve existing orgs
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/orgs"
+    method: GET
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  register: task_grafana_api_org_list
+
+
+# the default org is the first one
+- name: Monitoring Grafana | provisioning - update default org
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/orgs/1"
+    method: PUT
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    body: |
+      {
+      "name":"{{ grafana_provisioning_org_name }}"
+      }
+    body_format: json
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  # The api list is a json list  with a 'name' attribute - look for the requested value
+  when: task_grafana_api_org_list.json |default([]) |selectattr( "name", "eq", grafana_provisioning_org_name ) |list |length == 0
+  changed_when: true
+  # no_log: true
+

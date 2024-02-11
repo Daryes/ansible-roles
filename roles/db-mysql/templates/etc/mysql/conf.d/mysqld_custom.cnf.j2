@@ -1,0 +1,38 @@
+# {{ ansible_managed }}
+[mysqld]
+
+transaction_isolation          = READ-COMMITTED # nextcloud requirement
+unix_socket                    = ON             # activate unix socket usage (default)
+
+## BINARY LOGGING #
+expire_logs_days               = 7              # days
+
+
+## CACHES AND LIMITS #
+open_files_limit               = {{ mysql_config_open_files_limit }}
+query_cache_type               = DEMAND         # ON / DEMAND
+
+
+# LOGGING #
+log_error                      = {{ mysql_log_dir }}/error.log
+
+general_log                    = 0              # log query to files
+general_log_file               = {{ mysql_log_dir  }}/mysql.log
+
+slow_query_log                 = {{ mysql_config_slow_query_log }}
+log_queries_not_using_indexes  = {{ mysql_config_slow_query_log }}
+slow_query_log_file            = {{ mysql_log_dir  }}/mysql-slow.log
+
+
+# PERFORMANCE SCHEMA
+performance_schema={{ mysql_config_performance_schema |upper }}
+performance-schema-instrument='memory/%=COUNTED'
+performance-schema-instrument='stage/%=ON'
+#performance-schema-consumer-events-stages-current=ON
+#performance-schema-consumer-events-stages-history=ON
+#performance-schema-consumer-events-stages-history-long=ON
+
+
+# extra settings from mysql_config_raw[]
+{{ mysql_config_settings_raw |default([]) |flatten |join('\n') }}
+

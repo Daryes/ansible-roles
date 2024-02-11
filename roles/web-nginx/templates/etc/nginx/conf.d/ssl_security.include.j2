@@ -1,0 +1,27 @@
+# {{ ansible_managed }}
+
+# OpenSSL configuration for NGINX
+# Nginx doesn't allow those parameters as global, they must be set at the server{} level
+# This file must be called as an include from a vhost.
+# ex: include conf.d/ssl_security.include;
+
+ssl_protocols TLSv1.2 TLSv1.3;
+
+ssl_ciphers EECDH+AESGCM:EECDH+CHACHA20:EDH+AESGCM:ECDH+CHACHA20:AES256+EECDH:AES256+EDH;
+ssl_prefer_server_ciphers off;  # should be on but tls1.2 has still deprecated insecure cyphers on some client - wait for tls1.3
+ssl_ecdh_curve secp521r1:secp384r1:prime256v1;
+
+ssl_session_timeout  10m;
+ssl_session_cache shared:SSL:50m;
+ssl_session_tickets off;
+
+ssl_stapling off; # let the client do the stappling itself
+
+# HSTS security - age=180 days - never activate the "preload" parameter - always include the error responses
+add_header Strict-Transport-Security "max-age=15552000; includeSubDomains;" always;
+
+# Use 'X-Frame-Options DENY' for hosts shared by different clients
+add_header X-Frame-Options sameorigin;
+add_header X-Content-Type-Options nosniff;
+add_header X-XSS-Protection "1; mode=block";
+

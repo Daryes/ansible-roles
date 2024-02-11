@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+# General proxy settings
+add_header       X-Served-By        $host;
+proxy_set_header Host               $http_host;                   # old name: $host;
+proxy_set_header X-Forwarded-Scheme $scheme;
+proxy_set_header X-Forwarded-Proto  $scheme;
+proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;   # old name: $remote_addr;
+proxy_set_header X-Real-IP          $remote_addr;
+proxy_set_header X-Forwarded-Port   $server_port;
+
+# General proxy timeout
+# proxy_read_timeout 60s; (default)
+# proxy_send_timeout 60s; (default)
+

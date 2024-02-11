@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+# access list file 
+include conf.d/geo_ip_allow.include;
+
+{% if nginx_geoip_access_bitbucket |default(false) |bool or global_web_access_bitbucket |default(false) |bool -%}
+# bitbucket access list file
+include conf.d/geo_ip_allow_bitbucket.include;
+{% endif %}
+

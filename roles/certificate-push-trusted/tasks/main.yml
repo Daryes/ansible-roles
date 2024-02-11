@@ -1,0 +1,74 @@
+---
+
+- name: Certificate push trusted | parameters validation
+  assert:
+    that:
+      # must be defined, but allowed to be empty
+      - local_certificates_public_push is defined
+      - data_certificates_public_push  is defined
+    fail_msg: "Error: the mandatory parameter is not defined, it is possible its definition in the inventory is not valid"
+    quiet: yes
+
+
+# the copy module cannot handle local file only accessible by root, even with 'become'
+# => read the content with slurp, and push it to the copy module
+- name: Certificate push trusted | ansible - read local public certificates
+  slurp:
+    path: "{{ item }}"
+  with_items: "{{ local_certificates_public_push }}"
+  register: task_local_certs_public_content
+  become: yes
+  delegate_to: localhost
+
+
+# owner and group must be set to root otherwise some applications will complain
+# some debian-based systems expect the certificates only using a .crt extension
+- name: Certificate push trusted | certs - send public certificates from local files
+  copy:
+    content: "{{ item.content | b64decode }}"
+    dest: "{{ var_file_dest }}"
+    owner: root
+    group: root
+    mode: "0755"
+  vars:
+    var_file_dest: "{{ role_certs_dist.ca_dir }}/{{ item.source |basename |regex_replace('\\.(pem|cert|crt)$', role_certs_dist.cert_pem_ext ) }}"
+  with_items: "{{ task_local_certs_public_content.results }}"
+  loop_control:
+    label: "{{ var_file_dest }}"
+  register: task_cert_push_file
+  become: yes
+
+
+# owner and group must be set to root otherwise some applications will complain
+- name: Certificate push trusted | certs - send public certificates from data variables
+  copy:
+    content: "{{ item.pem }}"
+    dest: "{{ var_file_dest }}"
+    owner: root
+    group: root
+    mode: "0755"
+  vars:
+    var_file_dest: "{{ role_certs_dist.ca_dir }}/{{ item.name |basename }}.{{ role_certs_dist.cert_pem_ext }}"
+  with_items: "{{ data_certificates_public_push }}"
+  loop_control:
+    label: "{{ var_file_dest }}"
+  register: task_cert_push_data
+  become: yes
+
+
+- name: Certificate push trusted | certs - update local ca-certificates
+  shell: "{{ role_certs_dist.ca_update_cmd  }}"
+  become: yes
+  when: >
+    task_cert_push_file is changed
+    or task_cert_push_data is changed
+  register: task_status
+
+
+# create new data as the task variable contains the full certificates
+- name: Certificate push trusted | ansible - register execution status as a fact
+  set_fact:
+    _certificate_push_trusted_status: { "changed": "{{ task_status is changed }}" }
+    cacheable: yes
+  changed_when: task_status is changed
+

@@ -1,0 +1,96 @@
+; {{ ansible_managed }}
+{# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
+;
+; WARNING: do not use # for comments, but ;
+; to validate the zone:  named-checkzone {{ thisDnsZone.name }}  {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name }}.db
+;
+; Notice: CNAME used in NS/MX record is illegal
+
+; default ttl
+$TTL 600
+; zone authority
+$ORIGIN {{ thisDnsZone.name }}.
+@       IN      SOA     {{ thisDnsZone.ns |first |lower }}. {{ thisDnsZone.email |default('nobody@nowhere.com') |replace('@','.') }}.  (
+                {{ thisDnsZone.serial }}	;	Serial
+                {{ thisDnsZone.refresh |default( 3600 ) }}	;	Refresh time
+                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Retry time
+                {{ thisDnsZone.expire |default( 1209600 ) }}	;	Expire time
+                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Minimum / Negative Cache TTL
+)
+
+
+; zone ns server
+{% for loopNS in thisDnsZone.ns |flatten %}
+@                             IN      NS      {{ loopNS |lower }}.
+{% endfor %}
+
+{% if thisDnsZone.mx |default([]) | length > 0 %}
+; zone mx server
+{%   for loopMX in thisDnsZone.mx |flatten %}
+@                             IN      MX      {{ loopMX |lower }}.
+{%   endfor %}
+
+{% endif %}
+
+; ansible inventory records
+{% if thisDnsZone.records_inventory |default(True) |bool %}
+{#   # skip localhost/127.0.0.1 which are duplicates and those without the [ansible_facts] data  #}
+{%   for loopHost in hostvars|sort   if loopHost not in ['127.0.0.1','::1','localhost']  %}
+{# #}
+{#     # dict() is required on hostvars[] for allowing to be merged with Windows data using the |combine() filter  #}
+{#     # ref: https://github.com/ansible/ansible/issues/37727  #}
+{%     set currentHost =  dict( hostvars[loopHost] )  %}
+{# #}
+{#     # handle Windows servers using a different fact name for 'all_*_adresses'  #}
+{%     if currentHost['ansible_facts'].ip_addresses is defined and currentHost['ansible_facts'].all_ipv4_addresses is not defined %}
+{%       set currentHost = currentHost |combine( { 'ansible_facts': { 'all_ipv4_addresses': currentHost['ansible_facts'].ip_addresses |ipv4('address') } }, recursive=True )  %}
+{%       set currentHost = currentHost |combine( { 'ansible_facts': { 'all_ipv6_addresses': currentHost['ansible_facts'].ip_addresses |ipv6('address') } }, recursive=True )  %}
+{%     endif %}
+{# #}
+{%     if thisDnsZone.allow_ipv4 |default(true) |bool  and  currentHost.ansible_facts is defined %}
+{%       for loopRange in thisDnsZone.allow_ipv4_cidr |default( ['0.0.0.0/0'] )  %}
+{#         # ansible_facts.all_ipv4_addresses has all the known ip of the server - look for those in the allowed ranges  #}
+{%         if currentHost['ansible_facts'].all_ipv4_addresses is defined  %}
+{%           for loopIpAddr in currentHost['ansible_facts']['all_ipv4_addresses'] |ipaddr(loopRange)  %}
+{{ '%-29s'|format( currentHost.inventory_hostname |lower )        }} IN      A       {{ loopIpAddr }}
+{%             if thisDnsZone.allow_ipv4_wildcard |default(false) |bool %}
+{{ '%-29s'|format( '*.' + currentHost.inventory_hostname |lower ) }} IN      A       {{ loopIpAddr }}
+{%             endif %}
+{%           endfor %}
+{%         endif %}
+{%       endfor %}
+{%     endif %}
+{# #}
+{#     # same for ipv6 if activated  #}
+{%     if thisDnsZone.allow_ipv6 |default(true) |bool  and  currentHost.ansible_facts is defined %}
+{%       for loopRange in thisDnsZone.allow_ipv6_cidr |default( ['::/0'] )  %}
+{#         # ansible_facts.all_ipv6_addresses has all the known ip of the server - look for those in the allowed ranges  #}
+{%         if currentHost['ansible_facts'].all_ipv6_addresses is defined  %}
+{%           for loopIpAddr in currentHost['ansible_facts']['all_ipv6_addresses'] |ipaddr(loopRange)  %}
+{{ '%-29s'|format( currentHost.inventory_hostname |lower )        }} IN      AAAA    {{ loopIpAddr }}
+{%             if thisDnsZone.allow_ipv6_wildcard |default(false) |bool %}
+{{ '%-29s'|format( '*.' + currentHost.inventory_hostname |lower ) }} IN      AAAA    {{ loopIpAddr }}
+{%             endif %}
+{%           endfor %}
+{%         endif %}
+{%       endfor %}
+{%     endif %}
+{# #}
+{%   endfor %}
+{%  endif %}
+
+{% if thisDnsZone.records_raw |default([]) | length > 0 %}
+; raw records
+{%   for loopExtra in thisDnsZone.records_raw |flatten %}
+{{ loopExtra }}
+{%   endfor %}
+
+{% endif %}
+
+{% if thisDnsZone.spf |default([]) | length > 0 %}
+; SPF records
+{%   for loopSpf in thisDnsZone.spf |flatten %}
+{{ loopSpf }}
+{%   endfor %}
+
+{% endif %}

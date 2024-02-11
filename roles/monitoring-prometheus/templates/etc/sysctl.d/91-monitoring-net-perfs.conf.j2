@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+
+# allow tcp reuse - ipv4 tcp_* settings are also applied on ipv6
+net.ipv4.tcp_tw_reuse = 1
+
+# increase ports usable range (default is : 32768    60999)
+net.ipv4.ip_local_port_range = 10000	63000

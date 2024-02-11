@@ -1,0 +1,13 @@
+---
+
+# download url
+role_prometheus_agent_apache_package_file: "apache_exporter-{{ prometheus_agent_apache_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_apache_package_url: "https://github.com/Lusitaniae/apache_exporter/releases/download/v{{ prometheus_agent_apache_version }}/{{ role_prometheus_agent_apache_package_file }}"
+
+
+role_prometheus_agent_apache_dist:
+  service: "prometheus-apache-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-apache-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/apache_exporter"
+

@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+
+# Set the command-line arguments to pass to the server.
+ARGS='--web.listen-address="{{ prometheus_agent_blackbox_listen }}" --config.file "{{ role_prometheus_agent_dist.conf }}/blackbox.yml"  --web.config.file={{ role_prometheus_agent_dist.webconfig }} {{ prometheus_agent_blackbox_conf_extra_args }}'
+
+# Usage of prometheus-blackbox-exporter:
+#   --config.file="blackbox.yml"
+#                         Blackbox exporter configuration file.
+#   --web.listen-address=":9115"
+#                         The address to listen on for HTTP requests.
+#   --timeout-offset=0.5
+#                         Offset to subtract from timeout in seconds.
+#   --history.limit=100
+#                         The maximum amount of items to keep in the
+#                         history.
+#   --web.external-url=<url>
+#                         The URL under which Blackbox exporter is
+#                         externally reachable (for example, if Blackbox
+#                         exporter is served via a reverse proxy). Used
+#                         for generating relative and absolute links back
+#                         to Blackbox exporter itself. If the URL has a
+#                         path portion, it will be used to prefix all
+#                         HTTP endpoints served by Blackbox exporter. If
+#                         omitted, relevant URL components will be
+#                         derived automatically.
+#   --web.route-prefix=<path>
+#                         Prefix for the internal routes of web endpoints.
+#                         Defaults to path of --web.external-url.
+#   --log.level=info
+#                         Only log messages with the given severity or above.
+#                         One of: [debug, info, warn, error]
+#   --log.format=logfmt
+#                         Output format of log messages. One of: [logfmt, json]

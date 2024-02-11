@@ -1,0 +1,27 @@
+---
+
+# the loop is here only for a more detailled log output
+- name: Monitoring Prometheus | system - create user group
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ role_prometheus_dist.user }}"
+
+
+# same log purpose
+- name: Monitoring Prometheus | system - create system user
+  user:
+    name: "{{ item.user }}"
+    comment: "{{ item.comment }}"
+    group: "{{ item.group }}"
+    home: "{{ item.home }}"
+    createhome: no
+    password: "*"
+    update_password: "always"
+    shell: "/usr/sbin/nologin"
+    system: yes
+    state: present
+  with_items:
+    - { user: "{{ role_prometheus_dist.user }}",  group: "{{ role_prometheus_dist.user }}",  comment: "Prometheus daemon", home: "{{ role_prometheus_dist.data }}" }
+

@@ -1,0 +1,7 @@
+// {{ ansible_managed }}
+// configuration file for the raw_settings[] inventory parameter
+
+{% for sLine in bind_raw_settings |default( [] ) |flatten %}
+{{ sLine }}
+{% endfor %}
+

@@ -1,0 +1,128 @@
+---
+
+# Expected ansible facts structure:
+#
+#    "ansible_devices": {
+#       "sdb": {
+#           "holders": [
+#               "vgstorage-data"
+#           ],
+#           "partitions": {
+#               "sda1": {
+#                 ...can be missing when used as a block device...
+#               },
+#           }
+#       },
+#   }
+#
+#
+#   "ansible_mounts": [
+#       {
+#           "device": "/dev/mapper/...",
+#           "fstype": "ext4",
+#           "mount": "/data",
+#       },
+#   ],
+#
+
+# sg3_utils / sg3-utils required which might not be installed
+- name: system | data drives init | SCSI - verify tools presence
+  stat: path=/usr/bin/rescan-scsi-bus.sh  get_checksum=no get_mime=no
+  register: task_rescan_scsi_bin
+
+
+# hot-plugged drives can stay absent until the scsi bus is refreshed
+- name: system | data drives init | SCSI - bus scan for hot-plugged disks detection - can be slow with CD drives
+  command: "/usr/bin/rescan-scsi-bus.sh -a --hosts=0-11"
+  changed_when: false
+  become: yes
+  when: task_rescan_scsi_bin.stat.exists
+
+
+# lvm2 requirement which might not be installed
+- name: system | data drives init | LVM - verify tools presence
+  stat: path=/sbin/pvscan  get_checksum=no get_mime=no
+  register: task_lvm_bin
+
+
+- name: system | data drives init | LVM - fail if not installed
+  fail:
+    msg: "mandatory requirements: the lvm2 system package is missing"
+  when: not task_lvm_bin.stat.exists
+
+
+- name: system | data drives init | LVM - volumes scan
+  shell: "/sbin/pvscan; /sbin/vgscan --mknodes; /sbin/vgchange -aay"
+  when: task_lvm_bin.stat.exists
+  changed_when: false
+  become: yes
+
+
+# the drive facts are an element of the hardware subset
+- name: system | data drives init - refresh hardware facts
+  setup:
+    gather_subset: [ "hardware" ]
+  when: >
+    task_lvm_bin.stat.exists
+    or  task_rescan_scsi_bin.stat.exists
+
+
+# create a new variable containing the real drive name under the property "device_name_real"
+# this is required for some virtualization systems where the physical drive letter can change after a reboot, ex: sdb can become sdd
+- name: "system | data drive init | assert the correct drive device name"
+  set_fact:
+    # initial data has the following structure : [ { struct drive 1 }, { struct drive 2 }, ... ]
+    task_system_drives_initialize_final: >-
+      {{
+        task_system_drives_initialize_final |default([]) +
+        [ item |combine( { 'device_name_real': var_drive_name }, recursive=true)  ]
+      }}
+  vars:
+    # real drive name, either reuse the default name, or if provided, search for the name using the physical id
+    # the default( 'drive_id_not_found' ) will handle any id not linked to an existing drive
+    var_drive_name: >-
+      {{
+        item.device_name if item.device_id |default('') | length == 0
+      else
+        ansible_devices |dict2items |json_query( '[?contains(value.links.ids, `' + item.device_id + '`)]' ) |list |map(attribute='key') |first | default( 'drive_id_not_found' )
+      }}
+  with_items: "{{ system_drives_initialize }}"
+  loop_control:
+    label: "device_name: {{ item.device_name }}, drive_id: {{ item.device_id |default('Not defined')  }}, device_name_real: {{ var_drive_name }}"
+  changed_when: false
+
+
+# On a lvm drive, partitions[] can be empty, but holders[] will be filled when LVM volumes are present
+- name: system | data drives init - load the drive initialization tasks
+  include_tasks: drive_initialize.yml
+  with_items: "{{ task_system_drives_initialize_final }}"
+  loop_control:
+    loop_var: currentDrive
+  when: >
+    ansible_devices[ currentDrive.device_name_real ] is defined
+    and ansible_devices[ currentDrive.device_name_real ].partitions | length == 0
+    and ansible_devices[ currentDrive.device_name_real ].holders | length == 0
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+# use only known lvm facts to detect the lvm volume, ignoring the drive
+- name: system | data drive init - add to fstab and mount the volumes using LVM
+  mount:
+    src: "/dev/mapper/{{ var_lvm_name_final }}"
+    path: "{{ item.mount_point }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.mount_options |default ('defaults,relatime', true) }}"
+    state: mounted
+  vars:
+    var_lvm_name_final: "{{ item.lvm_vgname + '-' + item.lvm_lvname }}"
+  with_items: "{{ system_drives_initialize }}"
+  # hide the drive letter which is not used here
+  loop_control:
+    label: "mount_point: {{ item.mount_point }}, lvm: {{ var_lvm_name_final }},  fs_type: {{ item.fstype }}"
+  # dict2items will transform .lvs to this structure : { key: "lv name", value: { vg: "vg name", ... } }
+  # json_query will search for any entry with both value.vg="vg name" and key="lv name"
+  when: ansible_lvm.lvs | dict2items |json_query( '[?value.vg == `' + item.lvm_vgname + '` && key == `' + item.lvm_lvname + '` ]' ) |list | length > 0
+

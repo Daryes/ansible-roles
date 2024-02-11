@@ -1,0 +1,14 @@
+// {{ ansible_managed }}
+
+{% for loopZone in bind_zones_dns if loopZone.zone_type in ["zone"] %}
+include "{{ role_bind_dist.etc }}/zones.d/{{ loopZone.name |regex_replace('\\.$', '') }}.{{ loopZone.zone_type }}";
+{% endfor %}
+
+include "{{ role_bind_dist.etc }}/zones.root";
+
+{% if bind_option_empty_zones_rfc1918_force_load |bool %}
+// rfc1918 and rfc1912 zones shouldn't be required as the rfc6303 is natively implemented since 9.6
+// this file is provided by the distribution package
+include "{{ role_bind_dist.etc_zones_rfc1918 }}";
+{% endif %}
+

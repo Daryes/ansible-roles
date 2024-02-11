@@ -1,0 +1,41 @@
+---
+
+
+# import the package install role
+- name: Chrony NTP service | system - install packages
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "Chrony NTP service"
+    arg_install_packages: "{{ role_chrony_install_packages }}"
+    arg_remove_packages: "{{ role_chrony_remove_packages }}"
+
+
+- name: Chrony NTP service | systemd-timesynd - presence check
+  stat: path=/lib/systemd/systemd-timesyncd
+  register: task_with_systemd_timesyncd
+  changed_when: false
+
+
+- include_tasks: systemd-chrony.yml
+  when: task_with_systemd_timesyncd.stat.exists |default(false) |bool
+
+
+- name: Chrony NTP service | config - add settings
+  template:
+    src: "templates/{{ item |basename }}.j2"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0640"
+  with_items:
+    - "{{ role_chrony_dist.config }}"
+  register: task_chrony_config
+
+
+- name: Chrony NTP service | system - restart the service on config change
+  service:
+    name: "{{ role_chrony_dist.service }}"
+    state: restarted
+  when: task_chrony_config is changed
+  become: yes
+

@@ -1,0 +1,18 @@
+---
+
+# upload file from ansible master to each server
+- name: "{{ arg_install_comment }} | executable down+install - send exe file to servers"
+  synchronize:
+    src: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
+    dest: "{{ arg_install_exe_fullpath }}"
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | executable down+install - update file permissions"
+  file:
+    path: "{{ arg_install_exe_fullpath }}"
+    mode: "{{ arg_install_exe_mode |default('0755') }}"
+    owner: "{{ arg_install_exe_owner |default('root') }}"
+    group: "{{ arg_install_exe_group |default( arg_install_exe_owner ) |default('root') }}"
+  become: yes
+

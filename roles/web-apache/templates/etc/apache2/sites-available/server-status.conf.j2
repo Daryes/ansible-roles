@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+<VirtualHost 127.0.0.1:80>
+
+    # empty site which sole usage is to give access to server-status from localhost
+    #  without filtering nor ssl redirection
+
+    <Location />
+        Require local
+    </Location>
+
+    <IfModule status_module>
+        ErrorLog /dev/null
+        CustomLog /dev/null common
+
+        <Location /server-status>
+            SetEnv dontlog
+            SetHandler server-status
+        </Location>
+    </IfModule>
+</VirtualHost>
+

@@ -1,0 +1,34 @@
+---
+
+# mysql exporter system requirements
+role_prometheus_agent_mysql_requirements:
+  common:
+    # required to allow ansible to switch to the mysql user
+    - "acl"
+  debian:
+    - "python3-pymysql"
+  redhat:
+    - "python3-PyMySQL"
+
+
+# download url
+role_prometheus_agent_mysql_package_file: "mysqld_exporter-{{ prometheus_agent_mysql_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_mysql_package_url: "https://github.com/prometheus/mysqld_exporter/releases/download/v{{ prometheus_agent_mysql_version }}/{{ role_prometheus_agent_mysql_package_file }}"
+
+
+role_prometheus_agent_mysql_family:
+  debian:
+    unix_socket: "/var/run/mysqld/mysqld.sock"
+
+  redhat:
+    unix_socket: "/var/lib/mysql/mysql.sock"
+
+
+role_prometheus_agent_mysql_dist:
+  service: "prometheus-mysqld-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-mysqld-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/mysqld_exporter"
+  auth: "{{ role_prometheus_agent_dist.data }}/.my.cnf"
+  unix_socket: "{{ role_prometheus_agent_mysql_family[ ansible_os_family |lower ].unix_socket }}"
+

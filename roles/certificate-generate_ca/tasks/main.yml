@@ -1,0 +1,50 @@
+---
+
+- name: Certificate CA | parameters validation"
+  assert:
+    that:
+      - ca_certificate_privatekey_passphrase |regex_search('.*change[_ ]me.*', ignorecase=True) is none
+    fail_msg: "Error: the private key passphrase has not been set"
+    quiet: yes
+
+
+- name: Certificate CA | verify the certificate presence
+  stat: path={{ role_ca_certificate_path }}  get_checksum=no  get_mime=no
+  register: task_cert_file_stat
+  changed_when: not task_cert_file_stat.stat.exists
+  become: yes
+
+
+# Notice: starting with ansible v2.10+, the module openssl_certificate_info is renamed to x509_certificate_info
+- name: Certificate CA | retrieve the certificate information
+  community.crypto.x509_certificate_info:
+    path: "{{ role_ca_certificate_path }}"
+    valid_at:
+      valid_next_days: "+7d"
+  ignore_errors: True
+  register: task_cert_infos
+  when: task_cert_file_stat.stat.exists
+  become: yes
+
+
+- name: Certificate CA | verify expiration and type
+  assert:
+    that:
+      - task_cert_infos.valid_at.valid_next_days |bool
+      - task_cert_infos.subject['commonName'] |default('') == ca_certificate_common_name
+      - "'CA:TRUE' in task_cert_infos.basic_constraints"
+      - ca_certificate_force_replacement |bool == false
+    fail_msg: "Warning: the existing certificate is expired or differs from the parameters - it will be recreated"
+  ignore_errors: True
+  register: task_cert_validity
+  changed_when: task_cert_validity is failed
+  when: task_cert_file_stat.stat.exists
+  become: yes
+
+
+- name: Certificate CA | load the generator subtask
+  include_tasks: ca_openssl_generate.yml
+  when: >
+    not task_cert_file_stat.stat.exists
+    or task_cert_validity is failed
+

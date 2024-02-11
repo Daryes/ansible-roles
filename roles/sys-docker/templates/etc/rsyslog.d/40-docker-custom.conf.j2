@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+
+# Fix the message flood in the syslog from docker when healthcheck is activated
+# ref: https://github.com/docker/for-linux/issues/679
+if $msg contains "run-docker-runtime" and $msg contains ".mount: Succeeded." then {
+    stop
+}
+
+
+# send syslog messages to dedicated log files under /var/log/docker/
+# note: directory might require to be created with :  sudo install --o root -g adm -m 755 -d /var/log/docker
+#
+# define a file output template
+$template DOCKER_CUSTOM_LOGS,"{{ role_docker_compose_log_dir.path  }}/%programname%.log"
+$CreateDirs on
+
+# redirect if the source is docker
+# the containers must have the driver=syslog and tag=docker-<service name>
+if $programname startswith  'docker-' then {
+    ?DOCKER_CUSTOM_LOGS
+    stop
+}
+

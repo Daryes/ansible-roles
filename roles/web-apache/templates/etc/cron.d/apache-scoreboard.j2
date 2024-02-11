@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+# apache - monitoring - log the scoreboard
+{# the - around endif are here to keep the "#" and "0 2 ... script.sh" on a single line #}
+{% if apache_global_scoreboard_monitoring |default(false) |bool == false  %}
+# deactivated - ansible variable apache_global_scoreboard_monitoring was not enabled
+# 
+{%- endif -%}
+*/10 * * * * root  {{ role_apache_dist.etc }}/apache_serverstatus_scoreboard.sh
+
+

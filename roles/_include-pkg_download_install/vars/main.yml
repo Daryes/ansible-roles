@@ -1,0 +1,9 @@
+---
+
+# storage location on ansible master
+role_archive_storage_dir: "{{ ansible_cache_root_dir }}/{{ arg_install_pkg_name }}"
+
+
+# string messages in lower case returned when the service is not found
+role_service_not_found_regex: "could not find|not found|not loaded"
+

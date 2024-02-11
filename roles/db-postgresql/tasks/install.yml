@@ -1,0 +1,29 @@
+---
+
+# import the package install role
+- include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "PostgreSQL"
+    arg_install_packages: "{{ role_postgresql_install_packages }}"
+    arg_install_ppa: "{{ role_postgresql_install_ppa }}"
+    arg_install_yumrepo: "{{ role_postgresql_install_yumrepo }}"
+
+
+- name: PostgreSQL | install - retrieve postinstall state
+  stat:
+    path: "{{ role_postgresql_dist.conf }}/postgresql.conf"
+    get_checksum: no
+    get_mime: no
+  register: task_stat_pgsql_conf
+  changed_when: false
+
+
+# the DB and config setup is not automatically executed on rhel/centos servers - can be launched with the service stopped
+# ref: https://www.postgresql.org/download/linux/redhat/
+- name: "PostgreSQL | install - execute initdb on first install (RHEL mostly)"
+  shell: "/usr/pgsql-{{ postgresql_version }}/bin/postgresql-{{ postgresql_version }}-setup initdb"
+  become: yes
+  when: >
+    ansible_os_family |lower == "redhat"
+    and not task_stat_pgsql_conf.stat.exists
+

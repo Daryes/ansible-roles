@@ -1,0 +1,20 @@
+---
+
+# ansible requires python on the clients => using the command line to install it with the package manager
+# note: these commands are executed as a single line
+- name: Init | Bootstrap - install python (debian + redhat)
+  raw: >
+    if [ ! -s '/usr/bin/{{ python_binary.cmd }}' ] && [ ! -s '{{ python_binary.cmd_playbook }}' ]; then
+      echo 'Python required';
+      [ -s /usr/bin/apt ] && /usr/bin/apt --quiet -y install {{ python_binary.package_raw.deb }};
+      [ -s /usr/bin/yum ] && /usr/bin/yum install -y {{ python_binary.package_raw.rpm }};
+      [ -s /usr/bin/dnf ] && /usr/bin/dnf install -y {{ python_binary.package_raw.rpm }};
+      sleep 3;
+    fi;
+    command -v '{{ python_binary.cmd_playbook }}' || command -v '{{ python_binary.cmd  }}';
+  args:
+    executable: "{{ ansible_user_shell }}"
+  register: bootstrap_python
+  changed_when: bootstrap_python.stdout is search('Python required')
+  become: yes
+

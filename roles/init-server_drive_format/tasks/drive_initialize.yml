@@ -1,0 +1,75 @@
+---
+
+# if we are here, the drive has no known partition, and if used as a block device, no lvm holders
+# but there's the possibility an unknown block device exists or lvm scan didn't work correctly
+
+
+# do a last check with blkid
+# On a drive with an unknown partition, both partitions[] and holders[] facts can be empty
+- name: "system | data drive {{ currentDrive.device_name_real }} {{ currentDrive.device_id |default('') }} - retrieve existing block devices"
+  command: "/sbin/blkid  /dev/{{ currentDrive.device_name_real }}"
+  register: task_blkid_results
+  changed_when: false
+  # return an error only if blkid is not installed (can be 1 or 127), ignore other all other codes used for a missing drive, empty drive, ...
+  failed_when: task_blkid_results.rc == 1 or task_blkid_results.rc == 127
+  become: true
+
+
+- name: "system | data drive {{ currentDrive.device_name_real }} - validate settings"
+  fail:
+    msg: "The provided VG name '{{ currentDrive.lvm_vgname }}' is already in use on another drive, each VG name must be unique"
+
+
+# no device block, no partition, let's format
+- block:
+
+  - name: "system | data drive {{ currentDrive.device_name_real }} - create the lvm physical volume group"
+    lvg:
+      vg: "{{ currentDrive.lvm_vgname }}"
+      pvs: "/dev/{{ currentDrive.device_name_real }}"
+      pesize: "{{ currentDrive.lvm_pesize |default(omit, true) }}"
+      state: present
+
+
+  - name: "system | data drive {{ currentDrive.device_name_real }} {{ currentDrive.lvm_vgname }} - create the lvm logical volume"
+    lvol:
+      vg: "{{ currentDrive.lvm_vgname }}"
+      lv: "{{ currentDrive.lvm_lvname }}"
+      size: "{{ currentDrive.lvm_size | default('100%VG', true) }}"
+      state: present
+
+
+  # hardware facts are enough for drive informations
+  - name: "system | data drive {{ currentDrive.device_name_real }} {{ currentDrive.lvm_vgname }} - refresh facts for the new LVM volume"
+    setup:
+      gather_subset: [ "hardware" ]
+
+
+  - name: "system | data drive {{ currentDrive.device_name_real }} - format the new volume"
+    filesystem:
+      fstype: "{{ currentDrive.fstype }}"
+      dev: "/dev/mapper/{{ item }}"
+      opts: "{{ currentDrive.fstype_options |default(omit, true) }}"
+      resizefs: yes
+      force: no
+    loop_control:
+      label: "/dev/mapper/{{ item }} => fstype={{ currentDrive.fstype }}"
+    # depending of the characters in the request, lvm might apply an altered name => use the holders fact containing the real name
+    with_items: "{{ ansible_devices[ currentDrive.device_name_real ].holders }}"
+    # required, as ansible still has a fact in cache with the new partition having the size=0
+    notify: refresh drive facts
+
+
+  - name: "system | data drive {{ currentDrive.device_name_real }} - adjust settings for ext4 partitions"
+    shell: "tune2fs -m 0 /dev/mapper/{{ item }}"
+    with_items: "{{ ansible_devices[ currentDrive.device_name_real ].holders }}"
+    when: currentDrive.fstype == "ext4"
+
+
+  # block end
+  # blkid will report any existing partition or block in multiples lines with TYPE="...something..."
+  # but empty otherwise with an error
+  when: >
+    task_blkid_results.rc != 0
+    and task_blkid_results.stdout | trim |length == 0
+

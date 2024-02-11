@@ -1,0 +1,84 @@
+---
+
+- name: ansible | validate user presence
+  user:
+    name: "{{ domain_ansible_user }}"
+    state: present
+  # verify only - do not create the user if absent
+  check_mode: true
+  register: task_ansible_user_info
+
+
+# package install role => ansible requirement
+- name: ansible | packages - system requirements
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "ansible | packages"
+    arg_install_packages: "{{ role_pkg_install_ansible }}"
+    # no ppa/repo expected here
+
+
+- name: ansible | packages - install python requirements - force pip upgrade
+  pip:
+    name: "pip"
+    extra_args: "--upgrade --no-cache-dir --user"
+  # install python modules under the ansible user
+  become: true
+  become_user: "{{ domain_ansible_user }}"
+  become_flags: "su - {{ domain_ansible_user }} -c"
+
+
+- name: ansible | packages - install python requirements
+  pip:
+    name: "{{ role_python_modules_install_ansible }}"
+    extra_args: "--upgrade --no-cache-dir --user"
+  # install python modules under the ansible user
+  become: true
+  become_user: "{{ domain_ansible_user }}"
+  become_flags: "su - {{ domain_ansible_user }} -c"
+
+
+# required in case the homedir was already existing but with differents uid/guid
+- name: ansible | system - adjust access mode on ansible home
+  file:
+    path: "{{ task_ansible_user_info.home }}"
+    owner: "{{ domain_ansible_user }}"
+    group: "{{ domain_ansible_group }}"
+    state: directory
+    recurse: yes
+  become: yes
+
+
+- name: ansible | logs - create log directory
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: "{{ item.recurse |default('no') }}"
+  with_items:
+    - { path: "{{ domain_ansible_log }}", owner: "{{ domain_ansible_user }}",  mode: "0750" }
+
+
+- name: ansible | logs - install logrotate configuration
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "644"
+  with_items:
+    - "/etc/logrotate.d/ansible"
+
+
+- name: ansible | logs - activate logs generation
+  ini_file:
+    path: "{{ domain_ansible_config_file }}"
+    section: "{{ item.section }}"
+    option: "{{ item.param }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: no
+  with_items:
+    - { section: "defaults",  param: "log_path",     value: "{{ domain_ansible_log }}/ansible.log" }
+

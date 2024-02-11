@@ -1,0 +1,15 @@
+---
+
+# location and name for the swap file
+system_swap_file: "/swapfile"
+
+
+# swap size - value is in mb
+# system swap will only be increased, it will be ignored if lower than the current swap size
+system_swap_size_mb: 0
+
+
+# set to "yes" and also "system_swap_size_mb=0" to disable swap
+# notice: a crash might occurs due to the lack of memory
+system_swap_disable_force: no
+

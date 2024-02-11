@@ -1,0 +1,89 @@
+---
+
+# ----------------------------------------------------------
+# pkg-install module variables for the ansible controller
+
+# list of packages to install
+# format :
+# role_pkg_install_<name>:
+#   common: []
+#   debian: []
+#   redhat: []
+#   other system ... (if supported)
+#
+# The package installations will be both  common[] + current system[]
+
+# system packages required by the ansible server
+role_pkg_install_ansible:
+  common:
+    - "curl"
+    - "wget"
+    - "rsync"
+    - "git"
+    # required for pkcs11 hardware tokens
+    - "sshpass"
+    # required for modules built by pip
+    - "gcc"
+    # mkpasswd - on RHEL < 9, use instead: openssl passwd -6
+    - "whois"
+
+  debian:
+    # python
+    - "python3"
+    - "python3-pip"
+    - "python-is-python3"
+    - "python3-apt"
+    # python virtual env
+    - "python3-virtualenv"
+    - "python3-venv"
+    # yaml
+    - "libyaml-dev"
+    # python cryptography requirement
+    - "libffi-dev"
+    # WinRM : SSL & Kerberos support
+    - "libssl-dev"
+    - "libkrb5-dev"
+    # psycopg
+    - "libpq-dev"
+    - "python3-dev"
+
+  redhat:
+    # python
+    # RHEL does not have a 'python3' virtual package, the full version must be provided (like 'python38') - use the dependency from the  "pip" package instead
+    - "python3-pip"
+    # python virtual env
+    - "python3-virtualenv"
+    # yaml
+    - "libyaml"
+    # python cryptography requirement
+    - "libffi-devel"
+    # WinRM : SSL & Kerberos support
+    - "openssl-devel"
+    - "krb5-libs"
+    # psycopg
+    - "libpq-devel"
+    # Redhat custom system roles - requirements for other ansible collections
+    - "rhel-system-roles"
+
+
+# python modules required by the ansible server
+role_python_modules_install_ansible:
+  - "PyYAML"
+  - "Jinja2"
+  - "httplib2"
+  - "six"
+  # v3.x max for ansible 2.9
+  - "cryptography{{ '==3.*' if ansible_version.full is version('2.10.0', '<') }}"
+  # json_query() filter
+  - "jmespath"
+  # ipaddr() filter
+  - "netaddr"
+  # Windows WinRM support
+  - "kerberos"
+  - "pywinrm>=0.3.0"
+  # Mysql db management
+  - "PyMySQL[rsa]"
+  # PostgreSQL db management
+  - "psycopg2"
+  # CI
+  - "yamllint"

@@ -1,0 +1,38 @@
+---
+
+
+# service configuration directory and file
+role_prometheus_dist_family:
+  debian:
+    user: "prometheus"
+    service_conf: "/etc/default/prometheus"
+    alertmanager_service_conf: "/etc/default/prometheus-alertmanager"
+
+  redhat:
+    user: "prometheus"
+    service_conf: "/etc/sysconfig/prometheus"
+    alertmanager_service_conf: "/etc/sysconfig/prometheus-alertmanager"
+
+
+role_prometheus_dist:
+  # service username
+  user: "{{ role_prometheus_dist_family[ ansible_os_family |lower ].user }}"
+  # main configuration dir
+  conf: "/etc/prometheus"
+  conf_d: "/etc/prometheus/prometheus.d"
+  service: "prometheus.service"
+  service_conf: "{{ role_prometheus_dist_family[ ansible_os_family |lower ].service_conf }}"
+  alertmanager_service: "prometheus-alertmanager.service"
+  alertmanager_service_conf: "{{ role_prometheus_dist_family[ ansible_os_family |lower ].alertmanager_service_conf }}"
+  log: "/var/log/prometheus"
+  log_user: "{{ role_prometheus_dist_family[ ansible_os_family |lower ].user }}"
+  log_group: "{{ role_prometheus_dist_family[ ansible_os_family |lower ].user }}"
+  # binary installation path
+  prometheus_bin: "/usr/local/bin/prometheus"
+  promtool_bin: "/usr/local/bin/promtool"
+  alertmanager_bin: "/usr/local/bin/alertmanager"
+  amtool_bin: "/usr/local/bin/amtool"
+  data: "/var/lib/prometheus"
+  data_subdir: "metrics2"
+  alertmanager_data_subdir: "alertmanager"
+

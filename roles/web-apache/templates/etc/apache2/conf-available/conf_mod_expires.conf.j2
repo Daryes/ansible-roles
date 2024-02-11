@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+
+# This module controls the setting of the Expires HTTP header and the max-age directive of the Cache-Control HTTP header in server responses.
+# These HTTP headers are an instruction to the client about the document's validity and persistence. If cached, the document may be fetched
+# from the cache rather than from the source until this time has passed. After that, the cache copy is considered "expired" and invalid,
+# and a new copy must be obtained from the source
+
+<IfModule mod_expires.c>
+
+    ExpiresActive on
+
+    ExpiresDefault "access plus 1 month"
+
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType image/png "access plus 1 week"
+    ExpiresByType image/gif "access plus 1 week"
+    ExpiresByType image/jpeg "access plus 1 week"
+
+</IfModule>
+

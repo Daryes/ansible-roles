@@ -1,0 +1,8 @@
+---
+
+- name: stop grafana
+  service:
+    name: "{{ role_grafana_dist.service }}"
+    state: "stopped"
+  become: yes
+

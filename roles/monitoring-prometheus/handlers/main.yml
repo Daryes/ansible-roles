@@ -1,0 +1,40 @@
+---
+
+- name: reload sysctl
+  command: "/sbin/sysctl --system"
+  become: yes
+
+
+- name: reload systemd-daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: yes
+
+
+- name: stop prometheus
+  service:
+    name: "{{ role_prometheus_dist.service }}"
+    state: "stopped"
+  become: yes
+
+
+- name: reload prometheus
+  service:
+    name: "{{ role_prometheus_dist.service }}"
+    state: "reloaded"
+  become: yes
+
+
+- name: stop alertmanager
+  service:
+    name: "{{ role_prometheus_dist.alertmanager_service }}"
+    state: "stopped"
+  become: yes
+
+
+- name: reload alertmanager
+  service:
+    name: "{{ role_prometheus_dist.alertmanager_service }}"
+    state: "reloaded"
+  become: yes
+

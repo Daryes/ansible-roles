@@ -1,0 +1,21 @@
+---
+
+- include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "Monitoring Grafana | Requirements"
+    arg_install_packages: "{{ role_grafana_reqs_packages }}"
+
+
+- include_role: name=_include-pkg_download_install
+  vars:
+    arg_install_comment: "Monitoring Grafana"
+    arg_install_pkg_name: "grafana"
+    arg_install_pkg_service: "{{ role_grafana_dist.service }}"
+    arg_install_pkg_version: "{{ grafana_version }}"
+    arg_install_pkg_deb_file: "{{ grafana_pkg_file_deb }}"
+    arg_install_pkg_deb_url: "{{ grafana_pkg_url_deb }}"
+    arg_install_pkg_deb_hash: "{{ grafana_version_hash_deb }}"
+    arg_install_pkg_rpm_file: "{{ grafana_pkg_file_rpm }}"
+    arg_install_pkg_rpm_url: "{{ grafana_pkg_url_rpm }}"
+    arg_install_pkg_rpm_hash: "{{ grafana_version_hash_rpm }}"
+

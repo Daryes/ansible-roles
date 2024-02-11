@@ -1,0 +1,38 @@
+---
+
+- name: User mgr | add global sudoers.d entries
+  template:
+    src: "{{ item }}"
+    dest: "{{ var_file_dest }}"
+    owner: root
+    group: root
+    mode: "0640"
+    validate: 'visudo -cf %s'
+  vars:
+    var_file_dest: "/etc/sudoers.d/{{ item | basename | regex_replace('\\.j2$','') }}"
+  with_items:
+    - "{{ lookup('fileglob', 'templates/etc/sudoers.d/*.j2', wantlist=True ) }}"
+  loop_control:
+    label: "{{ var_file_dest }}"
+
+
+# filter out users without the sudoers attribute
+- name: User mgr | add specific sudoers.d entries
+  template:
+    src: "{{ item.sudoers }}"
+    dest: "/etc/sudoers.d/{{ item.sudoers | basename | regex_replace('\\.j2$','') }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: 'visudo -cf %s'
+  with_items:
+    - "{{ users_accounts_all |selectattr('sudoers', 'defined') |list }}"
+    - "{{ users_accounts_host |selectattr('sudoers', 'defined') |list }}"
+    - "{{ task_users_accounts_merged |selectattr('sudoers', 'defined') |list }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : /etc/sudoers.d/{{ item.sudoers | basename | regex_replace('\\.j2$','') }}"
+  when: >
+    item.username is defined
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+

@@ -1,0 +1,78 @@
+---
+# http://docs.ansible.com/user_module.html
+
+# add the ansible group, then the user
+- name: Init | Bootstrap - add ansible group
+  group:
+    name: "{{ domain_ansible_group }}"
+    gid: "{{ domain_ansible_group_guid }}"
+    state: present
+  become: yes
+
+
+- name: Init | Bootstrap - add ansible user
+  user:
+    name: "{{ domain_ansible_user }}"
+    uid: "{{ domain_ansible_user_uid }}"
+    group: "{{ domain_ansible_group }}"
+    # TODO: manage sudo password with ansible vault
+    #groups: "sudo"
+    #append: yes
+    createhome: yes
+    update_password: on_create
+    shell: "{{ ansible_user_shell }}"
+    system: yes
+    state: present
+  become: yes
+  register: task_ansible_user_info
+
+
+## must use a raw cmd as the .ansible subdir can be or contains a symlink to a directory with a different owner
+#- name: Init | Bootstrap - clean home/.ansible subdir
+#  raw: "if [ ! -z '{{ task_ansible_user_info.home }}' ] && [ -s '{{ task_ansible_user_info.home }}' ]; then rm -r '{{ task_ansible_user_info.home }}'; fi"
+#  changed_when: false
+
+
+# required in case the homedir was already existing but with a different owner
+- name: Init | Bootstrap - adjust owner on ansible home subdir
+  file:
+    name: "{{ task_ansible_user_info.home }}"
+    group: "{{ domain_ansible_group }}"
+    state: directory
+    recurse: yes
+  become: yes
+
+
+- name: Init | Bootstrap - adjust access mode on ansible home
+  file:
+    name: "{{ task_ansible_user_info.home }}"
+    group: "{{ domain_ansible_group }}"
+    state: directory
+    mode: "0700"
+  become: yes
+
+
+# add the ssh key
+# note : key= expects the file contents, and not a filename => need a lookup from a fileglob.item
+- name: Init | Bootstrap - authorize ansible ssh key
+  authorized_key:
+    user: "{{ domain_ansible_user }}"
+    state: present
+    key: "{{ lookup('file', item) }}"
+    exclusive: yes
+  with_fileglob:
+    - "{{ domain_ansible_ssh_pubkey_file }}"
+  become: yes
+
+
+# add to sudoers
+- name: Init | Bootstrap - add ansible to sudoers.d
+  template:
+    src: "sudoers.d/ansible.j2"
+    dest: "/etc/sudoers.d/{{ domain_ansible_user }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: 'visudo -cf %s'
+  become: yes
+

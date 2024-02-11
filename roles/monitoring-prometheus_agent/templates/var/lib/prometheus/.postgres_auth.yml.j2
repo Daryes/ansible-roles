@@ -1,0 +1,13 @@
+---
+# {{ ansible_managed }}
+
+auth_modules:
+  pgauth:
+    type: userpass
+    userpass:
+      username: "{{ prometheus_agent_postgresql_user }}"
+      password: "{{ prometheus_agent_postgresql_password }}"
+    options:
+      # options become key=value parameters of the DSN
+      sslmode: "{{ prometheus_agent_postgresql_auth_sslmode |bool |ternary('enable', 'disable') }}"
+

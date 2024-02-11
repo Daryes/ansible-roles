@@ -1,0 +1,97 @@
+---
+
+- name: Docker CE | config - create directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: "{{ item.recurse |default('no') }}"
+  with_items:
+    - { path: "/etc/docker" }
+    - { path: "{{ docker_data_dir }}",  mode: "0710" }
+    # service customization
+    - { path: "/etc/systemd/system/docker.service.d" }
+    # required by docker-compose v2+
+    - { path: "/usr/local/lib/docker/cli-plugins",  mode: "0755",  recurse: "yes" }
+
+
+- name: Docker CE | config - create symlink requirements
+  file:
+    src: "{{ item.src }}"
+    state: link
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    dest: "{{ item.link }}"
+  with_items:
+    - { src: "{{ docker_data_dir }}",  link: "{{ role_docker_data_dir_default }}" }
+  when: item.link |default( item.src ) != item.src
+
+
+# copy configuration files - must be done before the installation
+# the 'validate' option from template cannot be used here as docker might not be installed - using a handler instead
+- name: Docker CE | config - default settings
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  with_items:
+    - "/etc/docker/daemon.json"
+    - "/etc/systemd/system/docker.service.d/http-proxy.conf"
+  register: task_docker_config_update
+  notify: [ "reload systemd-daemon", "validate dockerd config", "restart docker" ]
+
+
+# import the package install role
+- name: Docker CE | installation - load the installation role
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "Docker CE"
+    arg_remove_packages: "{{ role_docker_remove_packages }}"
+    arg_install_packages: "{{ role_docker_install_packages }}"
+    arg_install_ppa: "{{ role_docker_install_ppa }}"
+    arg_install_yumrepo: "{{ role_docker_install_yumrepo }}"
+
+
+# containerd configuration - must be done after installation to have the toml file already created
+- name: Docker CE | config - containerd settings
+  lineinfile:
+    dest: /etc/containerd/config.toml
+    state: "{{ item.state |default('present') }}"
+    regexp: "{{ item.regexp |default(omit) }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^disabled_plugins *= *", line: "disabled_plugins = [ \"{{ '\", \"'.join(docker_containerd_plugin_disable) }}\" ]" }
+  loop_control:
+    label: "{{ item.line }}"
+  notify: restart containerd
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+- name: Docker CE | enable and start the service
+  service:
+    name: "docker"
+    state: started
+    enabled: yes
+
+
+# _pkg_install_status comes from the _include-pkg_install role
+- name: Docker CE | validation - run (and pull) the hello world image
+  shell: "docker run --rm {{ docker_image_helloworld }}"
+  become: yes
+  when: _pkg_install_status is changed and docker_image_helloworld |length > 0
+
+
+- include_tasks: logs.yml
+  when: docker_compose_log_redirect |bool
+
+
+- include_tasks: docker-compose.yml
+  when: docker_compose_version |length > 0
+

@@ -1,0 +1,110 @@
+---
+
+# downloaded file will be place in a storage directory on the ansible master
+# run_once is required to have only one execution
+- name: "{{ arg_install_comment }} | executable down+install - create binary storage dir on master"
+  local_action:
+    module: ansible.builtin.file
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - "{{ role_archive_storage_dir }}"
+  become: true
+  run_once: true
+
+
+# become must be disabled as the target is in a directory structure owned by ansible
+- name: "{{ arg_install_comment }} | executable down+install - check binary availability on master"
+  local_action:
+    module: stat
+    path: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
+  register: task_exe_available
+  changed_when: task_exe_available.stat.exists == false
+  become: false
+  run_once: true
+
+
+# download the file to ansible master only
+# become must also be disabled here
+- name: "{{ arg_install_comment }} | executable down+install - download {{ arg_install_exe_fullpath |basename }} ({{ arg_install_exe_version }})"
+  local_action:
+    module: get_url
+    url: "{{ arg_install_exe_download_url }}"
+    dest: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
+    checksum: "{{ arg_install_exe_hash |default(omit) }}"
+  when: task_exe_available.stat.exists == false
+  register: task_pkg_downloaded
+  become: false
+  run_once: true
+
+
+# retrieve some information and validate the cached file with the expected hash if present
+- name: "{{ arg_install_comment }} | executable down+install - refresh local cache information"
+  local_action:
+    module: stat
+    path: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
+    checksum_algorithm: "{{ arg_install_exe_hash.split(':')[0] }}"
+    get_checksum: yes
+    follow: yes
+  when: arg_install_exe_hash |length > 0
+  register: task_exe_cache_stat
+  become: false
+  run_once: true
+
+
+- name: "{{ arg_install_comment }} | executable down+install - validate checksum"
+  fail:
+    msg: "Error: expected hash differs for the cached file {{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
+  when: >
+    task_exe_cache_stat.checksum is defined
+    and task_exe_cache_stat.checksum != arg_install_exe_hash.split(':')[0]
+  run_once: true
+
+
+- name: "{{ arg_install_comment }} | executable down+install - create parent directory if missing"
+  file:
+    path: "{{ arg_install_exe_fullpath |dirname }}"
+    state: directory
+  become: true
+
+
+- name: "{{ arg_install_comment }} | executable down+install - stop service if requested"
+  service:
+    name: "{{ arg_install_exe_service }}"
+    state: stopped
+  when: arg_install_exe_service |default('') |length > 0
+  register: task_service_status
+  failed_when: >
+    task_service_status is failed
+    and task_service_status.msg |regex_search( role_service_not_found_regex, ignorecase=True ) |length == 0
+
+
+- name: "{{ arg_install_comment }} | executable down+install - load the file type module"
+  include_tasks: "{{ include_item.file }}"
+  with_items:
+    - { file: "exe_proc-install_executable.yml", when: "{{ not arg_install_exe_is_compressed_archive }}" }
+    - { file: "exe_proc-install_archive.yml",    when: "{{ arg_install_exe_is_compressed_archive }}" }
+  loop_control:
+    label: "{{ include_item.file }}"
+    loop_var: include_item
+  when: include_item.when |bool
+
+
+- name: "{{ arg_install_comment }} | executable down+install - extra symlink under /usr/bin/"
+  file:
+    src: "{{ var_src }}"
+    state: link
+    owner: "{{ arg_install_exe_owner |default('root') }}"
+    group: "{{ arg_install_exe_group |default(arg_install_exe_owner) |default('root') }}"
+    dest: "{{ var_link }}"
+    force: no
+  vars:
+    var_src: "{{ arg_install_exe_fullpath |dirname }}/{{ item |basename }}"
+    var_link: "/usr/bin/{{ item |basename }}"
+  with_items: "{{ arg_install_exe_compressed_archive_binaries_to_link |default([ arg_install_exe_fullpath |basename ], true)  }}"
+  when: >
+    arg_install_exe_symlink_to_usr_bin |bool
+    and var_link |default( var_src ) != var_src
+

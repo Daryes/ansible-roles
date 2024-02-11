@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+<IfModule mod_deflate.c>
+    <IfModule mod_filter.c>
+        # default config
+        AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+        AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+        AddOutputFilterByType DEFLATE application/rss+xml
+        AddOutputFilterByType DEFLATE application/xml
+        # non-standard
+        AddOutputFilterByType DEFLATE application/xhtml+xml
+        AddOutputFilterByType DEFLATE application/atom_xml
+        AddOutputFilterByType DEFLATE application/x-httpd-php
+        AddOutputFilterByType DEFLATE application/x-httpd-fastphp
+        AddOutputFilterByType DEFLATE application/x-httpd-eruby
+        AddOutputFilterByType DEFLATE application/json
+        AddOutputFilterByType DEFLATE image/svg+xml
+
+        <IfModule mod_setenvif.c>
+            <IfModule mod_headers.c>
+                # Ensure the content is correctly handled
+                Header append Vary User-Agent env=!dont-vary
+            </IfModule>
+        </IfModule>
+    </IfModule>
+</IfModule>

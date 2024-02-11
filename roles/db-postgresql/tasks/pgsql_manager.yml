@@ -1,0 +1,125 @@
+---
+
+# The .extend() in "if var.extend(value) %}{% endif" is a jinja2 v2.9- hack to insert data in a loop. Check namespace for jinja2 v2.10+
+# The .extend() is NOT set to ([ ]), as the variable to insert is already a dict
+# the >- expand to everything after as a string, while removing the carriage return.
+- name: PostgreSQL | concatenate db variables
+  set_fact:
+    task_postgresql_db_merged: >-
+      {%- set groupSuffix = '_postgresql_db' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( hostvars[inventory_hostname][loopGroup + groupSuffix] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput }}
+
+
+- name: PostgreSQL | concatenate user variables
+  set_fact:
+    task_postgresql_user_merged: >-
+      {%- set groupSuffix = '_postgresql_user' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( hostvars[inventory_hostname][loopGroup + groupSuffix] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput }}
+
+#- debug: var=task_postgresql_db_merged
+#- debug: var=task_postgresql_user_merged
+
+
+# When an error in the syntax is present under group_vars or host_vars, it's possible ansible won't report it
+# The error message won't be clear, but still contains the bad item name.
+- name: PostgreSQL | check variables validity
+  fail:
+    msg: "<group name>_postgresql_db or <group name>_postgresql_users is not correctly defined, or is missing an entry is the vault"
+  when: >
+    task_postgresql_db_merged is not defined
+    or task_postgresql_user_merged is not defined
+
+
+# ---------------------------------------------
+- name: PostgreSQL | db creation
+  community.postgresql.postgresql_db:
+    name: "{{ item.db }}"
+    encoding: "{{ item.encoding |default('UTF8') }}"
+    lc_collate: "{{ item.lc_collate |default(omit) }}"
+    lc_ctype: "{{ item.lc_collate |default(omit) }}"
+    tablespace: "{{ item.tablespace |default(omit) }}"
+    conn_limit: "{{ item.conn_limit |default(-1) }}"
+    state: "present"
+  with_items:
+    - "{{ task_postgresql_db_merged }}"
+  # required to switch into pgsql user
+  become: true
+  become_user: "{{ role_postgresql_dist.user }}"
+  become_flags: "su - {{ role_postgresql_dist.user }} -c"
+
+
+- name: PostgreSQL | user creation
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    expires: "{{ item.expiration |default('infinity') }}"
+    state: "{{ item.state |default('present') }}"
+  with_items:
+    - "{{ task_postgresql_user_merged }}"
+  loop_control:
+    label: >-
+      name: {{ item.name }},
+      expires: {{ item.expiration |default('infinity') }},
+      state: {{ item.state |default('present') }}
+  # required to switch into pgsql user
+  become: true
+  become_user: "{{ role_postgresql_dist.user }}"
+  become_flags: "su - {{ role_postgresql_dist.user }} -c"
+
+
+- name: PostgreSQL | user DB grants
+  community.postgresql.postgresql_privs:
+    db: postgres
+    type: database
+    obj: "{{ item.db }}"
+    role: "{{ item.name }}"
+    privs: "{{ item.privs }}"
+  with_items:
+    - "{{ task_postgresql_user_merged }}"
+  loop_control:
+    label: >-
+      name: {{ item.name }},
+      db: {{ item.db }},
+      privs: {{ item.privs |default('not specified') }}
+  when: item.privs |default('') |length > 0
+  # required to switch into pgsql user
+  become: true
+  become_user: "{{ role_postgresql_dist.user }}"
+  become_flags: "su - {{ role_postgresql_dist.user }} -c"
+
+
+- name: PostgreSQL | user SCHEMA grants
+  community.postgresql.postgresql_privs:
+    db: "{{ item.db }}"
+    type: schema
+    obj: "{{ item.schema }}"
+    role: "{{ item.name }}"
+    privs: "{{ item.privs }}"
+  with_items:
+    - "{{ task_postgresql_user_merged }}"
+  loop_control:
+    label: >-
+      name: {{ item.name }},
+      db: {{ item.db }},
+      schema: {{ item.schema |default('not specified') }},
+      privs: {{ item.privs |default('not specified') }}
+  when: >
+    item.privs |default('') |length > 0
+    and item.schema |default('') |length > 0
+  # required to switch into pgsql user
+  become: true
+  become_user: "{{ role_postgresql_dist.user }}"
+  become_flags: "su - {{ role_postgresql_dist.user }} -c"
+

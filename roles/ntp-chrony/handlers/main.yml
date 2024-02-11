@@ -1,0 +1,14 @@
+---
+
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
+  become: yes
+
+
+- name: timesyncd stop
+  service:
+    name: "systemd-timesyncd"
+    state: stopped
+  become: yes
+  failed_when: false
+

@@ -1,0 +1,17 @@
+# Additional parameters for the docker-compose service
+# copy this file as:  /etc/default/docker-compose.<unit name>
+# and create the service with: systemctl enable docker-compose@<unit name>
+#
+# each unit will look and start a "{{ project_root }}/<unit name>/docker-compose.yml" file
+#
+
+# arguments for docker-compose itself, like -f test.yml
+COMPOSE_ARGS=
+
+# all arguments here are related to the 'docker-compose up' command.
+# --remove-orphans : use only on server dedicated to one service, as all docker elements unknown to the yml file will be removed
+COMPOSE_UP_EXTRA_ARGS=
+
+# all arguments here are related to the 'docker-compose down'  command
+COMPOSE_DOWN_EXTRA_ARGS=
+

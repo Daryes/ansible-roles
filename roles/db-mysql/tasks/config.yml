@@ -1,0 +1,31 @@
+---
+
+
+# copy configuration file - might require to be done before the installation
+- name: MySQL/MariaDB | config - default settings
+  template:
+    src: "templates/etc/mysql/conf.d/{{ item |basename }}.j2"
+    dest: "{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - "{{ role_mysql_dist.conf_d }}/mysqld.cnf"
+    - "{{ role_mysql_dist.conf_d }}/mysqld_custom.cnf"
+    - "{{ role_mysql_dist.conf_d }}/mysqlclient.cnf"
+    - "{{ role_mysql_dist.conf_server_cnf }}"
+  register: task_mysql_config
+  become: yes
+
+
+- name: MySQL/MariaDB | config - system settings
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - "/etc/logrotate.d/mysql-server"
+  become: yes
+

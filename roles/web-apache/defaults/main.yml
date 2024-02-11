@@ -1,0 +1,64 @@
+---
+
+# configuration & webroot location
+apache_conf_dir: "{{ role_apache_dist.etc }}"
+apache_webroot_dir: "{{ role_apache_dist.web_root }}"
+
+
+# specify extra configuration files with the full path to the template to use
+# syntax: [ '{{ role_path }}/../<my role>/templates/path/to/template.conf.j2', '/path/to/template2', ...]
+apache_global_extra_config: []
+
+
+# specify the apache modules to activate, without the '_module' suffix
+# syntax: [ 'module_name (without _module or .load)', 'module2', ... ]
+apache_global_modules_activate: []
+
+# same as _modules_active, for disabling modules
+apache_global_modules_disable: []
+
+
+# websites to disable globally - without the .conf extension
+# syntax:
+# - "the link under sites-enabled/"
+#
+apache_global_vhost_disable: []
+
+
+# full path to default pem+key ssl certificate
+apache_default_site_ssl_cert_pem: ""
+apache_default_site_ssl_cert_key: ""
+
+
+# apache server name
+apache_global_server_name: "{{ inventory_hostname }}"
+
+# apache mpm_event configuration
+apache_global_mpm_event:
+  StartServers: 2
+  MinSpareThreads: 25
+  MaxSpareThreads: 75
+  ThreadLimit: 64
+  ThreadsPerChild: 25
+  MaxRequestWorkers: 150
+  MaxConnectionsPerChild: 256
+
+
+# list of corporate address ip to give access to
+# syntax
+#  - description: "text"
+#    ip: "x.x.x.x"
+#
+apache_global_access_ip_list: []
+
+# activate bitbucket cloud ip access for ip filtering
+# disabled by default to reduce load
+apache_geoip_access_bitbucket: no
+
+
+# option to disable the service if required
+# state:  either "started" or "stopped"
+# enabled: set to no to have the service not started at boot
+apache_global_service_state: "started"
+apache_global_service_enabled: yes
+

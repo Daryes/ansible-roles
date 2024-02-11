@@ -1,0 +1,40 @@
+---
+
+# architecture mapping
+role_system_arch_mapping:
+  i386: '386'
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armv7'
+  armv6l: 'armv6'
+
+# default to _architecture if there is no existing mappping
+role_system_arch: "{{ role_system_arch_mapping[ ansible_architecture ] |default(ansible_architecture) }}"
+
+
+# prometheus uses the lowercase system names for their archives
+role_system_lower: "{{ ansible_system |lower }}"
+
+
+# service and user names related to linux distributions
+role_prometheus_agent_dist_family:
+  debian:
+    user: "prometheus"
+    service_conf_dir: "/etc/default"
+
+  redhat:
+    user: "prometheus"
+    service_conf_dir: "/etc/sysconfig"
+
+
+role_prometheus_agent_dist:
+  user: "{{ role_prometheus_agent_dist_family[ ansible_os_family |lower ].user }}"
+  conf: "/etc/prometheus"
+  service_conf_dir: "{{ role_prometheus_agent_dist_family[ ansible_os_family |lower ].service_conf_dir }}"
+  bin_dir: "/usr/local/bin"
+  data: "/var/lib/prometheus"
+  log: "/var/log/prometheus"
+  log_user: "{{ role_prometheus_agent_dist_family[ ansible_os_family |lower ].user }}"
+  log_group: "{{ role_prometheus_agent_dist_family[ ansible_os_family |lower ].user }}"
+  webconfig: "/etc/prometheus/web-config.agent.yml"
+

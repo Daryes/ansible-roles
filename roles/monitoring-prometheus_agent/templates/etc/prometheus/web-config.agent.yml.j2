@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+# TLS and basic authentication configuration
+# ref: https://prometheus.io/docs/prometheus/latest/configuration/https/
+# ref: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+#
+{% if prometheus_agent_ssl_cert_pem |length > 0 %}
+tls_server_config:
+  cert_file: {{ prometheus_agent_ssl_cert_pem }}
+  key_file: {{ prometheus_agent_ssl_cert_key }}
+
+{% endif %}
+{% if prometheus_agent_auth_basic |bool %}
+basic_auth_users:
+  {{ prometheus_agent_auth_basic_user }}: {{ prometheus_agent_auth_basic_pass_crypted }}
+{% endif %}

@@ -1,0 +1,38 @@
+---
+
+#- debug: var=arg_remove_packages
+#- debug: var=arg_install_packages
+#- debug: var=arg_install_ppa
+#- debug: var=arg_install_yumrepo
+
+
+- name: "{{ arg_install_comment }} | pkg install - parameters validation"
+  assert:
+    that:
+      - arg_install_packages is defined
+      - arg_install_packages.common is defined
+      - arg_install_packages.debian is defined
+      - arg_install_packages.redhat is defined
+    fail_msg: "Error: one of the mandatory parameters (arg_install_*) is either not set, empty, or still with a default 'CHANGE_ME' value"
+    quiet: yes
+
+
+# store in ansible_facts.packages the installed system packages
+- name: "{{ arg_install_comment }} | pkg install - retrieve the installed packages list"
+  package_facts:
+  become: yes
+
+
+# Packages updates
+- include_tasks: "{{ include_item }}"
+  with_first_found:
+    - files:
+      - "{{ ansible_os_family|lower }}.{{ ansible_distribution|lower }}-{{ ansible_distribution_version }}.yml"
+      - "{{ ansible_os_family|lower }}.{{ ansible_distribution|lower }}.yml"
+      - "{{ ansible_os_family|lower }}.yml"
+      - "defaults.yml"
+      paths:
+      - pkg-install/
+  loop_control:
+    loop_var: include_item
+

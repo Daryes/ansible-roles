@@ -1,0 +1,17 @@
+---
+# {{ ansible_managed }}
+# more information here: https://github.com/prometheus/jmx_exporter
+
+startDelaySeconds: 5
+ssl: false
+lowercaseOutputName: true
+
+# The whitelist and blacklist use globbing expressions (like "foo*") and not regex
+blacklistObjectNames:
+  - "org.apache.activemq:clientId=*,*"
+  - "org.apache.cassandra.metrics:type=ColumnFamily,*"
+
+# The rules use regex (like "foo.*")
+rules:
+- pattern: ".*"
+

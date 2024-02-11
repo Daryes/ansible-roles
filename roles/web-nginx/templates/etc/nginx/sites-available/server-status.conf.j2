@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+
+# localhost only http server
+server {
+    listen 127.0.0.1:80;
+
+    access_log off;
+
+    # depending of the network config, the source ip can be the first physical iface instead of localhost
+    allow 127.0.0.1;
+    allow {{ ansible_default_ipv4.address }};
+    deny all;
+
+    location = /server-status {
+        stub_status;
+    }
+}
+

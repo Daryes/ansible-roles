@@ -1,0 +1,56 @@
+---
+
+- name: Monitoring Grafana | system - create directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: no
+  with_items:
+    - { path: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.dashboard_subdir }}",   owner: "root",  group: "{{ role_grafana_dist.user }}" }
+    - { path: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.datasource_subdir }}",  owner: "root",  group: "{{ role_grafana_dist.user }}" }
+    - { path: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.notifiers_subdir }}",   owner: "root",  group: "{{ role_grafana_dist.user }}" }
+    - { path: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.alerting_subdir }}",    owner: "root",  group: "{{ role_grafana_dist.user }}" }
+    - { path: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.plugins_subdir }}",     owner: "root",  group: "{{ role_grafana_dist.user }}" }
+    - { path: "{{ grafana_data_dir }}",  owner: "{{ role_grafana_dist.user }}",     mode: "0750" }
+    - { path: "{{ grafana_data_dir }}/{{ role_grafana_dist.data_plugin_subdir }}",  owner: "{{ role_grafana_dist.user }}",  mode: "0750" }
+  become: yes
+
+
+- name: Monitoring Grafana | config - setting values
+  ini_file:
+    path: "{{ role_grafana_dist.config_file }}"
+    section: "{{ item.section }}"
+    option: "{{ item.param }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: no
+  with_items:
+    - "{{ grafana_config_settings            |flatten |rejectattr ('param', 'in', role_config_params_hide_value ) |list }}"
+    - "{{ role_grafana_config_settings_force |flatten |rejectattr ('param', 'in', role_config_params_hide_value ) |list }}"
+    - { section: "server",  param: "domain",     value: "{{ grafana_domain }}" }
+    - { section: "server",  param: "root_url",   value: "{{ grafana_root_url }}" }
+    - { section: "server",  param: "http_addr",  value: "{{ grafana_listen_ip }}" }
+    - { section: "server",  param: "http_port",  value: "{{ grafana_listen_port }}" }
+    - { section: "paths",   param: "data",       value: "{{ grafana_data_dir }}" }
+    - { section: "paths",   param: "plugins",    value: "{{ grafana_data_dir }}/plugins" }
+  notify: stop grafana
+  become: yes
+
+
+# the "no_log" parameter is only for a whole task, it cannot work for specific items in a loop
+- name: Monitoring Grafana | config - setting secret or sensitive values
+  ini_file:
+    path: "{{ role_grafana_dist.config_file }}"
+    section: "{{ item.section }}"
+    option: "{{ item.param }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: no
+  with_items:
+    - "{{ grafana_config_settings            |flatten |selectattr ('param', 'in', role_config_params_hide_value ) |list }}"
+    - "{{ role_grafana_config_settings_force |flatten |selectattr ('param', 'in', role_config_params_hide_value ) |list }}"
+  notify: stop grafana
+  become: yes
+  no_log: yes
+

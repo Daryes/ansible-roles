@@ -1,0 +1,20 @@
+---
+
+# configuration differences between distrib families
+role_certs_dist_family:
+  debian:
+    group: "ssl-cert"
+    private_store: "/etc/ssl/private"
+
+  redhat:
+    group: "root"
+    private_store: "/etc/pki/tls/private"
+
+
+role_certs_dist:
+  user: "root"
+  # creating a specific group to give read access
+  group: "ssl-cert"
+  # not using the dist family location due to changing the group owner instead of root which might be lost on RHEL with updates
+  private_store: "/etc/ssl/private"
+

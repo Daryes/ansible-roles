@@ -1,0 +1,20 @@
+---
+
+- name: validate bind config
+  command: "/usr/sbin/named-checkconf -z {{ role_bind_dist.etc }}/named.conf"
+
+
+- name: reload bind
+  command: "/usr/sbin/rndc reload"
+  # only if the service is active
+  when: task_service_status_for_rndc.rc == 0
+
+
+- name: restart bind
+  service:
+    name: "{{ role_bind_dist.service }}"
+    state: "restarted"
+  # only if the service is active
+  # the configuration is not yet complete on the first installation
+  when: task_service_status_for_rndc.rc == 0
+

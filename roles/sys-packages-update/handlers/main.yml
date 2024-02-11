@@ -1,0 +1,9 @@
+---
+
+- name: reboot on update
+  reboot:
+    reboot_timeout: "{{ system_package_update_reboot_timeout }}"
+  when: >
+    system_package_update_reboot |bool
+    and inventory_hostname not in system_package_update_reboot_skip_hosts|flatten
+

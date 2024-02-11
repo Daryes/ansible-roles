@@ -1,0 +1,24 @@
+---
+
+# prometheus packages ref: https://prometheus.io/download/
+role_prometheus_agent_node_package_file: "node_exporter-{{ prometheus_agent_node_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_node_package_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_agent_node_version }}/{{ role_prometheus_agent_node_package_file }}"
+
+
+# system requirements
+role_prometheus_agent_node_requirement_packages:
+  common: []
+  debian: []
+  redhat:
+    # not required for the agent but for ansible to build the lsb informations
+    - "redhat-lsb-core"
+
+
+role_prometheus_agent_node_dist:
+  service: "prometheus-node-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-node-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir  }}/node_exporter"
+  # some parameters can change depending of the exporter version
+  param_web_config: "{{ prometheus_agent_node_version is version('1.5.0', '>=') |ternary('web.config.file', 'web.config') }}"
+

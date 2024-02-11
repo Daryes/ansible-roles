@@ -1,0 +1,31 @@
+---
+
+- name: User mgr | user removal
+  user:
+    name: "{{ item.username }}"
+    state: absent
+    remove: "{{ item.remove | default(omit) }}"
+    force: "{{ item.force | default(omit) }}"
+  with_items: "{{ users_to_delete_all }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : user={{ item.username }}"
+  when: >
+    item.username is defined
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+    and item.username not in [ 'root', users_accounts_ansible_user ]
+
+
+- name: User mgr | per-user group removal
+  group:
+    name: "{{ item.username }}"
+    state: absent
+  with_items: "{{ users_to_delete_all }}"
+  loop_control:
+    label: "{{ item.name |default(item.username) }} : user={{ item.username }}"
+  when: >
+    item.username is defined
+    and inventory_hostname not in item.skip_hosts|default([''])|flatten
+    and inventory_hostname in item.target_hosts|default([inventory_hostname])|flatten
+    and item.username not in [ 'root', users_accounts_ansible_user ]
+

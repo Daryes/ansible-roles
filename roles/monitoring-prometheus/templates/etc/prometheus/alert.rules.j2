@@ -1,0 +1,129 @@
+# This file can be freely updated.
+# doc: https://github.com/prometheus/prometheus/blob/master/docs/configuration/alerting_rules.md
+# doc: https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+
+{# as this file use also a jinja2 templating structure, raw is required #}
+{% raw %}
+groups: 
+- name: base rules
+  rules:
+  - alert: CPU_Threshold_Exceeded
+    expr: (100 * (1 - avg(irate(node_cpu_seconds_total{mode="idle"}[1h])) BY (instance))) > 90
+    for: 1h
+    labels:
+      severity: critical
+    annotations:
+      summary: Instance {{$labels.instance}} CPU usage is dangerously high
+      description: This device's CPU usage has exceeded the thresold of 90% with a value of {{$value}} for 1 hour.
+
+
+  - alert: Instance_Low_Memory
+    expr:  node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 5
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Instance {{$labels.instance}}: memory low'
+      description: '{{$labels.instance}} has less than 5% memory available'
+
+
+  - alert: Disk_USAGE_Thresold_Exceeded
+    expr: node_filesystem_free_bytes{fstype!~"nfs.*|cifs.*|rootfs|tmpfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"nfs.*|cifs.*|rootfs|tmpfs|fuse.*"} < 0.1 and node_filesystem_readonly{fstype!=""} == 0
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Instance {{$labels.instance}}: disk filling up'
+      description: '{{$labels.device}} mounted on {{$labels.mountpoint}} on {{$labels.instance}} is 90% filled.'
+
+
+  - alert: NodeNetworkTransmitErrs
+    expr: increase(node_network_transmit_errs_total[2m]) > 10
+    for: 1h
+    labels:
+      severity: warning
+    annotations:
+      description: 'Instance {{ $labels.instance }} interface {{ $labels.device }}: {{ printf "%.0f" $value }} transmit errors in the last two minutes.'
+      summary: 'Network interface is reporting many transmit errors.'
+
+
+  - alert: Ping_DOWN
+    expr: probe_success{job="smokeping"} < 1
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      summary: '{{$labels.name}} is down'
+      description: 'Address {{$labels.name}} ({{$labels.url}}) is not answering since 3 minutes.'
+
+
+  - alert: App_DOWN
+    expr: probe_success{job="website"} < 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{$labels.name}} is down'
+      description: 'Application {{$labels.name}} ({{$labels.url}}) is down since 5 minutes.'
+
+
+  - alert: Instance_DOWN
+    expr: up{} == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Instance {{$labels.instance}} is down'
+      description: '{{$labels.instance}} (type {{$labels.job}}) has been down for more than 5 minutes.'
+
+
+  - alert: Apache_PROCESS_Thresold_Exceeded
+    expr: ( avg by (geo,env, instance) (apache_scoreboard{state="open_slot"}) / sum by (geo,env, instance) (apache_scoreboard{}) ) < 0.1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Instance {{$labels.instance}}: Apache Webserver process count is high'
+      description: 'Le serveur web Apache de {{$labels.instance}} arrive a saturation. Relancer le service avant investigation'
+
+
+  - alert: Instance_Cluster_PARTIAL
+    expr: ( sum( up{geo != "", env != "", cluster != "", job != "" } ) by (geo, env, cluster, job)  ) == 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: '{{$labels.geo}} {{$labels.env}} / Cluster {{$labels.cluster}} has missing instances'
+      description: '{{$labels.geo}} {{$labels.env}} / {{$labels.cluster}} has only one node still up for more than 5 minutes.'
+
+
+  - alert: Instance_Cluster_DOWN
+    expr: ( sum( up{geo != "", env != "", cluster != "", job != "" } ) by (geo, env, cluster, job) ) == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{$labels.geo}} {{$labels.env}} / Cluster {{$labels.cluster}} is down'
+      description: '{{$labels.geo}} {{$labels.env}} / {{$labels.cluster}} has been down for more than 5 minutes without any node remaining.'
+
+
+  - alert: Certificate_expired
+    expr: ceil( ( probe_ssl_earliest_cert_expiry{} - time() )  / 3600 / 24 ) <= 2
+    for: 6h
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Certificate {{$labels.name}} is expired'
+      description: 'Certificate {{$labels.name}} on server {{$labels.target}} has less than 2 days remaining or is already expired.'
+
+
+  - alert: Certificate_expire_soon
+    expr: ceil( ( probe_ssl_earliest_cert_expiry{} - time() )  / 3600 / 24 ) <= 30 and ceil( ( probe_ssl_earliest_cert_expiry{} - time() )  / 3600 / 24 ) > 2
+    for: 24h
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Certificate {{$labels.name}} will expire soon'
+      description: 'Certificate {{$labels.name}} on server {{$labels.target}} will expire in less than 30 days.'
+
+{% endraw %}

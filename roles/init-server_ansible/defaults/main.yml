@@ -1,0 +1,22 @@
+---
+
+# ansible username and group - same as in init-ansible_user
+domain_ansible_user: "ansible"
+domain_ansible_group: "{{ domain_ansible_user }}"
+
+
+# group containing the ansible servers
+domain_ansible_inventory_group: "ansible"
+
+
+# log directory for playbook executions when activated in ansible.cfg
+domain_ansible_log: "/var/log/ansible"
+
+# number of days the logs are kept
+domain_ansible_log_retention_days: 7
+
+
+# ansible.cfg file location
+# The variable 'ansible_config_file' requires ansible 2.11+
+domain_ansible_config_file: "{{ ansible_config_file |default('/etc/ansible/ansible.cfg') }}"
+

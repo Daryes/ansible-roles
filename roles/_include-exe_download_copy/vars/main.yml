@@ -1,0 +1,17 @@
+---
+
+role_install_exe_name: "{{ arg_install_exe_download_url | urlsplit('path') |basename  }}"
+
+# storage location on ansible master
+role_archive_storage_dir: "{{ ansible_cache_root_dir }}/{{ arg_install_exe_fullpath |basename }}"
+role_exe_storage_file: "{{ role_install_exe_name }}_{{ arg_install_exe_version }}"
+
+
+role_unarchive_args_skip_first_dir:
+  - tar: "--strip-components=1"
+  - zip: "-j"
+
+
+# regex string to search for when a service does not exist in an error message
+role_service_not_found_regex: 'could not find|not found|not loaded'
+

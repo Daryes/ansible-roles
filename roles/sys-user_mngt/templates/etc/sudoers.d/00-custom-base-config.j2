@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+# keep extra variables in new sudo environments
+Defaults        env_keep += "CCACHE_DIR SYSTEMD_PAGER"
+
+# timeout for the sudo command
+Defaults        timestamp_timeout={{ users_default_sudo_timeout }}
+

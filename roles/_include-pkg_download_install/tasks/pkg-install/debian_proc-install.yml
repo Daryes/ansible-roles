@@ -1,0 +1,38 @@
+---
+
+# import the common part for downloading and syncing the package
+- set_fact:
+    task_install_pkg_target_url: "{{ arg_install_pkg_deb_url }}"
+    task_install_pkg_target_file: "{{ arg_install_pkg_deb_file }}"
+    task_install_pkg_target_hash: "{{ arg_install_pkg_deb_hash }}"
+
+
+- import_tasks: common_download_sync_package.yml
+
+
+# install the package file without starting the service
+# note: allow_downgrade=yes is available with ansible 2.12+  - use force=true instead
+- name: "{{ arg_install_comment }} | pkg down+install - install pkg file"
+  apt: deb=/tmp/{{ arg_install_pkg_deb_file }} dpkg_options='force-confold' force=true policy_rc_d=101
+  register: task_pkg_installed
+
+
+# stop the service (started by the .deb installer - shouldn't be required)
+- name: "{{ arg_install_comment }} | pkg down+install - stop service after installation"
+  service:
+    name: "{{ arg_install_pkg_service }}"
+    state: stopped
+  when: >
+    arg_install_pkg_service |default('') |length > 0
+    and task_pkg_installed is changed
+
+
+# remove tmp file on clients
+- name: "{{ arg_install_comment }} | pkg down+install - cleaning"
+  file:
+    path: "/tmp/{{ arg_install_pkg_deb_file }}"
+    state: absent
+  when: not arg_install_pkg_deb_file |trim == ''
+
+
+# the service restart must be managed by the calling role

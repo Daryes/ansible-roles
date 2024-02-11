@@ -1,0 +1,96 @@
+// {{ ansible_managed }}
+
+options {
+    // listen ips and port
+    listen-on port {{ bind_listen_port }} {
+{% for loopIp in bind_listen_ipv4_list %}
+        {{ loopIp }};
+{% endfor %}
+    };
+    listen-on-v6 port {{ bind_listen_port }} {
+{% for loopIp in bind_listen_ipv6_list %}
+        {{ loopIp }};
+{% endfor %}
+    };
+
+    directory       "{{ role_bind_dist.cache }}";
+    dump-file       "{{ role_bind_dist.cache }}/data/cache_dump.db";
+    statistics-file "{{ role_bind_dist.cache }}/data/named_stats.txt";
+    memstatistics-file "{{ role_bind_dist.cache }}/data/named_mem_stats.txt";
+    secroots-file   "{{ role_bind_dist.cache }}/data/named.secroots";
+    recursing-file  "{{ role_bind_dist.cache }}/data/named.recursing";
+
+    // hide version number
+    version none;
+
+    // cache settings
+{% if bind_cache_max_size |length > 0 %}
+    max-cache-size {{ bind_cache_max_size }};
+{% endif %}
+{% if bind_cache_max_ttl |length > 0 %}
+    min-cache-ttl {{ bind_cache_max_ttl }};
+{% endif %}
+
+
+    allow-transfer {
+{% for loopAcl in bind_option_transfert_allow_acls |default(['none']) %}
+        {{ loopAcl }};
+{% endfor %}
+    };
+
+    allow-query {
+        acl_self;
+{% for loopAcl in bind_options_query_allow_acls |default(['none']) %}
+        {{ loopAcl }};
+{% endfor %}
+    };
+
+
+    // recursion
+{% if bind_options_query_recursion_allow_acls |length > 0 %}
+    allow-recursion {
+        acl_self;
+{%   for loopAcl in bind_options_query_allow_acls %}
+        {{ loopAcl }};
+{%   endfor %}
+    };
+    recursion yes;
+{% else %}
+    recursion no;
+{% endif %}
+
+
+    // global forwarders
+{% if bind_options_forwarders_global |bool and not bind_zone_root_use_forwarders |bool %}
+    forwarders {
+{% for loopIp in bind_forwarders |flatten %}
+        {{ loopIp }};
+{% endfor %}
+{%   if bind_options_forwarders_global_forward_only |bool %}
+    // redirect immediately all requests to forwarders - still use the memory cache
+    forward only;
+{%   endif %}
+    };
+{% else %}
+    // => none
+{% endif %}
+
+
+    // empty zones explicit activation for RFC 6303 and RFC 1918
+    empty-zones-enable {{ bind_options_empty_zones |bool |ternary("yes", "no") }};
+
+
+    /* DNSSEC */
+    // dnssec-enable yes;
+    // dnssec-validation yes;
+    // managed-keys-directory "{{ role_bind_dist.cache }}/dynamic";
+    // include "/etc/crypto-policies/back-ends/bind.config";
+    // dnssec-lookaside auto; // 'auto' is required with Active Directory dns servers
+    dnssec-validation no;
+
+
+    // service pid and session files
+    pid-file "{{ role_bind_dist.service_pid }}";
+    session-keyfile "{{ role_bind_dist.service_session_key }}";
+};
+

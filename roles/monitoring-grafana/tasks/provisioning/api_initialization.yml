@@ -1,0 +1,77 @@
+---
+
+# ref: https://grafana.com/docs/grafana/v9.0/developers/http_api/admin/#global-users
+# ref: https://grafana.com/docs/grafana/latest/developers/http_api/user/
+
+- name: Monitoring Grafana | provisioning - api init - access check
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/users"
+    method: GET
+    user: "{{ role_grafana_admin_user_default }}"
+    password: "{{ role_grafana_admin_pass_default }}"
+    force_basic_auth: yes
+    return_content: yes
+    status_code: [200, 400, 401]
+    headers:
+      Host: "{{ grafana_domain }}"
+  register: task_grafana_api_access_default_creds
+
+
+- name: Monitoring Grafana | provisioning - api init - access validation
+  fail:
+    msg: "Both '{{ grafana_provisioning_admin_login }}' and '{{ role_grafana_admin_user_default }}' (default) logins were refused, please ensure the provided admin credentials are valid"
+  when: >
+    task_grafana_api_access.status != 200
+    and task_grafana_api_access_default_creds.status != 200
+
+
+- name: Monitoring Grafana | provisioning - api init - update login
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/users/1"
+    # updating a password uses the PUT method
+    method: PUT
+    user: "{{ role_grafana_admin_user_default }}"
+    password: "{{ role_grafana_admin_pass_default }}"
+    force_basic_auth: yes
+    body: |
+      {
+      "name":"Admin",
+      "login":"{{ grafana_provisioning_admin_login }}"
+      }
+    body_format: json
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  when: >
+    grafana_provisioning_admin_login |length > 0
+    and grafana_provisioning_admin_login != role_grafana_admin_user_default
+  changed_when: true
+  #no_log: true
+
+
+- name: Monitoring Grafana | provisioning - api init - update credentials
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/user/password"
+    # updating a password uses the PUT method
+    method: PUT
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ role_grafana_admin_pass_default }}"
+    force_basic_auth: yes
+    body: |
+      {
+      "oldPassword": "{{ role_grafana_admin_pass_default }}",
+      "newPassword": "{{ grafana_provisioning_admin_password }}",
+      "confirmNew": "{{ grafana_provisioning_admin_password }}"
+      }
+    body_format: json
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  when: >
+    grafana_provisioning_admin_password |length > 0
+    and grafana_provisioning_admin_password != role_grafana_admin_pass_default
+  changed_when: true
+  no_log: true
+

@@ -1,0 +1,69 @@
+---
+
+# Server public certificate variables
+# ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/
+
+# directory storing the certificates on the remote server
+server_certificate_dir: "/etc/ssl/private"
+server_certificate_owner: "root"
+# if empty, will reuse the owner as group name
+server_certificate_group: ""
+
+# number of day the certificate will be valid - format: "+????d"
+server_certificate_validity_duration: "+365d"
+# server subject: enter the requested domain name without wildcards - it will also be used for the filename
+server_certificate_subject_name: "subject.example.tld"
+# server alt name - wildcards must go into the alt_name, DNS: must be present in alt_name
+server_certificate_alt_name: []
+# example for alt_name:
+#  "DNS:{{ server_certificate_subject_name }}"
+#  "DNS:*.{{ server_certificate_subject_name }}"
+#  "DNS:subject-alt.example.tld"
+#  "DNS:subject-alt2.tld"
+#  "DNS:*.subject-alt2.tld"
+
+# force to recreate the public certificate
+server_certificate_force_replacement: no
+
+# insert the local_ca public certificate in the server public certificate
+server_certificate_chain_add_ca_public_cert: no
+
+# Server variables for the private key
+# directory storing the private key on the server - usually the same as certificate_dir
+server_certificate_privatekey_dir: "{{ server_certificate_dir }}"
+# private key passphrase - can be empty if really required
+server_certificate_privatekey_passphrase: ""
+# private key type and size - carefull to the upper/lower case
+server_certificate_privatekey_type: "RSA"
+server_certificate_privatekey_size: 4096
+
+
+# Server certificate CSR variables
+server_certificate_common_name: "{{ server_certificate_subject_name }}"
+server_certificate_email_address: "someone@wsomewhere.tld"
+server_certificate_country_name: "FR"
+server_certificate_organization_name: "company"
+server_certificate_organization_unit: ""
+server_certificate_digest: "sha512"
+
+
+# CA variables
+# 2 types are supported : "file" for a CA cert stored as files, and "variable" for using a CA cert stored in variables, like from the ansible vault.
+# If type=variable, use the "*_content" parameters
+# If type=file, use the "*_path" parameters, and the CA is expected to be located only on the ansible server
+local_ca_privatekey_passphrase: "CA passphrase"
+local_ca_type: "file"
+local_ca_path: "/path/on/ansible/server/to/ca.crt"
+local_ca_privatekey_path: "/path/on/ansible/server/to/ca.key"
+local_ca_content: ""
+local_ca_privatekey_content: ""
+
+
+# Set to yes to purge the certificates created in the ansible cache when finished
+server_certificate_delete_certs_in_ansible_cache: no
+
+
+# the cache directory used to store the certificates on the ansible server
+# todo: store into a vault
+ansible_cache_root_dir: "/opt/ansible/cache"
+

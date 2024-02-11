@@ -1,0 +1,100 @@
+---
+
+# RHEL/Centos Apache2 package suffers from a total absence of enhancements
+# these tasks will try to make the installation more closer to the debian configuration
+
+- name: webserver apache | system - RHEL enhancement - directories structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: no
+    owner: root
+    group: root
+    mode: "0755"
+  with_items:
+    - "{{ role_apache_dist.etc }}/conf-available"
+    - "{{ role_apache_dist.etc }}/conf-enabled"
+    - "{{ role_apache_dist.etc }}/mods-enabled"
+    - "{{ role_apache_dist.etc }}/sites-available"
+    - "{{ role_apache_dist.etc }}/sites-enabled"
+
+
+- name: webserver apache | system - RHEL enhancement - config structure
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.link }}"
+    state: link
+  vars:
+  with_items:
+  - { src: "{{ role_apache_dist.etc }}/conf.modules.d",  link: "{{ role_apache_dist.etc }}/mods-available" }
+  # replace the relative path with an absolute path for the link
+  - { src: "{{ role_apache_dist.log }}", link: "{{ role_apache_dist.etc }}/logs" }
+
+
+- name: webserver apache | system - RHEL enhancement - module installation
+  template:
+    src: "templates/{{ item.src }}.j2"
+    dest: "{{ item.dest |default( item.src ) }}"
+    mode: "{{ item.mode |default( '0644' ) }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner |default('root') ) }}"
+  with_items:
+    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_base_mods.conf" }
+    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_base_settings.conf" }
+    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_custom_mods.conf" }
+    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_mpm_event.conf" }
+    - { src: "{{ role_apache_dist.etc }}/conf.d/THIS_DIRECTORY_IS_NOT_USED" }
+
+
+- name: webserver apache | system - RHEL enhancement - module activation
+  file:
+    src: "{{ role_apache_dist.etc }}/mods-available/{{ item }}"
+    dest: "{{ role_apache_dist.etc }}/mods-enabled/{{ item }}"
+    state: link
+  vars:
+  with_items:
+    - "00-systemd.conf"
+    - "10-h2.conf"
+    - "10-proxy_h2.conf"
+    - "rhel-enhance_base_mods.conf"
+    - "rhel-enhance_base_settings.conf"
+    - "rhel-enhance_custom_mods.conf"
+    - "rhel-enhance_mpm_event.conf"
+
+
+- name: webserver apache | config - RHEL enhancement - integrate new config structure in httpd.conf
+  lineinfile:
+    dest: "{{ role_apache_dist.a2conf }}"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp |default( omit ) }}"
+    state: present
+  with_items:
+    - { line: "Include mods-enabled/*.conf",          regexp: 'Include conf.modules.d/\\*.conf' }
+    - { line: "IncludeOptional conf-enabled/*.conf",  regexp: 'IncludeOptional conf.d/\\*.conf' }
+    - { line: "IncludeOptional sites-enabled/*.conf" }
+
+
+- name: webserver apache | config - RHEL enhancement - utilities
+  copy:
+    src: "templates/{{ item.src }}"
+    dest: "{{ item.dest |default( item.src ) }}"
+    mode: "{{ item.mode |default( '0644' ) }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner |default('root') ) }}"
+  with_items:
+    - { src: "/usr/sbin/a2enmod", mode: "0755" }
+    - { src: "/usr/sbin/a2query", mode: "0755" }
+
+- name: webserver apache | system - RHEL enhancement - utilities links
+  file:
+    src: "/usr/sbin/a2enmod"
+    dest: "/usr/sbin/{{ item }}"
+    state: link
+  vars:
+  with_items:
+    - a2disconf
+    - a2dismod
+    - a2dissite
+    - a2enconf
+    - a2ensite
+

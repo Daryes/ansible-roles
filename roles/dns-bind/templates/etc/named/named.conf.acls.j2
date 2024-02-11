@@ -1,0 +1,26 @@
+// {{ ansible_managed }}
+//
+// acl definitions
+
+acl acl_self {
+    127.0.0.0/8;
+    ::1;
+    localhost;
+};
+
+
+acl acl_local_network {
+{% for loopNet in bind_acl_local_addresses |flatten %}
+    {{ loopNet }};
+{% endfor %}
+};
+
+{% for loopAcl in bind_acl_definitions %}
+acl {{ loopAcl.name }} {
+{%   for loopNet in loopAcl.addresses |flatten %}
+    {{ loopNet }};
+{%   endfor %}
+};
+
+{% endfor %}
+

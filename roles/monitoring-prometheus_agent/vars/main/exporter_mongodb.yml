@@ -1,0 +1,21 @@
+---
+
+# mongodb exporter system requirements
+role_prometheus_agent_mongodb_requirements:
+  common: []
+  debian: []
+  redhat: []
+
+
+# download url
+role_prometheus_agent_mongodb_package_file: "mongodb_exporter-{{ prometheus_agent_mongodb_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_mongodb_package_url: "https://github.com/percona/mongodb_exporter/releases/download//v{{ prometheus_agent_mongodb_version }}/{{ role_prometheus_agent_mongodb_package_file }}"
+
+
+role_prometheus_agent_mongodb_dist:
+  service: "prometheus-mongodb-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-mongodb-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/mongodb_exporter"
+  auth: "{{ role_prometheus_agent_dist.data }}/.mongodb_auth"
+

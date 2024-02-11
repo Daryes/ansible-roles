@@ -1,0 +1,150 @@
+---
+
+- name: "{{ arg_compose_comment }} | compose - parameters validation"
+  assert:
+    that:
+      - arg_compose_deploy_dir |length > 0
+      - arg_compose_main_template |length > 0
+    fail_msg: "Error: one of the mandatory parameters (arg_install_*) is either not set, empty, or still with a default 'CHANGE_ME' value"
+    quiet: yes
+
+
+- name: "{{ arg_compose_comment }} | compose - register parameters"
+  set_fact:
+    task_compose_env_basename: "{{ arg_compose_env_template |basename |regex_replace('.j2$', '')  }}"
+
+
+- name: "{{ arg_compose_comment }} | compose - create application directory"
+  file:
+    path: "{{ item.dir }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default(item.owner |default('root')) }}"
+    mode: "{{ item.mode |default('0755') }}"
+  with_items:
+    - { dir: "{{ arg_compose_deploy_dir }}" }
+
+
+# An extra step here is more readable than transforming directly the content of arg_compose_conf_extra
+- name: "{{ arg_compose_comment }} | compose - create subdirectories"
+  file:
+    path: "{{ var_path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default(item.owner |default('root')) }}"
+    mode: "0755"
+  vars:
+    var_path: "{{ arg_compose_deploy_dir }}/{{ item.dest |dirname }}"
+  loop_control:
+    label: "dir: {{ var_path }}"
+  with_items: "{{ arg_compose_conf_extra }}"
+
+
+- name: "{{ arg_compose_comment }} | compose - docker-compose file installation"
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ item.dir }}/{{ item.file |basename |regex_replace('.j2$', '') }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default(item.owner |default('root')) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { dir: "{{ arg_compose_deploy_dir }}",  file: "{{ arg_compose_main_template }}" }
+  register: task_compose_install_compose
+
+
+# separated due to the no_log parameter
+- name: "{{ arg_compose_comment }} | compose - main config file installation"
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ item.dir }}/{{ item.file |basename |regex_replace('.j2$', '') }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default(item.owner |default('root')) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { dir: "{{ arg_compose_deploy_dir }}",  file: "{{ arg_compose_env_template }}",  mode: "0600" }
+  when: arg_compose_env_template |length > 0
+  register: task_compose_install_config
+  no_log: "{{ arg_compose_conf_sensitive |bool }}"
+
+
+- name: "{{ arg_compose_comment }} | compose - extra config files"
+  template:
+    src: "{{ item.template }}"
+    dest: "{{ arg_compose_deploy_dir }}/{{ item.dest }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default(item.owner |default('root')) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items: "{{ arg_compose_conf_extra |flatten }}"
+  register: task_compose_install_config_extra
+  no_log: "{{ arg_compose_conf_sensitive |bool }}"
+
+
+# in case the main config file has a different name, create a .env symlink
+- name: "{{ arg_compose_comment }} | compose - create a .env symlink if required"
+  file:
+    src: "{{ item.dir }}/{{ item.file }}"
+    dest: "{{ item.dir }}/{{ item.link }}"
+    state: link
+    force: yes
+  with_items:
+    - { dir: "{{ arg_compose_deploy_dir }}", file: "{{ task_compose_env_basename }}",  link: ".env" }
+  when: >
+    arg_compose_env_template |length > 0
+    and task_compose_env_basename != ".env"
+
+
+- name: "{{ arg_compose_comment }} | compose - validate configuration"
+  shell:
+    cmd: "docker-compose config"
+    chdir: "{{ arg_compose_deploy_dir }}"
+  changed_when: >
+    task_compose_install_compose is changed
+    or task_compose_install_config is changed
+    or task_compose_install_config_extra is changed
+  register: task_compose_files_validation
+  become: yes
+
+
+# refresh - or not - the images
+- name: "{{ arg_compose_comment }} | compose - pull images {{ arg_compose_force_pull_always |bool |ternary('always', 'on config change') }}"
+  shell:
+    cmd: "docker-compose pull"
+    chdir: "{{ arg_compose_deploy_dir }}"
+  when: >
+    arg_compose_force_pull_always |bool
+    or ( arg_compose_force_pull_on_change |bool
+         and task_compose_files_validation is changed )
+  become: yes
+
+
+# some containers require a "down" when the config is updated, other must not even be stopped aside a specific service
+# can't handle everything, just limit to the 2 standard cases: always or on config change
+- name: "{{ arg_compose_comment }} | compose - service stop on change ({{ arg_compose_force_stop_on_change |bool |ternary('active', 'not requested') }})"
+  shell:
+    cmd: "docker-compose down"
+    chdir: "{{ arg_compose_deploy_dir }}"
+  when: >
+    arg_compose_force_stop_on_change |bool
+    and task_compose_files_validation is changed
+  become: yes
+
+
+- name: "{{ arg_compose_comment }} | compose - service start"
+  shell:
+    cmd: "docker-compose up -d {{ arg_compose_up_options }}"
+    chdir: "{{ arg_compose_deploy_dir }}"
+  register: task_compose_startup
+  when: arg_compose_up_execute |bool
+  changed_when: >
+    not ( ' is up-to-date' in task_compose_startup.stderr_lines |lower
+       or ' starting' not in task_compose_startup.stderr_lines |lower )
+  become: yes
+
+
+# exclude the results[] subelement which contains too much information
+- name: "{{ arg_compose_comment }} | compose - register execution status in a fact"
+  set_fact:
+    _compose_deploy_status: { "changed": "{{ task_compose_files_validation is changed }}" }
+    cacheable: no
+  changed_when: task_compose_files_validation is changed
+

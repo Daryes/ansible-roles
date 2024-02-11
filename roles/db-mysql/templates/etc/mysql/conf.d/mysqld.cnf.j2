@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+[mysqld]
+bind-address                   = {{ mysql_listen_address }}
+port                           = {{ mysql_listen_port }}
+datadir                        = {{ mysql_data_dir |default(role_mysql_dist.data) }}
+
+max_connections                = {{ mysql_config_connection_max }}
+max_allowed_packet             = 64M   # default: 16M
+
+
+# default collation and character sets
+character-set-server           = {{ mysql_config_default_charset }}
+collation-server               = {{ mysql_config_default_collation }}  # package default: utf8mb4_general_ci
+
+
+## INNODB #
+innodb_file_per_table          = 1
+

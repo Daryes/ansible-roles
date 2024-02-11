@@ -1,0 +1,69 @@
+---
+
+# Values per family / distribution
+role_bind_dist_family:
+  debian:
+    etc: "/etc/bind"
+    # don't ask - debian uses a pseudo chrooted system requiring root:bind as owner
+    etc_mode: "2751"
+    etc_zones_default: "/etc/bind/named.conf.default-zones"
+    etc_zones_rfc1918: "/etc/bind/zones.rfc1918"
+    etc_root_key: "/etc/bind/bind.keys"
+    etc_root_hints: "/usr/share/dns/root.hints"
+    etc_rndc_key: "/etc/bind/rndc.key"
+    service_config: "/etc/default/named"
+    cache: "/var/cache/bind"
+    user: "root"
+    group: "bind"
+    log_user: "root"
+    log_group: "bind"
+  redhat:
+    etc: "/etc/named"
+    etc_mode: "0750"
+    etc_zones_default: "/etc/named.default-zones"
+    etc_zones_rfc1918: "/etc/named.rfc1912.zones"
+    etc_root_key: "/etc/named.root.key"
+    etc_root_hints: "/var/named/named.ca"
+    etc_rndc_key: "/etc/rndc.key"
+    service_config: "/etc/sysconfig/named"
+    cache: "/var/named"
+    user: "named"
+    group: "named"
+    log_user: "named"
+    log_group: "named"
+
+# final values
+role_bind_dist:
+  etc: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc }}"
+  etc_mode: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc_mode }}"
+  etc_zones_default: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc_zones_default }}"
+  etc_zones_rfc1918: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc_zones_rfc1918 }}"
+  etc_root_key: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc_root_key }}"
+  etc_root_hints: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc_root_hints }}"
+  # the rndc.key location is hard-coded in bind when compiled
+  etc_rndc_key: "{{ role_bind_dist_family[ ansible_os_family |lower ].etc_rndc_key }}"
+  service: "named"
+  service_config: "{{ role_bind_dist_family[ ansible_os_family |lower ].service_config }}"
+  service_pid: "/var/run/named/named.pid"
+  service_session_key: "/run/named/session.key"
+  cache: "{{ role_bind_dist_family[ ansible_os_family |lower ].cache }}"
+  user: "{{ role_bind_dist_family[ ansible_os_family |lower ].user }}"
+  group: "{{ role_bind_dist_family[ ansible_os_family |lower ].group }}"
+  log: "/var/log/named"
+  log_mode: "0755"
+  log_user: "{{ role_bind_dist_family[ ansible_os_family |lower ].log_user }}"
+  log_group: "{{ role_bind_dist_family[ ansible_os_family |lower ].log_group }}"
+
+
+role_bind_install_packages:
+  common:
+    - "ca-certificates"
+  debian:
+    - "bind9"
+    - "dnsutils"           # package name is migrating to bind9-dnsutils
+    - "netcat-openbsd"
+  redhat:
+    - "bind"
+    - "bind-utils"
+    - "nmap-ncat"
+

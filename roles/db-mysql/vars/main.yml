@@ -1,0 +1,88 @@
+---
+
+
+# setting differences between distrib families
+role_mysql_dist_family:
+  debian:
+    conf: "/etc/mysql"
+    conf_d: "/etc/mysql/conf.d"
+    conf_to_move: "/etc/mysql"
+    conf_server_cnf: "/etc/mysql/mariadb.conf.d/50-server.cnf"
+    log_user: "mysql"
+    log_group: "adm"
+    # only required for redhat
+    repo_package_dist: "{{ ansible_distribution |lower }}"
+    unix_socket: "/var/run/mysqld/mysqld.sock"
+
+  redhat:
+    conf: "/etc/my.cnf"
+    conf_d: "/etc/my.cnf.d"
+    conf_to_move: "/etc/my.cnf.d"
+    conf_server_cnf: "/etc/my.cnf.d/server.cnf"
+    log_user: "mysql"
+    log_group: "mysql"
+    # either "rhel", "centos", or "fedora", but "rhel" is not presented in ansible facts, only "Red Hat Enterprise Linux"
+    repo_package_dist: "{{ ansible_distribution |lower |regex_replace('(red *hat|rocky|alma).*','rhel', ignorecase=True) }}"
+    unix_socket: "/var/lib/mysql/mysql.sock"
+
+
+# MySQL / MariaDB directories - original locations and settings
+role_mysql_dist:
+  user: "mysql"
+  group: "mysql"
+  conf: "{{ role_mysql_dist_family[ ansible_os_family |lower ].conf }}"
+  conf_d: "{{ role_mysql_dist_family[ ansible_os_family |lower ].conf_d }}"
+  conf_to_move: "{{ role_mysql_dist_family[ ansible_os_family |lower ].conf_to_move }}"
+  conf_server_cnf: "{{ role_mysql_dist_family[ ansible_os_family |lower ].conf_server_cnf }}"
+  conf_mode: "0755"
+  data: "/var/lib/mysql"
+  data_mode: "0750"
+  log: "/var/log/mysql"
+  log_mode: "2750"
+  log_user: "{{  role_mysql_dist_family[ ansible_os_family |lower ].log_user }}"
+  log_group: "{{ role_mysql_dist_family[ ansible_os_family |lower ].log_group }}"
+  service: "mysql"
+  repo_package_dist: "{{ role_mysql_dist_family[ ansible_os_family |lower ].repo_package_dist }}"
+  unix_socket: "{{ role_mysql_dist_family[ ansible_os_family |lower ].unix_socket }}"
+
+
+# package list
+role_mysql_install_packages:
+  common:
+    - "rsync"
+    - "curl"
+    - "socat"
+  debian:
+    - "software-properties-common"
+    - "mariadb-server"
+    - "mariadb-client"
+    - "mariadb-backup"
+    # required by the collection community.mysql
+    - "python3-mysqldb"
+  redhat:
+    - "MariaDB-server"
+    - "MariaDB-client"
+    - "MariaDB-backup"
+    # required by the collection community.mysql
+    - "python3-mysqlclient"
+
+
+# doc for all distribs: https://downloads.mariadb.org/mariadb/repositories/
+# https://mariadb.com/kb/en/installing-mariadb-deb-files/#updating-the-mariadb-apt-repository-to-a-new-major-release
+role_mysql_install_ppa:
+- name: mariadb-org
+  apt_key_url: "https://mariadb.org/mariadb_release_signing_key.asc"
+  # yamllint disable-line rule:line-length
+  apt_repository: "deb https://mirrors.xtom.nl/mariadb/repo/{{ mysql_version }}/{{ ansible_distribution |lower }} {{ ansible_distribution_release |lower }} main"
+  apt_filename: "mariadb.list"
+
+
+# https://mariadb.com/kb/en/yum/#installing-mariadb-packages-with-yum
+role_mysql_install_yumrepo:
+- name: mariadb-org
+  yumrepo_file: "mariadb-org"
+  yumrepo_description: "MariaDB from mariadb.org"
+  yumrepo_baseurl: "http://yum.mariadb.org/{{ mysql_version }}/{{ role_mysql_dist.repo_package_dist }}/$releasever/$basearch"
+  yumrepo_gpgkey: "https://yum.mariadb.org/RPM-GPG-KEY-MariaDB"
+  yumrepo_module_hotfixes: true
+

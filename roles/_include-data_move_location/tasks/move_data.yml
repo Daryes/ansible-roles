@@ -1,0 +1,84 @@
+---
+
+# this will move the directories in the default location to the new location
+# and create redirecting symlinks
+
+
+# check if both source and target directories contains files
+- name: "{{ arg_move_data_comment }} | move data to new location - data presence check"
+  find:
+    paths: "{{ item.path }}"
+    recurse: yes
+    depth: 1
+    file_type: any
+    hidden: yes
+  with_items:
+    - { path: "{{ arg_move_data_source_path }}", when: "{{ task_stat_path_src.stat.exists }}" }
+    - { path: "{{ arg_move_data_dest_path }}",   when: "{{ task_stat_path_dest.stat.exists }}" }
+  loop_control:
+    label: "{{ item.path }}"
+  register: task_files_in_both_path
+  when: item.when |bool
+
+
+# fail unless forced
+- name: "{{ arg_move_data_comment }} | move data to new location - verify data is only in one location"
+  fail:
+    # yamllint disable-line rule:line-length
+    msg: "Error: both {{ arg_move_data_source_path }} and {{ arg_move_data_dest_path }} contain data - Please resolve this either manually or use the arg_move_data_both_exist_* parameters"
+  when: >
+    task_files_in_both_path.results[0].matched |default(0) > 0
+    and task_files_in_both_path.results[1].matched |default(0) > 0
+    and arg_move_data_both_exist_fail |bool
+
+
+# stop the service if required
+- name: "{{ arg_move_data_comment }} | move data to new location - stop services"
+  service:
+    name: "{{ item }}"
+    state: stopped
+  with_items:
+    - "{{ arg_move_data_service_stop }}"
+  when: arg_move_data_service_stop |default('') |length > 0
+  register: task_service_status
+  failed_when: >
+    task_service_status is failed
+    and task_service_status.msg |regex_search( role_service_not_found_regex, ignorecase=True ) |length == 0
+
+
+- name: "{{ arg_move_data_comment }} | move data to new location - both locations already exist"
+  include_tasks: move_data_both_exist.yml
+  when: >
+    task_stat_path_src.stat.exists
+    and task_stat_path_dest.stat.exists
+
+
+- name: "{{ arg_move_data_comment }} | move data to new location - create parent destination"
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: "{{ item.recurse |default('no') }}"
+  with_items:
+    - { path: "{{ arg_move_data_dest_path |dirname }}" }
+  when: >
+    not task_stat_path_dest.stat.exists
+    and item.path not in [ '', '/' ]
+
+
+# ansible doesn't have a builtin 'cp -r' or move command
+# rmdir is used to prevent an error when the directory exists and was not catched by the find task (mount point for example)
+- name: "{{ arg_move_data_comment }} | move data to new location - moving to the new destination"
+  shell:
+    cmd: >
+      if [ -d '{{ item.dest }}' ]; then rmdir '{{ item.dest }}'; fi;
+      mv  --no-target-directory  '{{ item.source }}' '{{ item.dest }}'
+    # do not warn about using rmdir
+    warn: no
+  with_items:
+    - { source: "{{ arg_move_data_source_path }}",  dest: "{{ arg_move_data_dest_path }}" }
+  when: >
+    task_stat_path_src.stat.exists
+    and not task_stat_path_dest.stat.exists

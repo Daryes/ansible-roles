@@ -1,0 +1,22 @@
+---
+
+# list of supported mode - used to validate the received parameters
+role_supported_modes:
+  - "security-only"
+  - "normal"
+  - "full-with-kernel"
+
+
+# required packages
+role_pkg_install_reqs:
+  common: []
+  debian:
+    - "apt-transport-https"
+    # required by ansible
+    - "python3-apt"
+    # not always installed
+    # different name on debian - ref : https://feeding.cloud.geek.nz/posts/introducing-reboot-notifier/
+    - "{{ 'reboot-notifier' if ansible_distribution |lower == 'debian' else 'update-notifier-common' }}"
+  redhat:
+    - "yum-utils"
+

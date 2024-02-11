@@ -1,0 +1,61 @@
+# {{ ansible_managed }}
+
+# Welcome to the chrony configuration file. See chrony.conf(5) for more
+# information about usable directives.
+
+# NTP Server list definition
+# About using servers from the NTP Pool Project in general see (LP: #104525).
+# See http://www.pool.ntp.org/join.html for more information.
+#
+{% for sCurrentSrv in chrony_ntp_servers %}
+{{ sCurrentSrv }} 
+{% endfor %}
+
+# Use time sources from DHCP.
+sourcedir /run/chrony-dhcp
+
+# This directive specify the location of the file containing ID/key pairs for
+# NTP authentication.
+keyfile {{ role_chrony_dist.config_keys }}
+
+# This directive specify the file into which chronyd will store the rate
+# information.
+driftfile /var/lib/chrony/chrony.drift
+
+{# # Settings to work as a ntp server -------------------------------------- #}
+{% if chrony_allow_clients_ip_ranges |length > 0 %}
+# Serve time even if not synchronized to a time source.
+local stratum 10
+
+# Allow NTP client access from local network
+allow 127/8
+{%   for sCurrentIpRange in chrony_allow_clients_ip_ranges %}
+allow {{ sCurrentIpRange }}
+{%   endfor %}
+
+# Listen IP
+bindcmdaddress {{ chrony_allow_clients_listen_ip }}
+{%   if chrony_allow_clients_listen_ip6 |length > 0 %}bindcmdaddress {{ chrony_allow_clients_listen_ip6 }}{%   endif %}
+
+# Disable the remote monitoring port - use sudo for chronyc
+cmdport 0
+
+{# #------------------------------------------------------------------------ #}
+{% endif %}
+# Uncomment the following line to turn logging on.
+#log tracking measurements statistics
+
+# Log files location.
+logdir /var/log/chrony
+
+# Stop bad estimates upsetting machine clock.
+maxupdateskew 100.0
+
+# This directive enables kernel synchronisation (every 11 minutes) of the
+# real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
+rtcsync
+
+# Step the system clock instead of slewing it if the adjustment is larger than
+# one second, but only in the first three clock updates.
+makestep 1 3
+

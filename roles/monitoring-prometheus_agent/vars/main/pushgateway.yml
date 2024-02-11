@@ -1,0 +1,13 @@
+---
+
+# prometheus packages ref: https://prometheus.io/download/
+role_prometheus_agent_pushgateway_package_file: "pushgateway-{{ prometheus_agent_pushgateway_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_pushgateway_package_url: "https://github.com/prometheus/pushgateway/releases/download/v{{ prometheus_agent_pushgateway_version }}/{{ role_prometheus_agent_pushgateway_package_file }}"
+
+
+role_prometheus_agent_pushgateway_dist:
+  service: "prometheus-pushgateway.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-pushgateway"
+  bin: "{{ role_prometheus_agent_dist.bin_dir  }}/pushgateway"
+

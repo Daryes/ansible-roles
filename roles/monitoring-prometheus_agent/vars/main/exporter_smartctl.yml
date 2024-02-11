@@ -1,0 +1,22 @@
+---
+
+# smartctl exporter system requirements
+role_prometheus_agent_smartctl_requirements:
+  common:
+    - "smartmontools"
+  debian: []
+  redhat: []
+
+
+# download url
+role_prometheus_agent_smartctl_package_file: "smartctl_exporter-{{ prometheus_agent_smartctl_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_smartctl_package_url: "https://github.com/prometheus-community/smartctl_exporter/releases/download/v{{ prometheus_agent_smartctl_version }}/{{ role_prometheus_agent_smartctl_package_file }}"
+
+
+role_prometheus_agent_smartctl_dist:
+  service: "prometheus-smartctl-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-smartctl-exporter"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/smartctl_exporter"
+  config: "{{ role_prometheus_agent_dist.conf }}/smartctl.yml"
+

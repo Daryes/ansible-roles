@@ -1,0 +1,41 @@
+---
+
+# installation
+- import_tasks: install.yml
+
+
+# change the directories location
+- import_tasks: move_data.yml
+
+
+# grafana configuration and plugins
+- import_tasks: config.yml
+
+- import_tasks: plugins.yml
+
+- import_tasks: provisioning/datasources.yml
+
+- import_tasks: provisioning/dashboards.yml
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+- name: Monitoring Grafana | enable and start the services
+  service:
+    name: "{{ role_grafana_dist.service }}"
+    state: started
+    enabled: yes
+  become: yes
+
+
+# API provisining can only be done when the service is running
+- import_tasks: provisioning/api_access.yml
+
+- import_tasks: provisioning/orgs_api.yml
+
+- import_tasks: provisioning/users_api.yml
+
+- import_tasks: provisioning/users_org_api.yml
+

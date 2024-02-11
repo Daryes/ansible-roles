@@ -1,0 +1,13 @@
+---
+
+# prometheus packages ref: https://github.com/SuperQ/smokeping_prober
+role_prometheus_agent_smokeping_package_file: "smokeping_prober-{{ prometheus_agent_smokeping_version }}.{{ role_system_lower }}-{{ role_system_arch }}.tar.gz"
+# yamllint disable-line rule:line-length
+role_prometheus_agent_smokeping_package_url: "https://github.com/SuperQ/smokeping_prober/releases/download/v{{ prometheus_agent_smokeping_version }}/{{ role_prometheus_agent_smokeping_package_file }}"
+
+role_prometheus_agent_smokeping_dist:
+  service: "prometheus-smokeping-exporter.service"
+  service_conf: "{{ role_prometheus_agent_dist.service_conf_dir }}/prometheus-smokeping-prober"
+  bin: "{{ role_prometheus_agent_dist.bin_dir  }}/smokeping_prober"
+  config: "{{ role_prometheus_agent_dist.conf }}/smokeping.yml"
+

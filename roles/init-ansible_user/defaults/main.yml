@@ -1,0 +1,32 @@
+---
+
+# current ansible user
+# ansible_user:     <= from the interactive playbook
+# ansible_ssh_pass: <= from the interactive playbook
+ansible_user_shell: "/bin/bash"
+
+
+# ansible user to create
+domain_ansible_user: "ansible"
+domain_ansible_user_uid: ""
+domain_ansible_group: "{{ domain_ansible_user }}"
+domain_ansible_group_guid: "{{ domain_ansible_user_uid }}"
+
+
+# ansible public key location on the ansible local server
+domain_ansible_ssh_pubkey_file: "~/.ssh/id_rsa.pub"
+
+
+# set to false to have the local ansible '/etc/hosts' updated with each servers IP and names
+network_dns_dedicated: true
+
+
+# Python binary informations and packages
+# _playbook_python is the python binary used on the ansible server
+python_binary:
+  cmd: "python3"
+  cmd_playbook: "{{ ansible_playbook_python }}"
+  package_raw:
+    deb: "python3 python-is-python3"
+    rpm: "python3 libselinux-python3"
+

@@ -1,0 +1,28 @@
+// {{ ansible_managed }}
+{# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
+
+zone "{{ thisDnsZone.name |regex_replace('\\.$', '') }}" IN {
+        type master;
+        file "{{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.db";
+
+        // remote hosts allowed to submit dynamic updates to this server
+        allow-update {
+{% for loopEntry in thisDnsZone.allow_update |default([ 'none' ]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+
+        // remote servers allowed to transfer this zone to themselves
+        allow-transfer {
+{% for loopEntry in thisDnsZone.allow_transfert |default([ 'none' ]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+
+        // remote server to notify when a change occured
+        also-notify {
+{% for loopEntry in thisDnsZone.also_notify |default([]) |flatten %}
+            {{ loopEntry }};
+{% endfor %}
+        };
+};

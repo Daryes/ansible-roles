@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+
+{{ role_prometheus_agent_dist.log }}/prometheus-*exporter.log
+{{ role_prometheus_agent_dist.log }}/prometheus-*probe.log
+{
+    daily
+    rotate {{ prometheus_agent_syslog_history_days }}
+    copytruncate
+
+    missingok
+    notifempty
+
+    compress
+    delaycompress
+
+    dateext
+    dateyesterday
+}

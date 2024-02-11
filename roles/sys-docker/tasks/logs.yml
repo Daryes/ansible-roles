@@ -1,0 +1,35 @@
+---
+
+- name: Docker CE | logs - rsyslog presence validation
+  stat: path=/etc/rsyslog.conf
+  register: task_system_with_rsyslog
+  changed_when: false
+
+
+# note : using "validate" for rsyslog can only works with the whole configuration
+- name: Docker CE | logs - rsyslog settings and rotation
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "644"
+  with_items:
+    - "/etc/rsyslog.d/40-docker-custom.conf"
+    - "/etc/logrotate.d/docker"
+  when: task_system_with_rsyslog.stat.exists |default(false) |bool
+  notify: reload rsyslog
+
+
+- name: Docker CE | logs - rsyslog directory creation
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: no
+  when: task_system_with_rsyslog.stat.exists |default(false) |bool
+  with_items:
+    - "{{ role_docker_compose_log_dir }}"
+

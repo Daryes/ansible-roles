@@ -1,0 +1,101 @@
+# {{ ansible_managed }}
+#
+# references: 
+#   https://github.com/dani-garcia/vaultwarden/wiki/Configuration-overview
+#   https://github.com/dani-garcia/vaultwarden/blob/main/src/config.rs
+#   https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
+#
+
+# image version
+VAULTWARDEN_VERSION={{ vaultwarden_version }}
+
+
+# Users Configuration --------------------------------------
+
+# either disable self signup - OR exclusive - allow specific mail domains
+# The self register option will still be available, but will generate an error
+SIGNUPS_ALLOWED=false
+# SIGNUPS_DOMAINS_WHITELIST=example.com,example.net,example.org
+
+# in both case, force the email address verification
+# SIGNUPS_VERIFY=true
+
+# Allow invitations
+INVITATIONS_ALLOWED=true
+
+# Allow password hint page instead of email
+# default: SHOW_PASSWORD_HINT=true
+SHOW_PASSWORD_HINT=false
+
+# Number of server-side passwords hashing iterations for the password hash.
+# The default for new users. If changed, it will be updated during login for existing users.
+PASSWORD_ITERATIONS=600000
+
+
+# System Configuration ------------------------------------
+# required for U2F auth
+DOMAIN={{ vaultwarden_domain_url }}
+
+# listen IP and ports
+DOCKER_HOST_IP={{ vaultwarden_listen_ip }}
+DOCKER_HOST_PORT={{ vaultwarden_listen_port }}
+DOCKER_HOST_PORT_WS={{ vaultwarden_listen_port_ws }}
+
+# used for the first launch, change the data/config.json after
+# If not set, the admin panel is disabled
+ADMIN_TOKEN={{ vaultwarden_admin_token }}
+
+# activate websocket
+# warning: extra configuration is required on the reverse proxy
+WEBSOCKET_ENABLED=true
+
+# API allowed data size
+# default: ROCKET_LIMITS={json=10485760}
+
+# BW thread workers
+# default: ROCKET_WORKERS=10
+
+# log level
+# options are: "trace", "debug", "info", "warn", "error" or "off".
+LOG_LEVEL=info
+EXTENDED_LOGGING=true
+
+# activate external logging
+# DO. NOT. CHANGE. THIS
+LOG_FILE=/log/vaultwarden.log
+
+
+# DB Configuration ----------------------------------------
+{% if vaultwarden_db == "psql" %}
+# dockerized PostgreSQL connection string
+DATABASE_URL=postgresql://vaultwarden:{{ vaultwarden_db_local_password }}@vaultwarden-db/vaultwarden
+
+# postgres information - must be the same as in the db URL
+POSTGRES_DB=vaultwarden
+POSTGRES_USER=vaultwarden
+POSTGRES_PASSWORD={{ vaultwarden_db_local_password }}
+
+{% elif vaultwarden_db == "external" %}
+# remote DB connection string
+DATABASE_URL={{ vaultwarden_db_external_url }}
+
+{% else %}
+# local sqlite db
+# => no URL
+
+{% endif %}
+## Database max connections
+## Define the size of the connection pool used for connecting to the database.
+DATABASE_MAX_CONNS=25
+
+
+# SMTP Configuration --------------------------------------
+SMTP_HOST={{ vaultwarden_smtp_host }}
+SMTP_PORT={{ vaultwarden_smtp_port }}
+# support the following options: starttls, force_tls and off
+SMTP_SECURITY={{ vaultwarden_smtp_security_mode }}
+SMTP_USERNAME={{ vaultwarden_smtp_username }}
+SMTP_PASSWORD={{ vaultwarden_smtp_password }}
+SMTP_FROM={{ vaultwarden_smtp_from_email }}
+SMTP_FROM_NAME={{ vaultwarden_smtp_from_name }}
+

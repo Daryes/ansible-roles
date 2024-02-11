@@ -1,0 +1,40 @@
+---
+
+# Name visible as a prefix for each task description in the ansible output
+# default value
+arg_move_data_comment: "CHANGE ME - _include-move_data_location"
+
+
+# System service to stop if the data must be moved
+# This role will not (re)start the service
+arg_move_data_service_stop: ""
+
+
+# set the source dir to move
+arg_move_data_source_path: ""
+
+# set the destination path
+arg_move_data_dest_path: ""
+
+
+# destination mode and owner+group (both must already exist)
+arg_move_data_dest_owner: "root"
+arg_move_data_dest_group: "root"
+arg_move_data_dest_mode: "755"
+# destination type, either "directory" or "file"
+arg_move_data_dest_type: "directory"
+# update the user and group of subdirectories and subfiles recursively
+arg_move_data_dest_owner_group_update_recursive: no
+
+
+# create a symlink redirectin from "old location" => "new location"
+arg_move_data_create_symlink: yes
+
+
+# when the source dir is not a symlink and both source and destination contain data
+arg_move_data_both_exist_fail: yes
+
+# rename source to source-dist and proceed, ignoring the content of the source
+arg_move_data_both_exist_delete_source: no
+# force overwriting by removing the destination first and keeping the source
+arg_move_data_both_exist_delete_dest: no

@@ -1,0 +1,44 @@
+---
+# activate a specific selinux rule
+
+- name: webserver apache | selinux - retrieve global status
+  shell: "{{ role_apache_selinux.detect_cmd }}"
+  register: task_selinux_global_status
+  changed_when: false
+
+
+- name: webserver apache | selinux - update configuration
+  block:
+    - name: webserver apache | selinux - retrieve rules status
+      shell: "/usr/sbin/getsebool  {{ item }}"
+      with_items: "{{ role_apache_selinux.rules }}"
+      register: task_selinux_rule_status
+      changed_when: false
+
+    # reuse the stdout to activate disabled rules
+    # format is: "rule_name --> on" or "--> off"
+    - name: webserver apache | selinux - activate rules (can take some time)
+      shell: "/usr/sbin/setsebool -P {{ var_rule_name }} on"
+      vars:
+        var_rule_name: "{{ item.split('-->') | first |trim }}"
+      # The final object is .results[*].stdout <= need to use map to select the stdout property off all results[] items
+      with_items: "{{ task_selinux_rule_status.results |map(attribute='stdout') |list }}"
+      loop_control:
+        label: "rule: {{ var_rule_name }}"
+      when: >
+        task_selinux_rule_status.results is defined
+        and '--> off' in item
+
+    - name: webserver apache | selinux - open additionals ports
+      seport:
+        ports: "{{ item }}"
+        proto: tcp
+        setype: "{{ role_apache_selinux.setype_http }}"
+        state: present
+      with_items: "{{ apache_selinux_open_ports }}"
+      loop_control:
+        label: "port=>{{ item }}"
+
+  # block ending
+  when: task_selinux_global_status.stdout |regex_search( role_apache_selinux.status_active_regex )
+

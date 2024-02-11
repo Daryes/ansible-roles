@@ -1,0 +1,54 @@
+---
+
+- name: "{{ arg_install_comment }} | archive down+install - clean up existing unpacked directory"
+  file:
+    path: "{{ item }}/"
+    state: absent
+  with_items:
+    - "{{ arg_install_exe_compressed_archive_output_dir }}"
+  when: item |default('') |length > 1
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | archive down+install - create package directory"
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  with_items:
+    - "{{ arg_install_exe_compressed_archive_output_dir }}"
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | archive down+install - unpack archive"
+  unarchive:
+    src: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
+    dest: "{{ arg_install_exe_compressed_archive_output_dir }}/"
+    owner: "{{ arg_install_exe_owner |default('root') }}"
+    group: "{{ arg_install_exe_group |default( arg_install_exe_owner ) |default('root') }}"
+    extra_opts:
+      - "{{ arg_install_exe_compressed_archive_skip_subdirs_arg |default('') }}"
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | archive down+install - update file permissions"
+  file:
+    path: "{{ arg_install_exe_compressed_archive_output_dir }}/{{ item }}"
+    mode: "{{ arg_install_exe_mode |default('0755') }}"
+    owner: "{{ arg_install_exe_owner |default('root') }}"
+    group: "{{ arg_install_exe_group |default( arg_install_exe_owner ) |default('root') }}"
+  with_items:
+    - "{{ arg_install_exe_compressed_archive_binaries_to_link }}"
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | archive down+install - create symlinks"
+  file:
+    src: "{{ arg_install_exe_compressed_archive_output_dir }}/{{ item }}"
+    dest: "{{ arg_install_exe_fullpath |dirname }}/{{ item |basename }}"
+    state: link
+    force: yes
+  with_items:
+    - "{{ arg_install_exe_compressed_archive_binaries_to_link }}"
+  become: yes
+

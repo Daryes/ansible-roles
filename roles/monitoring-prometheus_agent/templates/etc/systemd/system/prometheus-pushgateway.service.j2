@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+# ref: debian package
+
+[Unit]
+Description=Pushgateway for prometheus
+Documentation=https://github.com/prometheus/pushgateway
+After=network-online.target
+
+
+[Service]
+#Restart=on-failure
+User={{ role_prometheus_agent_dist.user }}
+
+EnvironmentFile={{ role_prometheus_agent_pushgateway_dist.service_conf }}
+Environment="LOGFILE={{ role_prometheus_agent_dist.log }}/prometheus-{{ role_prometheus_agent_pushgateway_dist.bin |basename }}.log"
+
+# using /bin/bash -c "exec ..." to start a forking process without an absolute path and without bash staying as resident
+ExecStart=/bin/bash -c "exec {{ role_prometheus_agent_pushgateway_dist.bin }} ${ARGS}  &>>${LOGFILE}"
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+
+
+[Install]
+WantedBy=multi-user.target
+

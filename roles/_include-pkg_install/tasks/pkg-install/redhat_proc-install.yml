@@ -1,0 +1,101 @@
+---
+
+- name: "{{ arg_install_comment }} | pkg install YUM - refresh cache for dependency packages"
+  yum: update_cache=yes
+  when: >
+    role_includepkginstall_mandatory_packages.common |length > 0
+    or role_includepkginstall_mandatory_packages.redhat |length > 0
+  become: yes
+
+
+# system package, those should be already in the cache if not already installed
+- name: "{{ arg_install_comment }} | pkg install YUM - role dependency packages"
+  yum:
+    pkg: "{{ role_includepkginstall_mandatory_packages.common + role_includepkginstall_mandatory_packages.redhat }}"
+    state: present
+  become: yes
+
+
+# disable existing dnf modules
+- name: "{{ arg_install_comment }} | pkg install YUM - disable built-in module"
+  shell:
+    cmd: dnf -qy module disable {{ item.yumrepo_module_disable }}
+    warn: no
+  with_items:
+    - "{{ arg_install_yumrepo|default([]) }}"
+  loop_control:
+    label: "{{ item.name }} => {{ item.yumrepo_module_disable |default('not specified') }}"
+  when: item.yumrepo_module_disable |default('') |length > 0
+
+
+# add a new repo in the system
+- name: "{{ arg_install_comment }} | pkg install YUM - add additional repo"
+  yum_repository:
+    name: "{{ item.name |default( item.yumrepo_file ) |regex_replace('\\.repo$','') }}"
+    description: "{{ item.yumrepo_description | default(omit) }}"
+    file: "{{ item.yumrepo_file |default( item.name ) |regex_replace('\\.repo$','') }}"
+    baseurl: "{{ item.yumrepo_baseurl | default(omit) }}"
+    gpgkey: "{{ item.yumrepo_gpgkey |default(omit) }}"
+    enabled: "{{ item.yumrepo_enabled |default(true) }}"
+    exclude: "{{ item.yumrepo_exclude |default(omit) }}"
+  with_items:
+    - "{{ arg_install_yumrepo|default([]) }}"
+  loop_control:
+    label: "{{ item.name }} => {{ item.yumrepo_description |default('no repository required') }}"
+  when: item.yumrepo_baseurl | default('') |length > 0
+  register: task_update_yumrepo
+  become: yes
+
+
+# enable/disable the repo when it is already integrated in the system
+# yum_repo cannot udapte such repo itself
+# ansible issue: https://github.com/ansible/ansible-modules-extras/issues/2384
+- name: "{{ arg_install_comment }} | pkg install YUM - enable or disable existing repos"
+  shell: "{{ var_yum_manager }} --{{ var_yum_repo_state }} {{ item.name }}"
+  vars:
+    # need to use subscription manager for rhel
+    var_yum_manager: "{{ (ansible_distribution |lower == 'redhat') |ternary('subscription-manager repos', 'yum-config-manager') }}"
+    var_yum_repo_state: "{{ item.yumrepo_enabled |default(true) |bool |ternary('enable', 'disable') }}"
+  with_items:
+    - "{{ arg_install_yumrepo |default([]) }}"
+  loop_control:
+    label: "{{ item.name }} => state: {{ var_yum_repo_state }}"
+  when: >
+    item.yumrepo_enabled is defined
+    and item.yumrepo_baseurl is not defined
+  register: task_enabled_yumrepo
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | pkg install YUM - add hotfixes status to repo"
+  lineinfile:
+    state: "{{ item.yumrepo_module_hotfixes |bool |ternary('present', 'absent') }}"
+    dest: "/etc/yum.repos.d/{{ item.yumrepo_file }}.repo"
+    regexp: "^module_hotfixes =.*"
+    line: "module_hotfixes = {{ item.yumrepo_module_hotfixes |bool |lower }}"
+  with_items:
+    - "{{ arg_install_yumrepo|default([]) }}"
+  loop_control:
+    label: "{{ item.name }} => {{ item.yumrepo_description |default('no repository required') }}"
+  when: item.yumrepo_module_hotfixes is defined
+  register: task_hotfixes_yumrepo
+  become: yes
+
+
+- name: "{{ arg_install_comment }} | pkg install YUM - refresh cache"
+  yum: update_cache=yes
+  when: >
+    task_update_yumrepo is changed
+    or task_hotfixes_yumrepo is changed
+    or task_enabled_yumrepo is changed
+  register: task_update_refresh
+  become: yes
+
+
+# yum doesn't accept a loop anymore, the packages must passed in single call
+- name: "{{ arg_install_comment }} | pkg install YUM - install specific packages"
+  yum:
+    pkg: "{{ arg_install_packages.common + arg_install_packages.redhat }}"
+    state: present
+  become: yes
+

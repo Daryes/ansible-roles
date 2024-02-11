@@ -1,0 +1,47 @@
+---
+
+# import the common part for downloading and syncing the package
+- set_fact:
+    task_install_pkg_target_url: "{{ arg_install_pkg_rpm_url }}"
+    task_install_pkg_target_file: "{{ arg_install_pkg_rpm_file }}"
+    task_install_pkg_target_hash: "{{ arg_install_pkg_rpm_hash }}"
+
+
+- import_tasks: common_download_sync_package.yml
+
+
+- name: "{{ arg_install_comment }} | pkg down+install - register gpg key if provided"
+  rpm_key:
+    state: present
+    key: "{{ arg_install_pkg_rpm_gpg_url }}"
+  when: arg_install_pkg_rpm_gpg_url |length > 0
+
+
+# install the package file without starting the service
+- name: "{{ arg_install_comment }} | pkg down+install - install pkg file"
+  yum:
+    state: present
+    name: "/tmp/{{ arg_install_pkg_rpm_file }}"
+    disable_gpg_check: "{{ ( arg_install_pkg_rpm_gpg_url |length == 0 ) |bool }}"
+  register: task_pkg_installed
+
+
+# stop the service (started by the .rpm installer)
+- name: "{{ arg_install_comment }} | pkg down+install - stop service after installation"
+  service:
+    name: "{{ arg_install_pkg_service }}"
+    state: stopped
+  when: >
+    arg_install_pkg_service |default('') |length > 0
+    and task_pkg_installed is changed
+
+
+# remove tmp file on clients
+- name: "{{ arg_install_comment }} | pkg down+install - cleaning"
+  file:
+    path: "/tmp/{{ arg_install_pkg_rpm_file }}"
+    state: absent
+  when: not arg_install_pkg_rpm_file |trim == ''
+
+
+# the service restart must be managed by the calling role

@@ -1,0 +1,23 @@
+---
+
+# package requirements
+- include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "MySQL/MariaDB"
+    arg_install_packages: "{{ role_mysql_install_packages }}"
+    arg_install_ppa: "{{ role_mysql_install_ppa }}"
+    arg_install_yumrepo: "{{ role_mysql_install_yumrepo }}"
+
+
+- name: MySQL/MariaDB | install - create directory requirements
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0755') }}"
+    recurse: "{{ item.recurse |default('no') }}"
+  with_items:
+    # depending of the distribution, the log directory might not exist
+    - { path: "{{ role_mysql_dist.log }}",  owner: "{{ role_mysql_dist.log_user }}",  group: "{{ role_mysql_dist.log_group }}",  mode: "{{ role_mysql_dist.log_mode }}" }
+

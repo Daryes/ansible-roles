@@ -1,0 +1,44 @@
+---
+
+# map will retrieve only the elements with the targeted attribute
+# select() will remove empty entries.
+# sum() is used to flatten the list, from [a,b],c,[d] to [ a,b,c,d ]
+- name: webserver apache | combine additional configuration from vhosts
+  set_fact:
+    task_config_vhost_config: "{{ task_web_apache_merged | map(attribute='extra_config', default=[]) |select() |list |sum(start=[]) }}"
+
+
+# need to specify the dest full path, due to the location differences with /etc/<apache> between debian and rhel
+- name: webserver apache | config - extra configuration
+  template:
+    src: "{{ item }}"
+    dest: "{{ role_apache_dist.etc }}/conf-available/{{ var_conf_filename }}"
+    owner: "root"
+    group: "root"
+    mode: "{{ item.mode |default('0644') }}"
+  vars:
+    var_conf_filename: "{{ item |basename |regex_replace('.j2$', '') }}"
+  with_items:
+    - "{{ role_apache_default_config }}"
+    - "{{ apache_global_extra_config }}"
+    - "{{ task_config_vhost_config }}"
+  loop_control:
+    label: "conf-available => {{ var_conf_filename }}"
+  notify: reload apache validate config
+
+
+- name: webserver apache | config - activate the extra configuration
+  file:
+    src: "{{ role_apache_dist.etc }}/conf-available/{{ var_conf_filename }}"
+    dest: "{{ role_apache_dist.etc }}/conf-enabled/{{ var_conf_filename }}"
+    state: link
+  vars:
+    var_conf_filename: "{{ item |basename |regex_replace('.j2$', '') }}"
+  with_items:
+    - "{{ role_apache_default_config }}"
+    - "{{ apache_global_extra_config }}"
+    - "{{ task_config_vhost_config }}"
+  loop_control:
+    label: "conf-enabled => {{ var_conf_filename }}"
+  notify: reload apache validate config
+

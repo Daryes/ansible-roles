@@ -1,0 +1,59 @@
+---
+
+# Intermediate CA public certificate variables
+# ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/
+
+# directory storing the certificate on the server and the file basename
+cainter_certificate_dir: "/etc/ssl/private"
+cainter_certificate_filename_no_ext: "testIntermediateCA"
+# number of day the certificate will be valid - format: "+????d"
+cainter_certificate_validity_duration: "+720d"
+# Possible usages: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html => "Key Usage"
+# for a CA, keyCertSign is mandatory, cRLSign is optional (used to sign cert revocations)
+cainter_certificate_usages:
+  - keyCertSign
+  - cRLSign
+
+
+# Maximum number of CAs that can appear below this one in a chain.
+# CA with a pathlen of zero  can only be used to sign end user certificates and no further CAs
+cainter_certificate_pathlen: 0
+
+
+# force the replacement of an existing certificate
+cainter_certificate_force_replacement: no
+
+
+# Intermediate CA Private key variables
+# private key passphrase - can be empty if really required
+cainter_certificate_privatekey_passphrase: "CHANGE_ME_ASAP"
+# private key type and size - carefull to the upper/lower case
+cainter_certificate_privatekey_type: "RSA"
+cainter_certificate_privatekey_size: 4096
+
+
+# CA certificate CSR variables
+cainter_certificate_common_name: "My Own Intermediate CA"
+cainter_certificate_email_address: "someone@wsomewhere.tld"
+cainter_certificate_country_name: "FR"
+cainter_certificate_organization_name: "company"
+cainter_certificate_organization_unit: "branch"
+cainter_certificate_digest: "sha512"
+
+
+# CA variables
+# 2 types are supported : "file" for a CA cert stored as files, and "variable" for using a CA cert stored in variables, like from the ansible vault.
+# If type=variable, use the "*_content" parameters
+# If type=file, use the "*_path" parameters, and the CA is expected to be located only on the ansible server
+local_ca_privatekey_passphrase: "CA passphrase"
+local_ca_type: "file"
+local_ca_path: "/path/on/ansible/server/to/ca.crt"
+local_ca_privatekey_path: "/path/on/ansible/server/to/ca.key"
+local_ca_content: ""
+local_ca_privatekey_content: ""
+
+
+# should be under this_role/vars/
+role_cainter_certificate_path: "{{ cainter_certificate_dir }}/{{ cainter_certificate_filename_no_ext }}.pem"
+role_cainter_certificate_csr_path: "{{ cainter_certificate_dir }}/{{ cainter_certificate_filename_no_ext }}.csr"
+role_cainter_certificate_privatekey_path: "{{ cainter_certificate_dir }}/{{ cainter_certificate_filename_no_ext }}.key"

@@ -1,0 +1,48 @@
+---
+
+- name: Docker CE | compose - set fact depending of the version
+  set_fact:
+    # yamllint disable-line rule:line-length
+    task_docker_compose_download_url_final: "{{ role_docker_compose_download.url if docker_compose_version.split('.')[0] |int > 1 else role_docker_compose_download.url_v1 }}"
+    task_docker_compose_plugin_support: "{{ True if docker_compose_version.split('.')[0] |int > 1  else False }}"
+
+
+- include_role: name=_include-exe_download_copy
+  vars:
+    arg_install_comment: "Docker compose"
+    arg_install_exe_fullpath: "{{ role_docker_compose_fullpath }}"
+    arg_install_exe_version: "{{ docker_compose_version }}"
+    arg_install_exe_version_arg: "--version"
+    arg_install_exe_download_url: "{{ task_docker_compose_download_url_final }}"
+    arg_install_exe_hash: "{{ docker_compose_version_hash }}"
+    arg_install_exe_symlink_to_usr_bin: "{{ docker_compose_usrbin_symlink | default(false) |bool }}"
+
+
+- name: Docker CE | compose - activate compose as a docker plugin
+  file:
+    src: "{{ item.src }}"
+    state: link
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    dest: "{{ item.link }}"
+  with_items:
+    - { src: "{{ role_docker_compose_fullpath }}",  link: "/usr/local/lib/docker/cli-plugins/docker-compose" }
+  when: >
+    item.link | default( item.src ) != item.src
+    and task_docker_compose_plugin_support |default(false) |bool
+
+
+# this is an extra service unit to allow an automatic start after a reboot
+- name: Docker CE | compose - install autostart service unit in systemd and cache cleanup
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ item.file }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  with_items:
+    - { file: "/etc/systemd/system/docker-compose@.service" }
+    - { file: "/etc/default/docker-compose.template" }
+    - { file: "/etc/cron.daily/docker-cleanup",  mode: "0755" }
+  notify: reload systemd-daemon
+

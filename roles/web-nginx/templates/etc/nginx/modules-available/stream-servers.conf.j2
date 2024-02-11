@@ -1,0 +1,34 @@
+# {{ ansible_managed }}
+
+{# allStream is a variable from the web-nginx role, containing the informations from all <app-group>_stream_nginx  -#}
+
+stream {
+
+{# using map first is required as nginx won't accept duplicates, so the list must be cleaned first #}
+{# "|map(attribute='')" will generate a new array containing only the contents of the target property on all items #}
+{# "|select() |list" are required to clean up empty entries and generate a real list object #}
+{# "|sum( start=[] )" is similar to |flatten, creating a single dimension list #}
+{% for loopGlobalSetting in allStream |map(attribute='global_settings', default=[]) |select() |list |sum( start=[] ) |unique %}
+    {{ loopGlobalSetting }}
+{% endfor %}
+
+{% for thisStream in allStream |default([]) %}
+{%   for loopPort in thisStream.ports |flatten %}
+    server {
+        listen {{ thisStream.listen_ip |default('*') }}:{{ loopPort }};
+
+{%     for loopRaw in thisStream.raw_settings |default([]) |flatten %}
+        {{ loopRaw }}
+{%     endfor %}
+        proxy_connect_timeout {{ thisStream.proxy_connect_timeout |default('1s') }};
+        proxy_timeout         {{ thisStream.proxy_timeout |default('3s') }};
+        proxy_pass            stream_{{ thisStream.name }}_{{ loopPort }}_backend;
+    }
+    upstream stream_{{ thisStream.name }}_{{ loopPort }}_backend {
+{# the variable "_backend_ports" is expected to be a list[ {dict} ] - must be defaulted as such. Join at the end is required as it is still a list #}
+        server {{ thisStream.proxy_pass_ip }}:{{ thisStream.proxy_backend_ports  |default( [{}] ) |flatten |map(attribute='port_' + loopPort|string, default=loopPort) |join }};
+    }
+
+{%   endfor %}
+{% endfor %}
+}

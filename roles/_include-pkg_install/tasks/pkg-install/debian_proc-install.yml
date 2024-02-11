@@ -1,0 +1,145 @@
+---
+
+- name: "{{ arg_install_comment }} | pkg install APT - register parameters"
+  set_fact:
+    # as of debian > 11 or ubuntu > 22, apt-key is deprecated - this means apt version 2.x
+    # ref: https://wiki.debian.org/DebianRepository/UseThirdParty#OpenPGP_Key_distribution
+    task_repo_key_use_gpg: "{{ ansible_facts.packages['apt'][0].version is version('2.0.0', '>=') }}"
+
+
+- name: "{{ arg_install_comment }} | pkg install APT - refresh apt-cache for dependency packages"
+  apt: update_cache=yes
+  when: >
+    role_includepkginstall_mandatory_packages.common |length > 0
+    or role_includepkginstall_mandatory_packages.debian |length > 0
+  become: yes
+
+
+# ansible required packages, those should already be installed
+- name: "{{ arg_install_comment }} | pkg install APT - role dependency packages"
+  apt:
+    pkg: "{{ role_includepkginstall_mandatory_packages.common + role_includepkginstall_mandatory_packages.debian }}"
+    state: present
+    install_recommends: no
+  become: yes
+
+
+# add a new ppa or external repo key in the system
+- name: "{{ arg_install_comment }} | pkg install APT - add ppa keys via apt-key"
+  apt_key:
+    url: "{{ item.apt_key_url | default(omit) }}"
+    keyserver: "{{ item.apt_key_server | default(omit) }}"
+    id: "{{ item.apt_key_id |default(omit) }}"
+  with_items:
+    - "{{ arg_install_ppa }}"
+  loop_control:
+    label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
+  when: >
+    item.apt_key_server is defined
+    or ( item.apt_key_url is defined and not task_repo_key_use_gpg |bool )
+  become: yes
+
+
+# bug: get_url always retrieve the file, even if already existing when no checksum is provided nor requested - do a presence check first
+# ref: https://github.com/ansible/ansible/issues/64016
+- block:
+
+  - name: "{{ arg_install_comment }} | pkg install APT - add ppa keys via gpg - key presence check"
+    stat:
+      path: "/etc/apt/trusted.gpg.d/{{ item.name }}.asc"
+      get_checksum: no
+      get_mime: no
+    with_items:
+      - "{{ arg_install_ppa }}"
+    loop_control:
+      label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
+    register: task_stat_key_gpg
+    changed_when: not task_stat_key_gpg.stat.exists |bool
+
+
+  # ref: https://github.com/ansible/ansible/issues/78063
+  # dearmor command: gpg --output dest.gpg  --dearmor file.key
+  - name: "{{ arg_install_comment }} | pkg install APT - add ppa keys via gpg - key installation"
+    get_url:
+      url: "{{ item.apt_key_url }}"
+      # possible alt location: /usr/share/keyrings/
+      dest: "/etc/apt/trusted.gpg.d/{{ item.name }}.asc"
+      force: no
+    with_items:
+      - "{{ arg_install_ppa }}"
+    loop_control:
+      label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
+    when: task_stat_key_gpg is changed
+    become: yes
+
+
+  # block end
+  when: >
+    item.apt_key_url is defined
+    and task_repo_key_use_gpg |bool
+
+
+# remove the previous repo file as the ansible _repo module is not able to do so
+- name: "{{ arg_install_comment }} | pkg install APT - remove previous ppa definition"
+  file:
+    path: "/etc/apt/sources.list.d/{{ var_repo_filename }}"
+    state: absent
+  vars:
+    var_repo_filename: "{{ item.apt_filename |default(item.name) |replace('.list', '') }}.list"
+  with_items:
+    - "{{ arg_install_ppa }}"
+  loop_control:
+    label: "{{ item.name }} => {{ item.apt_repository is defined |ternary( var_repo_filename, 'no repository required') }}"
+  when: item.apt_repository is defined
+
+
+# add a new ppa or external repo in the system
+- name: "{{ arg_install_comment }} | pkg install APT - register ppa"
+  apt_repository:
+    repo: "{{ item.apt_repository |regex_replace('^deb (\\[.*\\] )*', 'deb ' + var_repo_signed_by +' ') }}"
+    filename: "{{ item.apt_filename |default(item.name) |replace('.list', '') }}"
+    state: present
+  vars:
+    # yamllint disable-line rule:line-length
+    var_repo_signed_by: "{{ task_repo_key_use_gpg |bool |ternary( '[arch=' + role_system_arch + ' signed-by=/etc/apt/trusted.gpg.d/' + item.name + '.asc]', '') }}"
+  with_items:
+    - "{{ arg_install_ppa }}"
+  loop_control:
+    label: "{{ item.name }} => {{ item.apt_repository |default('no repository required') }}"
+  when: item.apt_repository is defined
+  register: task_update_ppa
+  become: yes
+
+
+# retrieve the last time the updater cache has changed
+- name: "{{ arg_install_comment }} | pkg install APT - check last refresh date"
+  stat: path=/var/cache/apt get_checksum=no
+  register: task_update_cache_stat
+
+
+# check if the package directory has been cleaned
+- name: "{{ arg_install_comment }} | pkg install APT - package files presence check"
+  command: "find /var/lib/apt/lists/ -maxdepth 1 -iname '*_InRelease*' -type f"
+  register: task_update_package_lists_empty
+  changed_when: task_update_package_lists_empty.stdout_lines |length == 0
+
+
+- name: "{{ arg_install_comment }} | pkg install APT - refresh apt-cache"
+  apt: update_cache=yes
+  # ansible_date_time is not updated when the cache is still valid - use pipe instead
+  when: >
+    ( lookup('pipe', 'date +%s')|float - task_update_cache_stat.stat.mtime ) > 60*60*3
+    or task_update_package_lists_empty is changed
+    or task_update_ppa is changed
+  register: task_update_refresh
+  become: yes
+
+
+# apt doesn't accept a with_items loop, the packages must be passed in a single call
+- name: "{{ arg_install_comment }} | pkg install APT - install packages"
+  apt:
+    pkg: "{{ arg_install_packages.common + arg_install_packages.debian }}"
+    state: present
+    policy_rc_d: 101    # prevent any service auto-start when installed
+  become: yes
+

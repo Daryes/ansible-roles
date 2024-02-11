@@ -1,0 +1,49 @@
+---
+
+# ref: https://grafana.com/docs/grafana/v9.0/developers/http_api/admin/#global-users
+# ref: https://grafana.com/docs/grafana/latest/developers/http_api/user/
+
+- name: Monitoring Grafana | provisioning - retrieve existing users list
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/users"
+    method: GET
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  register: task_grafana_api_user_list
+
+
+- name: Monitoring Grafana | provisioning - create missing users
+  uri:
+    url: "http://127.0.0.1:{{ grafana_listen_port }}/api/admin/users"
+    method: POST
+    user: "{{ grafana_provisioning_admin_login }}"
+    password: "{{ grafana_provisioning_admin_password }}"
+    force_basic_auth: yes
+    body: |
+      {
+      "name":"{{ item.name |default(item.login) }}",
+      "login":"{{ item.login }}",
+      "password":"{{ item.password }}",
+      "email":"{{ item.email |default(item.login + '@localhost') }}",
+      "isAdmin":{{ item.isadmin |default(false) |bool |lower }},
+      "isDisabled":false,
+      "OrgId": {{ item.orgid |default(1) }}
+      }
+    body_format: json
+    return_content: yes
+    status_code: 200
+    headers:
+      Host: "{{ grafana_domain }}"
+  loop_control:
+    label: "{{ item.name |default(item.login) }}"
+  with_items: "{{ grafana_provisioning_users |flatten }}"
+  # The api user list is a json list of users with a 'login' attribute - look for the user login
+  when: task_grafana_api_user_list.json |default([]) |selectattr( "login", "eq",  item.login ) |list |length == 0
+  changed_when: true
+  # no_log: true
+

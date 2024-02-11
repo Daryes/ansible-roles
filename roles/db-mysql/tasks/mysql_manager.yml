@@ -1,0 +1,81 @@
+---
+
+# The .extend() in "if var.extend(value) %}{% endif" is a jinja2 v2.9- hack to insert data in a loop. Check namespace for jinja2 v2.10+
+# The .extend() is NOT set to ([ ]), as the variable to insert is already a dict
+# the >- expand to everything after as a string, while removing the carriage return.
+- name: MySQL/MariaDB | concatenate db variables
+  set_fact:
+    task_mysql_db_merged: >-
+      {%- set groupSuffix = '_mysql_db' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( hostvars[inventory_hostname][loopGroup + groupSuffix] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput }}
+
+- name: MySQL/MariaDB | concatenate user variables
+  set_fact:
+    task_mysql_user_merged: >-
+      {%- set groupSuffix = '_mysql_user' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopGroup in hostvars[inventory_hostname]['group_names'] -%}
+      {%-   if hostvars[inventory_hostname][loopGroup + groupSuffix] is defined -%}
+      {%-     if loopOutput.extend( hostvars[inventory_hostname][loopGroup + groupSuffix] ) %}{% endif -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ loopOutput }}
+
+#- debug: var=task_mysql_db_merged
+#- debug: var=task_mysql_user_merged
+
+
+# When an error in the syntax is present under group_vars or host_vars, it's possible ansible won't report it
+# The error message won't be clear, but still contains the bad item name.
+- name: MySQL/MariaDB | check variables validity
+  fail:
+    msg: "<group name>_mysql_db or <group name>_mysql_users is not correctly defined, or is missing an entry in the vault"
+  when: >
+    task_mysql_db_merged is not defined
+    or task_mysql_user_merged is not defined
+
+
+# ---------------------------------------------
+- name: MySQL/MariaDB | db creation
+  community.mysql.mysql_db:
+    name: "{{ item.db }}"
+    collation: "{{ item.collation |default( mysql_config_default_collation ) }}"
+    encoding: "{{ item.encoding |default( mysql_config_default_charset ) }}"
+    state: "present"
+    # connect using the unix socket
+    login_unix_socket: "{{ role_mysql_dist.unix_socket }}"
+  with_items:
+    - "{{ task_mysql_db_merged }}"
+  become: true
+  # become_user: mysql
+
+
+- name: MySQL/MariaDB | user creation and grants
+  community.mysql.mysql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password |default( omit ) }}"
+    host: "{{ item.host |default('localhost') }}"
+    state: "{{ item.state |default('present') }}"
+    # requirement: community.mysql v3.8.0 min
+    column_case_sensitive: "{{ item.column_case_sensitive |default( omit ) }}"
+    # privileges
+    priv: "{{ item.priv |default('') }}"
+    append_privs: "{{ item.append_privs |default( omit ) }}"
+    subtract_privs: "{{ item.subtract_privs |default( omit ) }}"
+    # connect using the unix socket
+    login_unix_socket: "{{ role_mysql_dist.unix_socket }}"
+  with_items:
+    - "{{ task_mysql_user_merged }}"
+  loop_control:
+    label: >-
+      username: {{ item.name }},
+      host: {{ item.host |default('localhost') }},
+      state: {{ item.state |default('present') }}
+  become: true
+  # become_user: mysql

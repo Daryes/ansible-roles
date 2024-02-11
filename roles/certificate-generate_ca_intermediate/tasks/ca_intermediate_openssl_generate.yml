@@ -1,0 +1,71 @@
+---
+# Notice: starting with ansible > 2.9 : openssl_certificate module is renamed to x509_certificate
+
+- name: Intermediate CA | create base directory
+  file: path={{ item }} state=directory mode=0700 owner=root group=root
+  with_items:
+    - "{{ role_cainter_certificate_path | dirname }}"
+  become: yes
+
+
+- name: Intermediate CA | OpenSSL - Private key generation
+  community.crypto.openssl_privatekey:
+    path: "{{ role_cainter_certificate_privatekey_path }}"
+    size: "{{ cainter_certificate_privatekey_size }}"
+    type: "{{ cainter_certificate_privatekey_type }}"
+    passphrase: "{{ cainter_certificate_privatekey_passphrase }}"
+    cipher: "auto"
+    mode: "0600"
+    owner: "root"
+    group: "root"
+    backup: yes
+  become: yes
+  no_log: yes
+
+
+- name: Intermediate CA | OpenSSL - CSR generation
+  community.crypto.openssl_csr:
+    path: "{{ role_cainter_certificate_csr_path }}"
+    privatekey_path: "{{ role_cainter_certificate_privatekey_path }}"
+    privatekey_passphrase: "{{ cainter_certificate_privatekey_passphrase }}"
+    basic_constraints:
+      - 'CA:TRUE'
+      - 'pathlen:{{ cainter_certificate_pathlen }}'
+    basic_constraints_critical: yes
+    key_usage: "{{ cainter_certificate_usages }}"
+    key_usage_critical: true
+    common_name: "{{ cainter_certificate_common_name  }}"
+    country_name: "{{ cainter_certificate_country_name }}"
+    organization_name: "{{ cainter_certificate_organization_name }}"
+    organizational_unit_name: "{{ cainter_certificate_organization_unit | default(omit) }}"
+    email_address: "{{ cainter_certificate_email_address }}"
+    digest: "{{ cainter_certificate_digest }}"
+    # prevent creating an alt_name ['DNS:subject'] which shouldn't be present for any type of CA
+    use_common_name_for_san: no
+    mode: "0600"
+    owner: "root"
+    group: "root"
+  become: yes
+
+
+- name: Intermediate CA | OpenSSL - Signed certificate generation
+  community.crypto.x509_certificate:
+    path: "{{ role_cainter_certificate_path }}"
+    csr_path: "{{ role_cainter_certificate_csr_path }}"
+    provider: ownca
+    force: "{{ cainter_certificate_force_replacement |bool }}"
+    # validity for the certificate to generate
+    ownca_not_after: "{{ cainter_certificate_validity_duration }}"
+    ownca_not_before: "-1d"   # valid since yesterday
+    # manage ownca source types
+    ownca_path: "{{ local_ca_path if local_ca_type == 'file' else omit }}"
+    ownca_privatekey_path: "{{ local_ca_privatekey_path if local_ca_type == 'file' else omit }}"
+    ownca_content: "{{ local_ca_content if local_ca_type != 'file' else omit }}"
+    ownca_privatekey_content: "{{ local_ca_privatekey_content if local_ca_type != 'file' else omit }}"
+    # other parameters
+    ownca_privatekey_passphrase: "{{ local_ca_privatekey_passphrase }}"
+    mode: "0600"
+    owner: "root"
+    group: "root"
+  become: yes
+

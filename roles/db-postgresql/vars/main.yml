@@ -1,0 +1,79 @@
+---
+
+# setting differences between distrib families
+role_postgresql_dist_family:
+  debian:
+    conf: "/etc/postgresql/{{ postgresql_version }}/main"
+    conf_d: "/etc/postgresql/{{ postgresql_version }}/main/conf.d"
+    data: "/var/lib/postgresql"
+    data_db: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    log: "/var/log/postgresql"
+    log_user: "postgres"
+    log_group: "adm"
+    # units such as postgreslq@<version>.service are linked to the postgresql.service unit
+    service: "postgresql.service"
+
+  redhat:
+    conf: "/var/lib/pgsql/{{ postgresql_version }}/data"
+    conf_d: "/etc/sysconfig/pgsql"
+    data: "/var/lib/pgsql"
+    data_db: "/var/lib/pgsql/{{ postgresql_version }}/data"
+    log: "/var/lib/pgsql/{{ postgresql_version }}/data/log"
+    log_user: "postgres"
+    log_group: "postgres"
+    service: "postgresql-{{ postgresql_version }}.service"
+
+# PostgreSQL  settings and directories
+role_postgresql_dist:
+  user: "postgres"
+  group: "postgres"
+  # force normalized directories
+  conf_normalized: "/etc/postgresql"
+  conf_d_normalized: "/etc/postgresql/{{ postgresql_version }}/main/conf.d"
+  log_normalized: "/var/log/postgresql"
+  # dist dependant information
+  conf: "{{ role_postgresql_dist_family[ ansible_os_family |lower ].conf }}"
+  conf_mode: "0700"
+  data: "{{ role_postgresql_dist_family[ ansible_os_family |lower ].data }}"
+  data_db: "{{ role_postgresql_dist_family[ ansible_os_family |lower ].data_db }}"
+  data_mode: "0700"
+  log: "{{  role_postgresql_dist_family[ ansible_os_family |lower ].log }}"
+  log_mode: "0750"
+  log_user: "{{  role_postgresql_dist_family[ ansible_os_family |lower ].log_user }}"
+  log_group: "{{ role_postgresql_dist_family[ ansible_os_family |lower ].log_group }}"
+  service: "{{ role_postgresql_dist_family[ ansible_os_family |lower ].service }}"
+
+
+# package list
+role_postgresql_install_packages:
+  common:
+    # required for the collection community.postgresql
+    - "python3-psycopg2"
+    - "libpq"
+    # required to allow ansible to switch to the pgsql user
+    - "acl"
+  debian:
+    - "postgresql-{{ postgresql_version_major }}"
+    - "postgresql-client-{{ postgresql_version_major }}"
+  redhat:
+    - "postgresql{{ postgresql_version_major }}-server"
+
+
+role_postgresql_install_ppa:
+- name: postgresql-org
+  apt_key_url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+  apt_repository: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release |lower }}-pgdg main"
+  apt_filename: "postgresql.list"
+
+
+role_postgresql_install_yumrepo:
+- name: postgresql-org
+  yumrepo_file: "postgresql-org.repo"
+  yumrepo_description: "PostgreSQL from postgresql.com"
+  # alternative: https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-{{ ansible_architecture }}/pgdg-redhat-repo-latest.noarch.rpm
+  yumrepo_gpgkey: "https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL"
+  # yamllint disable-line rule:line-length
+  yumrepo_baseurl: "https://download.postgresql.org/pub/repos/yum/{{ postgresql_version_major }}/{{ ansible_os_family |lower }}/rhel-$releasever-$basearch"
+  # disable dnf module for pgsql packages provided by the system
+  yumrepo_module_disable: "postgresql"
+

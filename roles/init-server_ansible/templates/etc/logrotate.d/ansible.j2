@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+
+{{ domain_ansible_log }}/*.log {
+        su {{ domain_ansible_user }} {{ domain_ansible_group }}
+        daily
+        rotate {{ domain_ansible_log_retention_days }}
+        copytruncate
+
+        missingok
+        notifempty
+
+        delaycompress
+        compress
+
+        dateext
+        dateyesterday
+}

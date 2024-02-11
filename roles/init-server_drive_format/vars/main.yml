@@ -1,0 +1,13 @@
+---
+
+# System and network tools - all computer types
+role_hdd_format_pkg:
+  common:
+    - "lvm2"
+    - "parted"
+    - "fdisk"
+    - "findutils"
+  debian: []
+  redhat:
+    - "system-storage-manager"
+

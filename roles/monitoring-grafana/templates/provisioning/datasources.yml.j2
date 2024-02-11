@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+# file version
+apiVersion: {{ grafana_provisioning_datasources.apiVersion | default(1) }}
+
+{% if grafana_provisioning_datasources.deleteDatasources |default([]) |length > 0 %}
+deleteDatasources:
+  {{ deleteDatasources.deleteDatasources |to_nice_yaml(indent=1) |indent(2) }}
+{% endif %}
+
+{% if grafana_provisioning_datasources.datasources |default([]) |length > 0 %}
+datasources:
+  {{ grafana_provisioning_datasources.datasources |to_nice_yaml(indent=1) |indent(2)   }}
+{% endif %}
+

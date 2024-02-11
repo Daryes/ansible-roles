@@ -1,0 +1,31 @@
+---
+# ntp server list with full settings
+# ref: https://chrony.tuxfamily.org/documentation.html  => chrony.conf
+# examples
+# chrony_ntp_servers:
+#   - "server 0.pool.ntp.org"
+#   - "pool 1.ubuntu.pool.ntp.org iburst maxsources 3"
+#   - "pool 2.debian.pool.ntp.org iburst"
+#   - "server 192.168.0.1"
+#
+chrony_ntp_servers:
+  - "server 0.pool.ntp.org"
+  - "server 1.pool.ntp.org"
+  - "server 2.pool.ntp.org"
+  - "server 3.pool.ntp.org"
+
+
+# Chrony is also able to work as a NTP server to local clients
+# specify the IP ranges
+# example:
+# chrony_allow_local_client_ip_ranges:
+#   - "192.168.0.0/16"
+#   - "10.0.0.0/24"
+#
+chrony_allow_clients_ip_ranges: []
+
+
+# Chrony listen ip - only activated when _ip_ranges is not empty
+chrony_allow_clients_listen_ip: "0.0.0.0"
+chrony_allow_clients_listen_ip6: ""
+

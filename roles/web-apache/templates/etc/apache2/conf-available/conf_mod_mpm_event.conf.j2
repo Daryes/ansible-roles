@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+# This should override the file under mods-available
+
+# event MPM
+# StartServers: initial number of server processes to start
+# MinSpareThreads: minimum number of worker threads which are kept spare
+# MaxSpareThreads: maximum number of worker threads which are kept spare
+# ThreadsPerChild: constant number of worker threads in each server process
+# MaxRequestWorkers: maximum number of worker threads
+# MaxConnectionsPerChild: maximum number of requests a server process serves
+<IfModule mpm_event_module>
+    StartServers         {{ apache_global_mpm_event['StartServers'] }}
+    MinSpareThreads      {{ apache_global_mpm_event['MinSpareThreads'] }}
+    MaxSpareThreads      {{ apache_global_mpm_event['MaxSpareThreads'] }}
+    ThreadLimit          {{ apache_global_mpm_event['ThreadLimit'] }}
+    ThreadsPerChild      {{ apache_global_mpm_event['ThreadsPerChild'] }}
+    # Previous name: MaxClients
+    MaxRequestWorkers    {{ apache_global_mpm_event['MaxRequestWorkers'] }}
+    # Previous name: MaxRequestsPerChild
+    MaxConnectionsPerChild  {{ apache_global_mpm_event['MaxConnectionsPerChild'] }}
+</IfModule>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet

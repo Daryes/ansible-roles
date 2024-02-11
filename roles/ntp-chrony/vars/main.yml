@@ -1,0 +1,37 @@
+---
+
+# remove other ntp servers or clients
+role_chrony_remove_packages:
+  common:
+    - "ntp"
+  debian:
+    - "ntpsec"
+    - "ntpdate"
+    - "openntpd"
+  redhat: []
+
+
+# mandatory system packages
+role_chrony_install_packages:
+  common:
+    - "chrony"
+  debian: []
+  redhat: []
+
+
+# service and user names related to linux distributions
+role_chrony_dist_family:
+  debian:
+    service: "chrony"
+    config: "/etc/chrony/chrony.conf"
+    config_keys: "/etc/chrony/chrony.keys"
+  redhat:
+    service: "chronyd"
+    config: "/etc/chrony.conf"
+    config_keys: "/etc/chrony.keys"
+
+role_chrony_dist:
+  service: "{{ role_chrony_dist_family[ ansible_os_family |lower ].service }}"
+  config: "{{ role_chrony_dist_family[ ansible_os_family |lower ].config }}"
+  config_keys: "{{ role_chrony_dist_family[ ansible_os_family |lower ].config_keys }}"
+

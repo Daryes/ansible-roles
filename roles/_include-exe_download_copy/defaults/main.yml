@@ -1,0 +1,68 @@
+---
+
+# Name visible as a prefix for each task description in the ansible output
+#
+# default value
+arg_install_comment: "CHANGE ME - _include-exe_download_copy"
+
+
+# package version to deploy - usually: "1.23.4"
+arg_install_exe_version: "CHANGE_ME"
+
+
+# primary executable name, location and owner
+arg_install_exe_fullpath: ""
+arg_install_exe_owner: "{{ ansible_user_id }}"
+arg_install_exe_group: "{{ arg_install_exe_owner }}"
+arg_install_exe_mode: "0755"
+
+
+# executable version check command and string
+arg_install_exe_version_arg: "--version"
+arg_install_exe_version_string: "{{ arg_install_exe_version |regex_replace('\\.', '\\\\.') }}"
+
+
+# alternate command to verify the version, default to the exe file itself
+# for a java jar file, assuming the manifest contains the version, use:
+#   arg_install_exe_version_altcmd: "unzip -p /path/to/my.jar META-INF/MANIFEST.MF"
+#   arg_install_exe_version_arg: "|grep -i 'Implementation-Version' "
+arg_install_exe_version_altcmd: "{{ arg_install_exe_fullpath }}"
+
+
+# url to the binary file
+arg_install_exe_download_url: ""
+
+
+# hash for the downloaded file, in format: "sha256:xxxxx"
+arg_install_exe_hash: ""
+
+
+# name of the service to stop if it exists
+arg_install_exe_service: ""
+
+
+# the role allow to download compressed files and extract the content
+# when activated, the archive will be extracted to {{ arg_install_exe_fullpath }}-archive
+# multiple symlinks will be created using "arg_install_exe_fullpath" as a reference to *-archive/[ binary file list ]
+
+# activate when the downloaded file is an archive
+arg_install_exe_is_compressed_archive: false
+
+# specific information related to the archive
+# output_dir:  "path/dir"    - permanent directory of the archive content on the servers
+# skip_subdirs_arg: "string" - archiver parameter to skip Nth directory levels in the archive
+#                              default to tar skipping the first subdir - set the value to empty if not desired
+# binaries_to_link: [ "rel/path1", "rel/path2", ...]  - list of binaries in the archive to symlink at the same level as "arg_install_exe_fullpath"
+#                                                       example: [ "bin/startup", "bin/a_binary", "tools/tests" ]
+arg_install_exe_compressed_archive_output_dir: "{{ arg_install_exe_fullpath }}-archive"
+arg_install_exe_compressed_archive_skip_subdirs_arg: "--strip-components=1"
+arg_install_exe_compressed_archive_binaries_to_link: [ "{{ arg_install_exe_fullpath |basename }}" ]
+
+
+# set to yes to create additional symlink under /usr/bin to the binaries listed in 'arg_install_exe_compressed_archive_binaries_to_link'
+arg_install_exe_symlink_to_usr_bin: no
+
+
+# local directory on ansible server for the cache directory
+ansible_cache_root_dir: "/opt/ansible/cache"
+

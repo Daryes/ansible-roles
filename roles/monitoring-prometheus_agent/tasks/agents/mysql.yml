@@ -1,0 +1,80 @@
+---
+
+# import the package install role
+- name: Monitoring Prometheus agent | MySQL - requirements
+  include_role: name=_include-pkg_install
+  vars:
+    arg_install_comment: "Monitoring Prometheus agent | MySQL"
+    arg_install_packages: "{{ role_prometheus_agent_mysql_requirements }}"
+
+
+- include_role: name=_include-exe_download_copy
+  vars:
+    arg_install_comment: "Monitoring Prometheus agent | MySQL"
+    arg_install_exe_fullpath: "{{ role_prometheus_agent_mysql_dist.bin }}"
+    arg_install_exe_version: "{{ prometheus_agent_mysql_version }}"
+    arg_install_exe_version_arg: "--version"
+    arg_install_exe_download_url: "{{ role_prometheus_agent_mysql_package_url }}"
+    arg_install_exe_hash: "{{ prometheus_agent_mysql_version_hash }}"
+    arg_install_exe_is_compressed_archive: yes
+    arg_install_exe_compressed_archive_binaries_to_link: [ "{{ role_prometheus_agent_mysql_dist.bin |basename }}" ]
+    arg_install_exe_service: "{{ role_prometheus_agent_mysql_dist.service }}"
+
+
+- name: Monitoring Prometheus agent | MySQL - install service files
+  template:
+    src: "templates/{{ item.file }}.j2"
+    dest: "{{ var_file_dest }}"
+    owner: "{{ item.owner |default('root') }}"
+    group: "{{ item.group |default( item.owner | default('root') ) }}"
+    mode: "{{ item.mode |default('0644') }}"
+  vars:
+    var_file_dest: "{{ item.dest |default(item.file) }}"
+  with_items:
+    - { file: "/etc/systemd/system/{{ role_prometheus_agent_mysql_dist.service }}" }
+    - { file: "{{ role_prometheus_agent_mysql_dist.service_conf }}" }
+    - { file: "{{ role_prometheus_agent_mysql_dist.auth }}",  owner: "{{ role_prometheus_agent_mysql_dist.user }}",  mode: "0600" }
+  loop_control:
+    label: "file: {{ var_file_dest }}"
+  notify: "reload systemd-daemon"
+  register: task_config_status
+  become: yes
+
+
+# To verify the exact grants in MySQL, use: SHOW GRANTS FOR user
+- name: Monitoring Prometheus agent | MySQL - create db user dedicated for monitoring
+  community.mysql.mysql_user:
+    name: "{{ prometheus_agent_mysql_user }}"
+    host: "localhost"
+    password: "{{ prometheus_agent_mysql_password }}"
+    # notice: "SLAVE MONITOR" found sometimes in the docs => recent alias for "REPLICATION CLIENT"
+    priv: "*.*:PROCESS,SELECT,REPLICATION CLIENT"
+    resource_limits:
+      MAX_USER_CONNECTIONS: 3
+    state: present
+    # connect using the unix socket
+    login_unix_socket: "{{ prometheus_agent_mysql_socket }}"
+  when: prometheus_agent_mysql_user_create |bool
+  register: task_config_mysql_db
+  become: yes
+
+
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+- name: Monitoring Prometheus agent | MySQL - stop service on change
+  service:
+    name: "{{ role_prometheus_agent_mysql_dist.service }}"
+    state: "stopped"
+  when: task_config_status is changed or task_config_global is changed
+  become: yes
+
+
+# depending of the version, the agent can be installed in a disabled state
+- name: Monitoring Prometheus agent | MySQL - enable and start the service
+  service:
+    name: "{{ role_prometheus_agent_mysql_dist.service }}"
+    state: started
+    enabled: yes
+

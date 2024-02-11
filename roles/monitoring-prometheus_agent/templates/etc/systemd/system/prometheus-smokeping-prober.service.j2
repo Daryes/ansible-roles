@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+# ref: debian package
+
+[Unit]
+Description=Smokeping prober for prometheus
+Documentation=https://github.com/SuperQ/smokeping_prober
+After=network-online.target
+
+
+[Service]
+#Restart=on-failure
+User={{ role_prometheus_agent_dist.user }}
+
+EnvironmentFile={{ role_prometheus_agent_smokeping_dist.service_conf }}
+Environment="LOGFILE={{ role_prometheus_agent_dist.log }}/prometheus-{{ role_prometheus_agent_smokeping_dist.bin |basename }}.log"
+
+# using /bin/bash -c "exec ..." to start a forking process without an absolute path and without bash staying as resident
+ExecStart=/bin/bash -c "exec {{ role_prometheus_agent_smokeping_dist.bin }} ${ARGS}  &>>${LOGFILE}"
+TimeoutStopSec=20s
+
+
+# set icmp capability (=> setcap cap_net_raw=+ep )
+# DO NOT SET CapabilityBoundingSet as it will block any sudo command
+AmbientCapabilities=CAP_NET_RAW
+
+
+[Install]
+WantedBy=multi-user.target

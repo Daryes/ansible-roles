@@ -1,0 +1,29 @@
+---
+
+- name: System Update | YUM | full update - autoremove unused packages
+  shell: "yum autoremove -y"
+  args:
+    warn: false
+  become: true
+
+
+# notice: "update" and "upgrade" are aliases for dnf on rhel8+ but not with yum on rhel7
+# on rhel7 "yum upgrade" == "yum --obsoletes update" which are not the same
+- name: System Update | YUM | full update with kernel
+  shell: "yum update -y"
+  args:
+    warn: false
+  become: true
+
+
+- name: System Update | YUM | full update with kernel - verify if reboot is required
+  shell: "needs-restarting -r"
+  args:
+    warn: false
+  become: true
+  register: task_reboot_required
+  changed_when: task_reboot_required.stdout |length > 0
+  # on some versions using "-r" always has rc=1 even if a reboot is not required
+  failed_when: task_reboot_required.rc > 1
+  notify: reboot on update
+
