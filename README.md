@@ -76,7 +76,7 @@ A validation task is present to trap most of them, but will return an error on m
 ## Roles for SSL certificates
 
 Basically a full working PKI, focused on having an internal CA and generating any required service certificate.  
-Certificates presented as files or variable contents as sources are both supported.
+Certificates presented as files or variable contents as sources are both supported.  
 Notice : they all require the `community.crypto` collection, which can also be installed on Ansible v2.9.
 
 | Role | Description |
