@@ -17,6 +17,9 @@
       or _pkg_install_status.stdout_lines[4:] is not regex("ii +")
       or _pkg_install_status.stdout_lines[4:] is not search( arg_install_pkg_version )
     )
+  # only for output purpose
+  with_items:
+    - "{{ arg_install_pkg_version }}"
 
 
 - name: "{{ arg_install_comment }} | pkg down+install - load the install/update module"

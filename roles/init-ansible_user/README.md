@@ -56,7 +56,7 @@ The playbook will enforce the the use of the parameter `--limit server1,server2,
 ```
 - name: Playbook environment preparation and validation
   hosts: "{{ ansible_limit | default('localhost') }}"
-  gather_facts: true
+  gather_facts: false
   # required for using ansible on itself for the first installation - combined with the python_interpreter declaration
   connection: local
 

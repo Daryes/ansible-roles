@@ -15,6 +15,9 @@
       _pkg_install_status.rc == 1
       or _pkg_install_status.stdout_lines[1:] is not search( arg_install_pkg_version )
     )
+  # only for output purpose
+  with_items:
+    - "{{ arg_install_pkg_version }}"
 
 
 - name: "{{ arg_install_comment }} | pkg down+install - load the install/update module"

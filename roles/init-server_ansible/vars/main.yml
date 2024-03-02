@@ -61,7 +61,9 @@ role_pkg_install_ansible:
     - "openssl-devel"
     - "krb5-libs"
     # psycopg
-    - "libpq-devel"
+    # libpq-devel is not libpq-dev counterpart on RHEL but a different module for PostgreSQL
+    # depending of the version it might always ask for an installation while already present
+    - "postgresql-libs"
     # Redhat custom system roles - requirements for other ansible collections
     - "rhel-system-roles"
 

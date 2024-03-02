@@ -28,7 +28,7 @@
 
 # download the file to ansible master only
 # become must also be disabled here
-- name: "{{ arg_install_comment }} | executable down+install - download {{ arg_install_exe_fullpath |basename }} ({{ arg_install_exe_version }})"
+- name: "{{ arg_install_comment }} | executable down+install - download {{ arg_install_exe_fullpath |basename }}"
   local_action:
     module: get_url
     url: "{{ arg_install_exe_download_url }}"
