@@ -95,7 +95,7 @@ prometheus_auth_basic_users:
     pass_crypted: "$5..."
 ```
 
-Notice: this will prevent Prometheus to monitor itself, the scraping parameters `prometheus_scrape_auth_basic_user` & `_password` must also exist as one element of `prometheus_auth_basic_users`.
+Notice: this will prevent Prometheus to monitor itself, the scraping parameters `prometheus_scrape_auth_basic_user` & `_password` & `_pass_crypted` must also be defined.
 
 
 #### Authentication and ssl for exporters
@@ -105,13 +105,14 @@ Notice: this will prevent Prometheus to monitor itself, the scraping parameters 
 | prometheus_scrape_auth_basic | Activate basic auth usage to access all exporters | boolean | no |
 | prometheus_scrape_auth_basic_user | username to access all exporters | "string" | "" |
 | prometheus_scrape_auth_basic_password | Exporters password (in clear text) | "string" | "" |
+| prometheus_scrape_auth_basic_pass_crypted | _basic_password content in crypted form, same as basic auth | "string" | "" |
 | prometheus_scrape_ssl | activate if the exporters are listening on a https connection | boolean | no |
 | prometheus_scrape_ssl_insecure_skip_verify | ignore the validity of the exporter's certificate | boolean | yes |
 
 
-Notice : these settings are applied on all exporters. Having different users per exporter is currently not managed by the role.   
-Notice 2 : if `prometheus_auth_basic_users` is activated for basic auth, it will also apply to prometheus and alertmanager self-monitoring.  
-To bypass this restriction,  `prometheus_scrape_auth_basic_user` and _password must be filled and set as one element of `prometheus_auth_basic_users`.  
+Notice : these settings are applied on all exporters. Having different users per exporter is currently not supported by the role.   
+Notice 2 : if the other parameter `prometheus_auth_basic_users` is activated for basic auth, it will also apply to prometheus and alertmanager self-monitoring.  
+To bypass this restriction while not using the basic auth for exporters, set _scrape_auth_basic=no but still fill _scrape_auth_basic_user, _password and _pass_crypted.  
 
 
 ---

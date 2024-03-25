@@ -23,7 +23,7 @@
   register: task_exe_available
   changed_when: task_exe_available.stat.exists == false
   become: false
-  run_once: true
+  run_once: "{{ arg_install_exe_version_same_for_all |bool }}"
 
 
 # download the file to ansible master only
@@ -34,10 +34,13 @@
     url: "{{ arg_install_exe_download_url }}"
     dest: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
     checksum: "{{ arg_install_exe_hash |default(omit) }}"
+    force: no
   when: task_exe_available.stat.exists == false
   register: task_pkg_downloaded
   become: false
-  run_once: true
+  # one file after the other to handle having the same file multiple times
+  throttle: 1
+  run_once: "{{ arg_install_exe_version_same_for_all |bool }}"
 
 
 # retrieve some information and validate the cached file with the expected hash if present
@@ -78,7 +81,7 @@
   register: task_service_status
   failed_when: >
     task_service_status is failed
-    and task_service_status.msg |regex_search( role_service_not_found_regex, ignorecase=True ) |length == 0
+    and task_service_status.msg |regex_search( role_service_not_found_regex, ignorecase=True ) is none
 
 
 - name: "{{ arg_install_comment }} | executable down+install - load the file type module"

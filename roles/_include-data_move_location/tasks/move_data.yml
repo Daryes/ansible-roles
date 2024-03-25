@@ -43,7 +43,7 @@
   register: task_service_status
   failed_when: >
     task_service_status is failed
-    and task_service_status.msg |regex_search( role_service_not_found_regex, ignorecase=True ) |length == 0
+    and task_service_status.msg |regex_search( role_service_not_found_regex, ignorecase=True ) is none
 
 
 - name: "{{ arg_move_data_comment }} | move data to new location - both locations already exist"

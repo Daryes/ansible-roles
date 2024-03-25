@@ -4,7 +4,7 @@ scheme: https
 tls_config:
   insecure_skip_verify: true
 {% endif %}
-{# # add the same basic_auth if prometheus_scrape _auth_basic_user is set #}
+{# # add the same basic_auth if prometheus_scrape_auth_basic_user is set #}
 {% if prometheus_auth_basic_users |length > 0 %}
 basic_auth:
   username: '{{ prometheus_scrape_auth_basic_user }}'

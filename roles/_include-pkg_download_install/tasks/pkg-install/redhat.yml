@@ -3,7 +3,7 @@
 # this fact is accessible by other roles as this one is called with include:
 # the stdout_lines[1:] allows to skip the first line
 - name: "{{ arg_install_comment }} | pkg down+install - check if install/update is required"
-  command: yum list installed {{ arg_install_pkg_name }}
+  command: "{{ ansible_pkg_mgr }} list installed {{ arg_install_pkg_name }}"
   args:
     warn: no
   register: _pkg_install_status

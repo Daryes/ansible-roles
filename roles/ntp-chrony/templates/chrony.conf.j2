@@ -22,6 +22,9 @@ keyfile {{ role_chrony_dist.config_keys }}
 # information.
 driftfile /var/lib/chrony/chrony.drift
 
+# Save NTS keys and cookies.
+ntsdumpdir /var/lib/chrony
+
 {# # Settings to work as a ntp server -------------------------------------- #}
 {% if chrony_allow_clients_ip_ranges |length > 0 %}
 # Serve time even if not synchronized to a time source.
@@ -52,7 +55,7 @@ logdir /var/log/chrony
 maxupdateskew 100.0
 
 # This directive enables kernel synchronisation (every 11 minutes) of the
-# real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
+# real-time clock. Note that it can't be used along with the 'rtcfile' directive.
 rtcsync
 
 # Step the system clock instead of slewing it if the adjustment is larger than

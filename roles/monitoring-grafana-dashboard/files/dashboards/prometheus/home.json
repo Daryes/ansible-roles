@@ -501,7 +501,7 @@
       "pluginVersion": "9.1.4",
       "showHeader": true,
       "sort": {
-        "col": 2,
+        "col": 6,
         "desc": false
       },
       "styles": [
@@ -543,6 +543,23 @@
           ],
           "type": "string",
           "unit": "short"
+        },
+        {
+          "$$hashKey": "object:345",
+          "alias": "",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "/^(?!(instance|env|value|uptime)).*/i",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
         }
       ],
       "targets": [
@@ -569,7 +586,8 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "env": true,
+              "env": false,
+              "env_char": true,
               "geo": true,
               "instance": false,
               "job": true,
@@ -595,8 +613,7 @@
               "env": "",
               "instance": "Server",
               "virtual_role": "",
-              "virtual_type": "",
-              "{env=\"prod\", geo=\"fr-mpl\", instance=\"prom\", job=\"node\", os_distrib=\"ubuntu\", os_family=\"debian\", os_type=\"linux\", virtual_role=\"guest\", virtual_type=\"vmware\"}": "Uptime"
+              "virtual_type": ""
             }
           }
         },

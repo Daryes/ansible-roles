@@ -13,6 +13,11 @@ arg_install_pkg_name: "CHANGE_ME_PACKAGE"
 arg_install_pkg_version: "CHANGE_ME"
 
 
+# by default it is expected the version to install is the same for all servers
+# set this to false to prevent an error caused by a package of a different version missing from the download cache
+arg_install_pkg_version_same_for_all: true
+
+
 # service name created by the package to stop / start
 arg_install_pkg_service: ""
 

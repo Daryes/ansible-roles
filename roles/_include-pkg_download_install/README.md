@@ -61,10 +61,8 @@ Setting them in a role can lead to a discrepancy between them, using different v
 | arg_install_pkg_version | Version to download and deploy, usually '1.23.4' | "string" |
 | arg_install_pkg_deb_file | Debian package filename | "string" | 
 | arg_install_pkg_deb_url | Url to the Debian package file.<br />While it usually contains the filename, sometimes the value can differ | "string" |
-| arg_install_pkg_deb_hash | Hash for the debian file. Syntax follows the hashlib python package.<br />This setting is not required and can be omitted or left empty. | "sha256:xyz..." |
 | arg_install_pkg_rpm_file | Rhel package filename | "string" | 
 | arg_install_pkg_rpm_url | Url to the Rhel package file.<br />While it usually contains the filename, sometimes the value can differ | "string" |
-| arg_install_pkg_rpm_hash | Hash for the Rhel file. Syntax follows the hashlib python package.<br />This setting is not required and can be omitted or left empty. | "sha256:xyz..." |
 | arg_install_pkg_rpm_gpg_url | GPG key url or file for the rpm file.<br />If the key is not provided, the GPG validation will be skipped.<br />Ex : "https://packages.domain.tld/repo/gpgkey" | "string" |
 
 Notice: All `_deb_` or `_rpm_` parameters can be omitted if there is no related host with this system.  
@@ -75,6 +73,9 @@ The role will not validate those settings.
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
+| arg_install_pkg_version_same_for_all | It is expected the version to install is the same for all hosts.<br />Set this to false if it not the case to prevent an error with a missing file in the cache | boolean | true |
+| arg_install_pkg_deb_hash | Hash for the debian file. Syntax follows the hashlib python package.<br />This setting is not required and can be omitted or left empty. | "sha256:xyz..." | "" |
+| arg_install_pkg_rpm_hash | Hash for the Rhel file. Syntax follows the hashlib python package.<br />This setting is not required and can be omitted or left empty. | "sha256:xyz..." | "" |
 | arg_install_pkg_service | Stop the designated service if an update is required.<br />The service will not be restarted by this role | "string" | "" |
 
 

@@ -46,6 +46,6 @@
       {{ inventory_hostname }}
       system( {{ ansible_system }} )
       os_family( {{ ansible_os_family }} )
-      distribution( {{ ansible_distribution }} )
+      os_distribution( {{ ansible_distribution }} )
       groups( {{ group_names | join(', ') }} )
 

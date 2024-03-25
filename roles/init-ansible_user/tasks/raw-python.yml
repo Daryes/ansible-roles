@@ -1,5 +1,7 @@
 ---
 
+# NOTICE: ansible facts are not available here
+
 # ansible requires python on the clients => using the command line to install it with the package manager
 # note: these commands are executed as a single line
 - name: Init | Bootstrap - install python (debian + redhat)

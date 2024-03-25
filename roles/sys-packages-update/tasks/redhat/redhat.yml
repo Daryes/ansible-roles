@@ -7,7 +7,7 @@
 
 # check-update will return rc=100 when updates are available
 - name: System Update | YUM | check if updates are available
-  shell: "yum check-update"
+  shell: "{{ ansible_pkg_mgr }} check-update"
   args:
     warn: false
   register: task_update_available

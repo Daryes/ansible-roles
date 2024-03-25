@@ -24,6 +24,10 @@ prometheus_agent_ssl_cert_pem: ""
 prometheus_agent_ssl_cert_key: ""
 
 
+# expect the versions to install are the same for all servers - set to false if it is not the case
+prometheus_agent_version_same_for_all: true
+
+
 # system exporter ----------------------
 # ref: https://prometheus.io/download/
 # ref: https://github.com/prometheus/node_exporter/releases

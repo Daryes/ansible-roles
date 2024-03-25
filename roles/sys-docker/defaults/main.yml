@@ -8,7 +8,8 @@ docker_data_dir: "/var/lib/docker"
 # docker-compose version - must be set in the inventory
 # do no specifiy the "v" in front of the version number
 docker_compose_version: "CHANGE_ME_IN_INVENTORY_GROUPVARS"
-
+# It is expected the version to install is the same for all servers - Set to false if it is not the case
+docker_compose_version_same_for_all: true
 # leave the hash checksum empty to skip the check step - they don't provide the hash information with their releases
 docker_compose_version_hash: ""
 

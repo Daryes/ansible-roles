@@ -11,6 +11,9 @@ tls_server_config:
 {% endif %}
 {% if prometheus_auth_basic_users |length > 0 %}
 basic_auth_users:
+{%   if prometheus_scrape_auth_basic_user |length > 0 %}
+  {{ prometheus_scrape_auth_basic_user }}: {{ prometheus_scrape_auth_basic_pass_crypted }}
+{%   endif %}
 {%   for loopUser in prometheus_auth_basic_users %}
   {{ loopUser.user }}: {{ loopUser.pass_crypted }}
 {%   endfor %}

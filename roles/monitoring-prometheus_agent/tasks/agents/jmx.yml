@@ -10,6 +10,8 @@
     arg_install_exe_download_url: "{{ thisType.donwload_url }}"
     arg_install_exe_hash: "{{ prometheus_agent_jmx_version_hash }}"
     arg_install_exe_mode: "0644"
+    arg_install_exe_version_same_for_all: "{{ prometheus_agent_version_same_for_all }}"
+
 
   loop_control:
     # required to prevent any conflict with the keyword "item" in the included tasks

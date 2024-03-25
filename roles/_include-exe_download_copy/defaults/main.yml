@@ -10,6 +10,11 @@ arg_install_comment: "CHANGE ME - _include-exe_download_copy"
 arg_install_exe_version: "CHANGE_ME"
 
 
+# by default it is expected the version to install is the same for all servers
+# set this to false to prevent an error caused by a package of a different version missing from the download cache
+arg_install_exe_version_same_for_all: true
+
+
 # primary executable name, location and owner
 arg_install_exe_fullpath: ""
 arg_install_exe_owner: "{{ ansible_user_id }}"

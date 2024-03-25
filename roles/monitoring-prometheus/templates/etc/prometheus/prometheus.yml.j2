@@ -248,6 +248,7 @@ scrape_configs:
 
 
   - job_name: 'grafana'
+    metrics_path: /metrics
     file_sd_configs:
       - files:
         - 'prometheus.d/scrape-grafana*.yml'
@@ -256,12 +257,13 @@ scrape_configs:
       - source_labels: [__address__]
         regex: "([^:]*):[0-9]+"
         target_label: instance
-{%  if prometheus_job_grafana_ssl |bool %}
-    # specific https/auth for grafana exporter
-    scheme: https
-    tls_config:
-      insecure_skip_verify: {{ prometheus_job_grafana_ssl_insecure_skip_verify }}
-{%  endif %}
+{%  with %}
+{#    # overwrite the _ssl verify with grafana dedicated value #}
+{%    set prometheus_scrape_ssl_insecure_skip_verify = prometheus_job_grafana_ssl_insecure_skip_verify %}
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+{%  endwith %}
 
 
 {% for loopRaw in prometheus_job_raw_settings |default( [] ) |flatten %}

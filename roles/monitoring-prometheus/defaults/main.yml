@@ -51,17 +51,19 @@ prometheus_syslog_history_days: 31
 #   - user: "anotherone"
 #     pass_crypted: "$5..."
 #
-# Notice: this will prevent prometheus to monitor itself, prometheus_scrape_auth_basic_user & _password must be filled with a valid account
+# Notice: this will prevent prometheus to monitor itself, prometheus_scrape_auth_basic_user & _password & _pass_crypted must be filled
 # This scrape account must also be set in _basic_users
 prometheus_auth_basic_users: []
 
 
 # Activate basic auth usage to access all exporters
-# Password is in clear text
+# _basic_password is in clear text
+# _basic_pass_crypted is in crypted form with the same mecanism as for basic auth
 # Notice: if prometheus_auth_basic_users[] is used, _basic_user and _password will be used for prometheus and alertmanager self-monitoring, even if _scrape_auth_basic=no
 prometheus_scrape_auth_basic: no
 prometheus_scrape_auth_basic_user: ""
 prometheus_scrape_auth_basic_password: ""
+prometheus_scrape_auth_basic_pass_crypted: ""
 
 # connect to all prometheus exporters using https
 prometheus_scrape_ssl: no

@@ -114,6 +114,8 @@
     arg_compose_force_pull_always |bool
     or ( arg_compose_force_pull_on_change |bool
          and task_compose_files_validation is changed )
+  register: task_compose_image_pull
+  changed_when: task_compose_image_pull.stderr_lines |length > 2
   become: yes
 
 

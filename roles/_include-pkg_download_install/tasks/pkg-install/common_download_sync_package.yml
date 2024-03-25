@@ -21,20 +21,24 @@
   register: task_pkg_available
   changed_when: task_pkg_available.stat.exists == false
   become: false
-  run_once: true
+  run_once: "{{ arg_install_pkg_version_same_for_all |bool }}"
 
 
 # download the pkg to ansible master only
-- name: "{{ arg_install_comment }} | pkg down+install - download pkg v{{ arg_install_pkg_version }} file"
+- name: "{{ arg_install_comment }} | pkg down+install - download pkg file"
   local_action:
     module: get_url
     url: "{{ task_install_pkg_target_url }}"
     dest: "{{ role_archive_storage_dir }}/{{ task_install_pkg_target_file }}"
     checksum: "{{ task_install_pkg_target_hash }}"
-  register: task_pkg_downloaded
-  when: task_pkg_available.stat.exists == false
+    force: no
+  when: task_pkg_available is changed
   become: false
-  run_once: true
+  with_items:
+    - "{{ arg_install_pkg_version }}"
+  # one file after the other to handle having the same file multiple times
+  throttle: 1
+  run_once: "{{ arg_install_pkg_version_same_for_all |bool }}"
 
 
 # upload pkg from ansible master to each server
@@ -45,15 +49,16 @@
 
 
 # stop the service - ignore if not yet installed
+# due to the loop for having the version visible "_pkg_install_status" is a list with a single element
 - name: "{{ arg_install_comment }} | pkg down+install - stop service"
   service:
     name: "{{ arg_install_pkg_service }}"
     state: stopped
   when: >
     arg_install_pkg_service |default('') |length > 0
-    and _pkg_install_status.rc == 0
+    and _pkg_install_status.results.0.rc == 0
   register: task_service_status
   failed_when: >
     task_service_status is failed
-    and task_service_status.msg |lower |regex_search( role_service_not_found_regex ) |length == 0
+    and task_service_status.msg |lower |regex_search( role_service_not_found_regex ) is none
 

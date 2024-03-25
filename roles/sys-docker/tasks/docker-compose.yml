@@ -16,6 +16,7 @@
     arg_install_exe_download_url: "{{ task_docker_compose_download_url_final }}"
     arg_install_exe_hash: "{{ docker_compose_version_hash }}"
     arg_install_exe_symlink_to_usr_bin: "{{ docker_compose_usrbin_symlink | default(false) |bool }}"
+    arg_install_exe_version_same_for_all: "{{ docker_compose_version_same_for_all }}"
 
 
 - name: Docker CE | compose - activate compose as a docker plugin

@@ -19,6 +19,7 @@
     arg_install_exe_is_compressed_archive: yes
     arg_install_exe_compressed_archive_binaries_to_link: [ "{{ role_prometheus_agent_postgresql_dist.bin |basename }}" ]
     arg_install_exe_service: "{{ role_prometheus_agent_postgresql_dist.service }}"
+    arg_install_exe_version_same_for_all: "{{ prometheus_agent_version_same_for_all }}"
 
 
 - name: Monitoring Prometheus agent | PostgreSQL - install service files

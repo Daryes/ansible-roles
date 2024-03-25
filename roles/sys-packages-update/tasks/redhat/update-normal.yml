@@ -3,7 +3,7 @@
 # notice: "update" and "upgrade" are aliases for dnf on rhel8+ but not with yum on rhel7
 # on rhel7 "yum upgrade" == "yum --obsoletes update" which are not the same
 - name: System Update | YUM | normal update without kernel
-  shell: "yum update -y  --exclude='kernel*'"
+  shell: "{{ ansible_pkg_mgr }} update -y  --exclude='kernel*'"
   args:
     warn: false
   become: true

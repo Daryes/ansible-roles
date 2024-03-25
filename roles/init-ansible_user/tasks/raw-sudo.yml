@@ -1,5 +1,7 @@
 ---
 
+# NOTICE: ansible facts are not available here
+
 - name: Init | Bootstrap - sudo availability
   raw: "command -v sudo"
   register: system_with_sudo
@@ -16,11 +18,12 @@
       echo 'sudo required';
       if   [ -x /usr/bin/apt ]; then /usr/bin/apt update --quiet; /usr/bin/apt --quiet -y install sudo;
       elif [ -x /usr/bin/yum ]; then /usr/bin/yum makecache --quiet; /usr/bin/yum install --quiet -y sudo; export SUDO_GRP=wheel;
+      elif [ -x /usr/bin/dnf ]; then /usr/bin/dnf makecache --quiet; /usr/bin/dnf install --quiet -y sudo; export SUDO_GRP=wheel;
       else echo 'The package manager is not found or unmanaged'; exit 1;
       fi;
       sleep 3;
     fi;
-    command -v sudo;
+    command -v sudo || exit 1;
     usermod --append --groups $SUDO_GRP  {{ ansible_user }};
   register: bootstrap_sudo
   changed_when: bootstrap_sudo.stdout is search('sudo required')

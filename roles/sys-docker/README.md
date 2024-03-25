@@ -67,6 +67,7 @@ mandatory roles :
 | --------- | ----------- | ---- | ------------- |
 | docker_data_dir | Directory containing the docker images, containers and volumes. <br />A symlink will be left at the original location if moved.<br />Ex: "/opt/lib-docker" or "{{ project_root }}/sys-docker" | "string" | "/var/lib/docker" |
 | docker_image_helloworld | Docker hello world image. Will be pulled and run to validate the installation<br />Set to empty to skip the validation | "string" | "hello-world" |
+| docker_compose_version_same_for_all | It is expected the version to install is the same for all servers<br />Set to false if it is not the case to prevent a possible error with a file missing in the cache | boolean | true |
 | docker_compose_usrbin_symlink | Create a symlink under /usr/bin to compose binary<br />Use if /usr/local/bin is not in the sudo or root PATH | boolean | false |
 | docker_compose_log_redirect | Install the rsyslog redirect configuration for having docker-compose logs redirected to syslog, then a dedicated file | boolean | true |
 | docker_compose_log_dir | directory where rsyslog will store the docker-compose log files | "string" | "/var/log/docker" |

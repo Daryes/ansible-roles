@@ -66,6 +66,8 @@ Setting them in a role can lead to a discrepancy between them, using different v
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
+| arg_install_exe_version_same_for_all | It is expected the version to install is the same for all hosts.<br />Set this to false if it not the case to prevent an error with a missing file in the cache | boolean | true |
+| arg_install_exe_hash | Hash for the downloaded file. Syntax follows the hashlib python package.<br />This setting is not required and can be omitted. | "sha256:xyz..." | "" |
 | arg_install_exe_owner | Owner of the destination directory.<br />The user must already exists.<br />Default to the ansible user | "string" | "{{ ansible_user_id }}" |
 | arg_install_exe_group | Group of the destination directory.<br />The group must already exists | "string" | "{{ arg_install_exe_owner }}" |
 | arg_install_exe_mode| Access mode (octal) of the destination directory. | "string" | "0755" |

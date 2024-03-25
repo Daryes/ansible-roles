@@ -1,7 +1,7 @@
 ---
 
 - name: System Update | YUM | full update - autoremove unused packages
-  shell: "yum autoremove -y"
+  shell: "{{ ansible_pkg_mgr }} autoremove -y"
   args:
     warn: false
   become: true
@@ -10,7 +10,7 @@
 # notice: "update" and "upgrade" are aliases for dnf on rhel8+ but not with yum on rhel7
 # on rhel7 "yum upgrade" == "yum --obsoletes update" which are not the same
 - name: System Update | YUM | full update with kernel
-  shell: "yum update -y"
+  shell: "{{ ansible_pkg_mgr }} update -y"
   args:
     warn: false
   become: true
