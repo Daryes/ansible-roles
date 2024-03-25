@@ -1,0 +1,31 @@
+---
+
+# image version - format : "x.y.z" - numbers only, without any "version" or "v" in front
+# ref: https://github.com/google/cadvisor/releases
+cadvisor_version: "CHANGE_ME_IN_GROUP_VARS"
+
+
+# directory to install compose and configuration files
+cadvisor_compose_dir: "/opt/cadvisor"
+
+
+# cadvisor external listen IP and port
+# if a monitoring system like prometheus is used without a reverse proxy for cadvisor, _listen_ip should be set to "0.0.0.0"
+cadvisor_host_listen_ip: "127.0.0.1"
+cadvisor_host_listen_port: "9135"
+
+
+# cadvisor extra parameters
+# ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md
+# Notice: "--store_container_labels=false" is already activated
+# Notice 2 : accelerator is not supported anymore since 2024
+cadvisor_extra_parameters: "--docker_only=true --housekeeping_interval=30s --disable_metrics=percpu,sched,tcp,udp,disk,diskIO,hugetlb,referenced_memory,cpu_topology,resctrl"
+
+
+# docker data dir in case it has been moved
+docker_data_dir: "/var/lib/docker"
+
+
+# configuration to redirect to syslog and tag the container logs
+cadvisor_logging_driver_syslog: no
+

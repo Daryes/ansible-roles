@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+# ref: https://prometheus.io/docs/guides/cadvisor/
+version: '3.2'
+
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:${IMAGE_VERSION}
+    container_name: cadvisor
+    privileged: true
+    command: ${IMAGE_CMD}
+    restart: always
+    ports:
+      - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - ${DOCKER_VAR_LIB}:/var/lib/docker:ro
+{% if cadvisor_logging_driver_syslog |bool %}
+{%- raw %}
+    logging:
+      driver: syslog
+      options:
+        tag: docker-{{.Name}}
+{% endraw %}
+{% endif %}

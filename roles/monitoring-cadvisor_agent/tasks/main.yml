@@ -1,0 +1,19 @@
+---
+
+- name: "Monitoring cAdvisor | parameters validation"
+  assert:
+    that:
+      - cadvisor_version |length > 0
+      - cadvisor_version |regex_search('change[_ ]me', ignorecase=True) is none
+    fail_msg: "Error: one of the mandatory parameters (arg_install_*) is either not set, empty, or still with a default 'CHANGE_ME' value"
+    quiet: yes
+
+
+- include_role: name=_include-compose_deploy
+  vars:
+    arg_compose_comment: "Monitoring cAdvisor"
+    arg_compose_deploy_dir: "{{ cadvisor_compose_dir }}"
+    arg_compose_main_template: "templates/docker-compose.yml.j2"
+    arg_compose_env_template: "templates/cadvisor.conf.j2"
+    arg_compose_force_stop_on_change: no
+
