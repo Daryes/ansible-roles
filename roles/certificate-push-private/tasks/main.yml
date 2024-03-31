@@ -85,7 +85,7 @@
 
 - name: Certificate push private | certs - generate combined certs
   copy:
-    content: "{{ item.key + item.pem }}"
+    content: "{{ item.key + '\n' + item.pem }}"
     dest: "{{ role_certs_dist.private_store }}/{{ item.name }}/{{ item.name }}.combined.pem"
     owner: root
     group: "{{ role_certs_dist.group }}"

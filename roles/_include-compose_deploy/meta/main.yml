@@ -9,5 +9,5 @@ galaxy_info:
   galaxy_tags:
     - "function"
     - "docker"
-    - "docker-compose"
+    - "compose"
 

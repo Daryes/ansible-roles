@@ -40,7 +40,7 @@
     - "{{ ansible_host |default('') }}"
     - "{{ hostname_ipv4.stdout }}"
     - "{{ hostname_ipv6.stdout }}"
-  when: item != ""
+  when: item |length > 0
   become: false
   delegate_to: 127.0.0.1
 
