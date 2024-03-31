@@ -9,20 +9,22 @@ role_webserver_apache_install_packages:
     - "apache2"
   redhat:
     - "httpd"
+    # the package is separated - don't ask
+    - "mod_ssl"
 
 
 # mandatory default modules
 role_apache_default_modules: []
 
 
-# mandatory default configuration files - full path to each templates
+# mandatory default configuration files to activate - path to each templates
 role_apache_default_config:
-  - "templates/etc/apache2/conf-available/security.conf.j2"
-  - "templates/etc/apache2/conf-available/ssl-listen-security.conf.j2"
-  - "templates/etc/apache2/conf-available/servername.conf.j2"
-  - "templates/etc/apache2/conf-available/conf_mod_mpm_event.conf.j2"
-  - "templates/etc/apache2/conf-available/conf_mod_deflate.conf.j2"
-  - "templates/etc/apache2/conf-available/conf_mod_expires.conf.j2"
+  - "conf-available/security.conf.j2"
+  - "conf-available/ssl-listen-security.conf.j2"
+  - "conf-available/servername.conf.j2"
+  - "conf-available/conf_mod_mpm_event.conf.j2"
+  - "conf-available/conf_mod_deflate.conf.j2"
+  - "conf-available/conf_mod_expires.conf.j2"
 
 
 # mandatory default vhost
@@ -43,8 +45,12 @@ role_apache_dist_family:
     log_user: "www-data"
     log_group: "adm"
     logrotate: "apache2"
+    usr_share: "/usr/share/apache2"
     web_root: "/var/www"
     a2conf: "/etc/apache2/apache2.conf"
+    lock: "/var/lock/apache2"
+    run: "/run/apache2"
+    ssl_passphrase_dialog: "/usr/share/apache2/ask-for-passphrase"
 
   redhat:
     service: "httpd"
@@ -55,8 +61,12 @@ role_apache_dist_family:
     log_user: "root"
     log_group: "root"
     logrotate: "httpd"
+    usr_share: "/usr/share/httpd"
     web_root: "/var/lib/httpd"
     a2conf: "/etc/httpd/conf/httpd.conf"
+    lock: "/var/lock/httpd"
+    run: "/run/httpd"
+    ssl_passphrase_dialog: "/usr/libexec/httpd-ssl-pass-dialog"
 
 
 role_apache_dist:
@@ -68,8 +78,12 @@ role_apache_dist:
   log_user: "{{ role_apache_dist_family[ ansible_os_family |lower ].log_user }}"
   log_group: "{{ role_apache_dist_family[ ansible_os_family |lower ].log_group }}"
   logrotate: "{{ role_apache_dist_family[ ansible_os_family |lower ].logrotate }}"
+  usr_share: "{{ role_apache_dist_family[ ansible_os_family |lower ].usr_share }}"
   web_root: "{{ role_apache_dist_family[ ansible_os_family |lower ].web_root }}"
   a2conf: "{{ role_apache_dist_family[ ansible_os_family |lower ].a2conf }}"
+  lock: "{{ role_apache_dist_family[ ansible_os_family |lower ].lock }}"
+  run: "{{ role_apache_dist_family[ ansible_os_family |lower ].run }}"
+  ssl_passphrase_dialog: "{{ role_apache_dist_family[ ansible_os_family |lower ].ssl_passphrase_dialog }}"
 
 
 # selinux handling

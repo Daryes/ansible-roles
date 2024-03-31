@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+# this file is installed only for RHEL-like systems - it is alread present on debian's
+
+unset HOME
+SUFFIX=
+
+export APACHE_RUN_USER={{ role_apache_dist.user }}
+export APACHE_RUN_GROUP={{ role_apache_dist.group }}
+export APACHE_PID_FILE={{ role_apache_dist.run }}$SUFFIX/{{ role_apache_dist.service }}.pid
+export APACHE_RUN_DIR={{ role_apache_dist.run }}$SUFFIX
+export APACHE_LOCK_DIR={{ role_apache_dist.lock }}$SUFFIX
+export APACHE_LOG_DIR={{ role_apache_dist.log }}$SUFFIX
+
+export APACHE_CONFDIR={{ role_apache_dist.etc }}$SUFFIX
+

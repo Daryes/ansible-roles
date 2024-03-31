@@ -5,18 +5,19 @@
 
 - name: webserver apache | system - RHEL enhancement - directories structure
   file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     state: directory
     recurse: no
-    owner: root
-    group: root
-    mode: "0755"
+    owner: "{{ item.owner |default( 'root' ) }}"
+    group: "{{ item.group | default( item.owner |default( 'root' ) ) }}"
+    mode: "{{ item.mode |default( '0755' ) }}"
   with_items:
-    - "{{ role_apache_dist.etc }}/conf-available"
-    - "{{ role_apache_dist.etc }}/conf-enabled"
-    - "{{ role_apache_dist.etc }}/mods-enabled"
-    - "{{ role_apache_dist.etc }}/sites-available"
-    - "{{ role_apache_dist.etc }}/sites-enabled"
+    - { path: "{{ role_apache_dist.etc }}/conf-available" }
+    - { path: "{{ role_apache_dist.etc }}/conf-enabled" }
+    - { path: "{{ role_apache_dist.etc }}/mods-enabled" }
+    - { path: "{{ role_apache_dist.etc }}/sites-available" }
+    - { path: "{{ role_apache_dist.etc }}/sites-enabled" }
+    - { path: "{{ role_apache_dist.lock }}",  owner: "{{ role_apache_dist.user }}",  group: "root",  mode: "0755" }
 
 
 - name: webserver apache | system - RHEL enhancement - config structure
@@ -33,20 +34,27 @@
 
 - name: webserver apache | system - RHEL enhancement - module installation
   template:
-    src: "templates/{{ item.src }}.j2"
-    dest: "{{ item.dest |default( item.src ) }}"
-    mode: "{{ item.mode |default( '0644' ) }}"
-    owner: "{{ item.owner |default('root') }}"
-    group: "{{ item.group |default( item.owner |default('root') ) }}"
+    src: "templates/{{ dest_file }}.j2"
+    dest: "{{ dest_file }}"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  vars:
+    # reusing dest_file as src and dest for template
+    dest_file: "{{ item |regex_replace('^.*templates/', '')  |regex_replace('\\.j2$', '') }}"
   with_items:
-    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_base_mods.conf" }
-    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_base_settings.conf" }
-    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_custom_mods.conf" }
-    - { src: "{{ role_apache_dist.etc }}/mods-available/rhel-enhance_mpm_event.conf" }
-    - { src: "{{ role_apache_dist.etc }}/conf.d/THIS_DIRECTORY_IS_NOT_USED" }
+    # the .j2 extension is not mandatory due to dest_file used as src
+    - "{{ query('fileglob', 'templates/{{ role_apache_dist.etc }}/mods-available/*.load.j2') |sort }}"
+    - "{{ query('fileglob', 'templates/{{ role_apache_dist.etc }}/mods-available/*.conf.j2') |sort }}"
+    - "{{ role_apache_dist.etc }}/conf/mods-enabled_loader.conf"
+    - "{{ role_apache_dist.etc }}/envvars"
+    - "{{ role_apache_dist.etc }}/conf.d/THIS_DIRECTORY_IS_NOT_USED"
+  loop_control:
+    label: "file: {{ dest_file }}"
+  notify: reload apache validate config
 
 
-- name: webserver apache | system - RHEL enhancement - module activation
+- name: webserver apache | system - RHEL enhancement - default module activation
   file:
     src: "{{ role_apache_dist.etc }}/mods-available/{{ item }}"
     dest: "{{ role_apache_dist.etc }}/mods-enabled/{{ item }}"
@@ -54,12 +62,15 @@
   vars:
   with_items:
     - "00-systemd.conf"
+    - "00-mpm.conf"
     - "10-h2.conf"
-    - "10-proxy_h2.conf"
+    # - "10-proxy_h2.conf"  <= raise an error due to mod_proxy missing => moved into custom_mods
+    - "rhel-enhance_base_mods.load"
     - "rhel-enhance_base_mods.conf"
-    - "rhel-enhance_base_settings.conf"
+    - "rhel-enhance_custom_mods.load"
     - "rhel-enhance_custom_mods.conf"
     - "rhel-enhance_mpm_event.conf"
+  notify: restart apache validate config
 
 
 - name: webserver apache | config - RHEL enhancement - integrate new config structure in httpd.conf
@@ -67,11 +78,16 @@
     dest: "{{ role_apache_dist.a2conf }}"
     line: "{{ item.line }}"
     regexp: "{{ item.regexp |default( omit ) }}"
-    state: present
+    state: "{{ item.state |default('present') }}"
   with_items:
-    - { line: "Include mods-enabled/*.conf",          regexp: 'Include conf.modules.d/\\*.conf' }
-    - { line: "IncludeOptional conf-enabled/*.conf",  regexp: 'IncludeOptional conf.d/\\*.conf' }
+    # use ' ' instead of " " for regex
+    - { line: "Include conf/mods-enabled_loader.conf",  regexp: 'Include.* conf.modules.d/\*.conf' }
+    - { line: "IncludeOptional conf-enabled/*.conf",    regexp: 'IncludeOptional conf.d/\*.conf' }
     - { line: "IncludeOptional sites-enabled/*.conf" }
+    # sometimes the regex can miss
+    - { line: "Include conf.modules.d/*.conf",          state: "absent" }
+    - { line: "IncludeOptional conf.d/*.conf",          state: "absent" }
+
 
 
 - name: webserver apache | config - RHEL enhancement - utilities
@@ -84,6 +100,7 @@
   with_items:
     - { src: "/usr/sbin/a2enmod", mode: "0755" }
     - { src: "/usr/sbin/a2query", mode: "0755" }
+
 
 - name: webserver apache | system - RHEL enhancement - utilities links
   file:

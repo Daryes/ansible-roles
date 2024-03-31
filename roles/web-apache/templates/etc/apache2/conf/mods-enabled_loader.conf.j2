@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+
+# substitute for debian and preventing errors with too much lineinfile from ansible in the main conf
+IncludeOptional mods-enabled/*.load
+IncludeOptional mods-enabled/*.conf
+

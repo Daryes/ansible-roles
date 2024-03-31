@@ -13,13 +13,22 @@
   notify: reload apache service
 
 
+# on some distro a restart is just a reload - ensure the service will stop
 - name: restart apache service
   service:
     name: "{{ role_apache_dist.service }}"
-    state: restarted
+    state: stopped
+  notify: start apache service
+
+
+- name: start apache service
+  service:
+    name: "{{ role_apache_dist.service }}"
+    state: started
 
 
 - name: reload apache service
   service:
     name: "{{ role_apache_dist.service }}"
     state: reloaded
+

@@ -1,3 +1,5 @@
+# {{ ansible_managed }}
+
 # event MPM
 # StartServers: initial number of server processes to start
 # MinSpareThreads: minimum number of worker threads which are kept spare
@@ -15,4 +17,4 @@
         MaxConnectionsPerChild    0
 </IfModule>
 
-
+# Notice : these settings might be overridden by "conf-enabled/conf_mod_mpm_event.conf"

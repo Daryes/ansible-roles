@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+
+LoadModule authz_groupfile_module modules/mod_authz_groupfile.so
+
+LoadModule substitute_module modules/mod_substitute.so
+LoadModule log_config_module modules/mod_log_config.so
+LoadModule unixd_module modules/mod_unixd.so
+
+LoadModule rewrite_module modules/mod_rewrite.so
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
+LoadModule proxy_http2_module modules/mod_proxy_http2.so
+
+LoadModule vhost_alias_module modules/mod_vhost_alias.so
+LoadModule headers_module modules/mod_headers.so
+

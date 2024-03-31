@@ -39,6 +39,9 @@ If you want to increase the security, just change the ciphers configuration in t
 Notice about RHEL / Centos systems :  
 Given the lack of enhancement on the rpm package, the directory structure under /etc/httpd is updated to be more alike the Debian structure.  
 This is experimental, and some quirks may happen, as the result is not fully identical to Debian.  
+For example, the usual modules can not be activated, a default set is already present, with much less modules than the default installation. Update the templates to add more. 
+In addition, the following modules have been reimplemented as on-demand modules, inactive by default : ssl, proxy_balancer, proxy_fcgi, dav  
+Use those names with `apache_global_modules_activate` to activate them
 
 
 ## Requirements
@@ -52,7 +55,7 @@ Collection :
 System component :
 * find (from findutils)
 
-The apache2/httpd package and findutils will be automatically installed using the distribution packages.
+The apache2/httpd packages and findutils will be automatically installed using the distribution packages.
 
 
 ## Parameters
@@ -71,8 +74,12 @@ None.
 | apache_global_modules_activate | Allow to activate apache modules, without the '_module' suffix<br />Example:<br />- "proxy_http"<br />- "proxy_wstunnel" | list[ "string" ] | [ ] |
 | apache_global_modules_disable | same as apache_global_modules_activate, but to disable modules | list[ "string" ] | [ ] |
 | apache_global_extra_config | extra configuration templates that will be installed and activated.<br />Example:<br />- "myrole/templates/path/to/template.conf.j2"<br />- "/path/to/template2" | list[ "string" ] | [ ] |
+| |
 | apache_default_site_ssl_cert_pem | Path to the ssl certificate public key, in text format.<br />It will be used as default for all sites not providing their own certificates<br />Example: "/etc/ssl/private/path/to/cert.pem" | "string" | "" |
 | apache_default_site_ssl_cert_key | Path to the ssl private key, in text format.<br />Example: "/etc/ssl/private/path/to/cert.key" | "string" | "" |
+| |
+| apache_global_fcgi_url | Target url for the fcgi proxy module, if activated.<br />Format is : `fcgi://host:port/`<br />The settings are related to "conf-available/conf_mod_fcgi_php-fpm.conf" | "string" | "fcgi://localhost:9000/" |
+| apache_global_fcgi_handler_url | fcgi handler allowing to specify a socket or the remote url | "string" | "proxy:unix:/run/php/php-fpm.sock|fcgi://localhost" |
 
 
 **Module: MPM Event**  
@@ -113,7 +120,8 @@ Related templates:
   (only http, no ssl support)
 
 The role will use the template to create one file per server_name,  with the required configuration for a http virtual host working as a reverse proxy using the proxy_pass command.
-Required settings for ssl activation are also integrated.
+Required settings for ssl activation are also integrated.  
+The module 'rewrite' is required and must be explitely activated.
 
 
 | Parameter | Description | Type | Default value |
@@ -185,31 +193,29 @@ my_server_name: "vhost.domain.tld"
 app_listen_ip: "127.0.0.1"
 app_listen_port: "8080"
 
-apache_global_modules_activate: [ 'rewrite', 'headers', 'alias', 'vhost_alias' ]
+apache_global_modules_activate: [ 'rewrite', 'proxy', 'proxy_http', 'proxy_wstunnel', 'ssl', 'headers', 'alias', 'vhost_alias' ]
 
 mygroup_apache:
   - server_name: "{{ my_server_name }}"
     server_alias: []
-    site_vhost_template: "web-apache/templates/etc/apache2/sites-available/vhost-template_reverse.conf.j2"
+    site_vhost_template: "roles/web-apache/templates/etc/apache2/sites-available/vhost-template_reverse_no_ssl.conf.j2"
     proxy_pass: "http://{{ app_listen_ip }}:{{ app_listen_port }}"
     modules_activate: [ 'proxy', 'proxy_http', 'proxy_wstunnel' ]
     raw_settings: []
 
   - server_name: "www.domain.tld"
-    site_vhost_template: "web-apache/templates/etc/apache2/sites-available/vhost-template.conf.j2"
+    site_vhost_template: "roles/web-apache/templates/etc/apache2/sites-available/vhost-template.conf.j2"
     ssl_cert_pem: /etc/ssl/private/myothercert/myothercert.pem
-    ssl_cert_key:  /etc/ssl/private/myothercert/myothercert.pem
-    raw_settings: |
-      DocumentRoot "/var/www/mysite"
-      <Directory "/var/www/mysite">
-        Options None
-        Options +FollowSymlinks +Indexes
-        IndexIgnore .htaccess robots.txt
-        AllowOverride All
-        Require all granted
-      </Directory>
-    # Notice : the required modules for the website will be activated globally
-    modules_activate: [ 'rewrite', 'headers', 'setenvif', 'substitute' ]
+    ssl_cert_key: /etc/ssl/private/myothercert/myothercert.key
+    raw_settings:
+      - 'DocumentRoot "/var/www/html/"'
+      - '<Directory "/var/www/html">'
+      - '  Options None'
+      - '  Options -FollowSymlinks +Indexes'
+      - '  IndexIgnore .htaccess robots.txt'
+      - '  AllowOverride All'
+      - '  Require all granted'
+      - '</Directory>'
  
   - server_name: ...
     ...

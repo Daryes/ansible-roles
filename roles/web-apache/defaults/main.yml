@@ -33,6 +33,7 @@ apache_default_site_ssl_cert_key: ""
 # apache server name
 apache_global_server_name: "{{ inventory_hostname }}"
 
+
 # apache mpm_event configuration
 apache_global_mpm_event:
   StartServers: 2
@@ -42,6 +43,14 @@ apache_global_mpm_event:
   ThreadsPerChild: 25
   MaxRequestWorkers: 150
   MaxConnectionsPerChild: 256
+
+
+# target url for the fcgi proxy module
+apache_global_fcgi_url: "fcgi://localhost:9000/"
+# handler using either a local unix socker or the remote url
+apache_global_fcgi_handler_url: "proxy:unix:/run/php/php-fpm.sock|fcgi://localhost"
+apache_global_fcgi_reuse_max: 10
+
 
 
 # list of corporate address ip to give access to

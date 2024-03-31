@@ -43,7 +43,7 @@ if (! $env_file) {
         $env_file = "$ENV{APACHE_CONFDIR}/envvars";
     }
     else {
-        $env_file = "/etc/apache2$dir_suffix/envvars";
+        $env_file = "/etc/httpd/envvars";
     }
 }
 $ENV{LANG} = 'C';

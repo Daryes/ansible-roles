@@ -19,7 +19,7 @@
   vars:
     var_conf_filename: "{{ item |basename |regex_replace('.j2$', '') }}"
   with_items:
-    - "{{ role_apache_default_config }}"
+    - "{{ query('fileglob', 'templates/{{ role_apache_dist.etc }}/conf-available/*.conf.j2') |sort }}"
     - "{{ apache_global_extra_config }}"
     - "{{ task_config_vhost_config }}"
   loop_control:

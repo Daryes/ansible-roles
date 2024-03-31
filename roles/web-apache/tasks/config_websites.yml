@@ -91,7 +91,7 @@
     state: link
     force: yes
   with_items:
-    - "{{ task_web_apache_merged |selectattr('site_vhost_standalone', 'defined') |selectattr('site_vhost_standalone', 'equalto', true) |list }}"
+    - "{{ task_web_apache_merged }}"
   loop_control:
     loop_var: thisVhost
     label: "site available => {{ thisVhost.server_name }}"

@@ -32,8 +32,8 @@
     <IfModule mod_ssl.c>
         SSLEngine on
 {% if thisVhost.ssl_cert_pem |default('') | length > 0 %}
-        ssl_certificate     {{ thisVhost.ssl_cert_pem }};
-        ssl_certificate_key {{ thisVhost.ssl_cert_key }};
+        SSLCertificateFile    {{ thisVhost.ssl_cert_pem }}
+        SSLCertificateKeyFile {{ thisVhost.ssl_cert_key }}
 {% endif %}
     </IfModule>
 

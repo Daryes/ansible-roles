@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+{% if apache_default_site_ssl_cert_key |length > 0 %}
+# required for ssl
+<IfModule !setenvif_module>
+    LoadModule setenvif_module modules/mod_setenvif.so
+</IfModule>
+LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
+LoadModule ssl_module modules/mod_ssl.so
+{% endif %}
+

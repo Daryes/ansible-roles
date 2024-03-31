@@ -1,6 +1,7 @@
 # {{ ansible_managed }}
 
-{{ role_apache_dist.log }}/*.log {
+{{ role_apache_dist.log }}/*.log
+{{ role_apache_dist.log }}/*_log {
     daily
     rotate 14
     copytruncate

@@ -1,0 +1,46 @@
+# {{ ansible_managed }}
+
+<IfModule php5_module>
+        Error "Both php?_module and php fcgi_module are defined.  Define only one of them."
+</IfModule>
+<IfModule php7_module>
+        Error "Both php?_module and php fcgi_module are defined.  Define only one of them."
+</IfModule>
+
+
+<IfModule mod_proxy_fcgi.c>
+        <Proxy "{{ apache_global_fcgi_url }}" enablereuse=on max={{ apache_global_fcgi_reuse_max }}>
+        </Proxy>
+
+        # Enable http authorization headers
+        <IfModule setenvif_module>
+                SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1
+        </IfModule>
+
+        <FilesMatch ".+\.ph(p[3457]?|ar|tml)$">
+                <If "-f %{REQUEST_FILENAME}">
+                        # Note: The only changeable part is : /path/to/app.sock
+                        SetHandler  "{{ apache_global_fcgi_handler_url }}"
+                </If>
+        </FilesMatch>
+
+        <FilesMatch ".+\.phps$">
+                # Deny access to raw php sources by default
+                # To re-enable it's recommended to enable access to the files
+                # only in specific virtual host or directory
+                Require all denied
+        </FilesMatch>
+
+        # mime extensions
+        AddType text/html php
+        <IfModule mod_mime.c>
+                AddHandler application/x-httpd-php .php .php5 .phtml
+                AddHandler application/x-httpd-php-source .phps
+        </IfModule>
+
+        # directory index
+        <IfModule dir_module>
+                DirectoryIndex index.htm index.html index.shtml index.php
+        </IfModule>
+</IfModule>
+
