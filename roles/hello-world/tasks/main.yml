@@ -1,0 +1,14 @@
+---
+
+
+- name: hello world | retrieve hostname
+  shell: "hostname"
+  register: task_hello
+
+- name: hello world | show hostname
+  debug: msg={{ task_hello.stdout }}
+
+- name: sleep
+  shell: "sleep 3s"
+  delegate_to: localhost
+
