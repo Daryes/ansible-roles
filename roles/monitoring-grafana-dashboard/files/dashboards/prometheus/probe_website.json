@@ -666,7 +666,7 @@
           "refId": "C"
         }
       ],
-      "title": "$remote_url_name : Connection duration per phase (from $geodc: $server)",
+      "title": "$remote_url_name : Connection duration per phase ($remote_url_target from $geodc: $server)",
       "type": "timeseries"
     }
   ],
