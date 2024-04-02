@@ -59,6 +59,16 @@ role_postgresql_install_packages:
     - "postgresql{{ postgresql_version_major }}-server"
 
 
+role_postgresql_remove_packages:
+  common: []
+  debian: []
+  redhat:
+    # this is not the counterpart for libpq-dev on debian
+    # also cause a conflict with pgsql.org repo thinking it has to install the full pgsql-devel suite
+    # might be fixed on rhel9 using 'postgresql-private-devel' instead
+    - "libpq-devel"
+
+
 role_postgresql_install_ppa:
 - name: postgresql-org
   apt_key_url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"

@@ -5,6 +5,7 @@
   vars:
     arg_install_comment: "PostgreSQL"
     arg_install_packages: "{{ role_postgresql_install_packages }}"
+    arg_remove_packages: "{{ role_postgresql_remove_packages }}"
     arg_install_ppa: "{{ role_postgresql_install_ppa }}"
     arg_install_yumrepo: "{{ role_postgresql_install_yumrepo }}"
 
