@@ -67,3 +67,10 @@ role_bind_install_packages:
     - "bind-utils"
     - "nmap-ncat"
 
+
+# list of templates using a secondary template for the SOA and automated serial
+# basename only, the list will be used in a regex after
+role_bind_templates_with_external_soa:
+  - "zone-template.db.j2"
+  - "reverse-template.db.j2"
+

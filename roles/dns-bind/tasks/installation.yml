@@ -30,9 +30,9 @@
   with_items:
     - { path: "{{ role_bind_dist.etc }}",             owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "{{ role_bind_dist.etc_mode }}" }
     - { path: "{{ role_bind_dist.etc }}/zones.d",     owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "{{ role_bind_dist.etc_mode }}" }
-    - { path: "{{ role_bind_dist.cache }}/data",      owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0750" }
+    - { path: "{{ role_bind_dist.cache }}/data",      owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0770" }
+    - { path: "{{ role_bind_dist.cache }}/dynamic",   owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0770" }
     - { path: "{{ role_bind_dist.cache }}/transfers", owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0750" }
-    - { path: "{{ role_bind_dist.cache }}/dynamic",   owner: "{{ role_bind_dist.user }}",  group: "{{ role_bind_dist.group }}",  mode: "0750" }
     - { path: "{{ role_bind_dist.log }}",             owner: "{{ role_bind_dist.log_user }}",  group: "{{ role_bind_dist.log_group }}",  mode: "{{ role_bind_dist.log_mode }}" }
 
 
@@ -51,7 +51,8 @@
   with_items:
     # the file is generated on installation - the owner is always root
     - { path: "{{ role_bind_dist.etc_rndc_key }}",  owner: "root", group: "{{ role_bind_dist.group }}" }
-  # only if the service is active
-  # the configuration is not yet complete on the first installation until the service is started
-  when: task_service_status_for_rndc.rc == 0
+  # the configuration is not yet complete on the first installation if the service is not already started
+  when: >
+   task_service_status_for_rndc.rc == 0
+   or ansible_os_family |lower == "debian"
 

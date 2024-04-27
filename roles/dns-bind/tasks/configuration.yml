@@ -45,21 +45,66 @@
 # notice: the usual 'item' variable is renamed to 'thisDnsZone' for readability as it is accessible inside the template
 - name: Bind DNS | config - install zones templates
   template:
-    src: "{{ thisDnsZone.zone_template }}"
-    dest: "{{ role_bind_dist.etc }}/zones.d/{{ var_dns_zone_name }}.{{ thisDnsZone.zone_type }}"
+    src: "{{ var_zone_template_src }}"
+    dest: "{{ var_zone_template_dst }}"
     owner: "root"
     group: "{{ role_bind_dist.group }}"
     mode: "{{ thisDnsZone.zone_template_mode |default('0644') }}"
     # validate the .db files with checkzone
+    # if having a missing file for the "$include" statement is not accepted anymore, remove the validate test and let the global test do the validation
     validate: "/bin/bash -c \"if [ '{{ thisDnsZone.zone_type }}' =='db' ]; then /usr/sbin/named-checkzone {{ var_dns_zone_name }} %s; fi\""
   with_items:
     - "{{ bind_zones_dns }}"
   vars:
     # remove any . at the end of the name
     var_dns_zone_name: "{{ thisDnsZone.name |regex_replace('\\.$', '') }}"
+    var_zone_template_src: "{{ thisDnsZone.zone_template }}"
+    var_zone_template_dst: "{{ role_bind_dist.etc }}/zones.d/{{ var_dns_zone_name }}.{{ thisDnsZone.zone_type }}"
   when: thisDnsZone.zone_type in [ 'zone', 'db', 'reverse' ]
   loop_control:
     loop_var: thisDnsZone
-    label: "{{ var_dns_zone_name }} => type: {{ thisDnsZone.zone_type }} => file: {{ thisDnsZone.zone_template }}"
+    label: "{{ var_dns_zone_name }} => type: {{ thisDnsZone.zone_type }} => file: {{ var_zone_template_src }}"
+  notify: ['validate bind config', 'reload bind' ]
+  register: task_zones_installed
+
+
+# Little trick : a registered variable from a loop contains also the inbound array under register_var.results.[x].item
+# So instead of comparing and filtering 2 arrays together, just filter out the registered variable to keep the items with changed=true and zone_type=db
+# And filter the templates to only those supporting the feature (role_bind_templates_with_external_soa)
+# Also using 'thisDnsZone' instead of 'item' due to the previous loop_control/loop_var setting.
+- name: Bind DNS | config - retrieve the updated zones for the automatic serial management
+  set_fact:
+    task_zones_for_soa: >-
+      {{ task_zones_installed.results
+         |selectattr( "changed", 'equalto', true )
+         |selectattr( "thisDnsZone.zone_type", 'defined' )
+         |selectattr( "thisDnsZone.zone_type", 'equalto', "db" )
+         |selectattr( "thisDnsZone.zone_template", 'regex', '(' + role_bind_templates_with_external_soa |join('|') + ')' )
+         |map( attribute='thisDnsZone', default=[] ) |select() |list
+      }}
+
+
+# Second loop same as the previous one, this time for the SOA templates
+# Remove the unused "when:" and "register:" then adjust both "var_zone_template_*:" and "with_items:"
+- name: "Bind DNS | config - install the SOA and serial templates for the zones (task is empty if no change occurred)"
+  template:
+    src: "{{ var_zone_template_src }}"
+    dest: "{{ var_zone_template_dst }}"
+    owner: "root"
+    group: "{{ role_bind_dist.group }}"
+    mode: "{{ thisDnsZone.zone_template_mode |default('0644') }}"
+    # validate the .db files with checkzone
+    # if having a missing file for the "$include" statement is not accepted anymore, remove the validate test and let the global test do the validation
+    validate: "/bin/bash -c \"if [ '{{ thisDnsZone.zone_type }}' =='db' ]; then /usr/sbin/named-checkzone {{ var_dns_zone_name }} %s; fi\""
+  with_items:
+    - "{{ task_zones_for_soa }}"
+  vars:
+    # remove any . at the end of the name
+    var_dns_zone_name: "{{ thisDnsZone.name |regex_replace('\\.$', '') }}"
+    var_zone_template_src: "{{ thisDnsZone.zone_template |replace('.j2', '.soa.j2') }}"
+    var_zone_template_dst: "{{ role_bind_dist.etc }}/zones.d/{{ var_dns_zone_name }}.{{ thisDnsZone.zone_type }}.soa"
+  loop_control:
+    loop_var: thisDnsZone
+    label: "{{ var_dns_zone_name }} => type: {{ thisDnsZone.zone_type }} => file: {{ var_zone_template_src }}"
   notify: ['validate bind config', 'reload bind' ]
 

@@ -51,7 +51,8 @@ Options are available to create an entry for each known server from the ansible'
 | - | Template file. Fixed value | zone_template: "templates/etc/named/zones.d/reverse-template.db.j2" | N/A |
 | - | Template zone type. Fixed value | zone_type: "db" | N/A |
 | - | Zone contact email address.<br />If none is defined, a fake one will be used | email: "string" | "nobody@nowhere.com" |
-| - | The version of the zone, must be updated after each change.<br />The value can be any number, as long as it is increased when a change is applied.<br />Suggestion : use the current date/time or the unix epoch time.<br />It is possible to keep the same value if the zone is not cached by other dns servers. | serial: number | mandatory |
+| - | Activate the automatic management of the zone serial, using the current time in epoch format, only when a zone change occured.<br />If used, the .serial property will be ignored. | serial_auto: boolean | yes |
+| - | The version of the zone, must be updated after each change.<br />The value can be any number, as long as it is increased when a change is applied.<br />Suggestion : use the current date/time or the unix epoch time.<br />It is possible to keep the same value if the zone is not cached by other dns servers. | serial: number | mandatory without serial_auto=yes |
 | - | time between refreshes for the zone, in seconds | refresh: number | 3600 |
 | - | max zone duration, in seconds<br />Default is 14 days | expire: number | 1209600 |
 | - | default ttl for the entries in the zone, in seconds | ttl: number | 600 |

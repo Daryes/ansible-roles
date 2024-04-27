@@ -1,0 +1,11 @@
+; {{ ansible_managed }}
+{# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
+
+; Zone authority - all times are in seconds
+@       IN      SOA     {{ thisDnsZone.ns |first |lower }}. {{ thisDnsZone.email |default('nobody@nowhere.com') |replace('@','.') }}.  (
+                {{ '%-13s'|format( thisDnsZone.serial_auto |default(true) |bool |ternary ( now(fmt='%s'), thisDnsZone.serial ) ) }} ; Serial (epoch or number)
+                {{ '%-13s'|format( thisDnsZone.refresh |default( 3600 ) ) }} ; Refresh time
+                {{ '%-13s'|format( (thisDnsZone.refresh |default( 3600 ) |int /2)|int ) }} ; Retry time
+                {{ '%-13s'|format( thisDnsZone.expire |default( 1209600 ) ) }} ; Expire time
+                {{ '%-13s'|format( (thisDnsZone.refresh |default( 3600 ) |int /2)|int ) }} ; Minimum / Negative Cache TTL
+)

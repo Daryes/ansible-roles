@@ -1,26 +1,23 @@
 ; {{ ansible_managed }}
 {# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
-{# Handle the possibility the .records_domain is empty or ends with a '.' which is not expected -#}
+{# Handle the possibility the .records_domain is empty or ends with a '.'  -#}
 {% set cleaned_records_domain = ( thisDnsZone.records_domain |default('') |length > 0 ) |ternary( thisDnsZone.records_domain |regex_replace('\\.$', '') + ".", '' ) %}
 ;
 ; WARNING: do not use # for comments, but ;
-; to validate the zone:  named-checkzone {{ thisDnsZone.name |regex_replace('\\.$', '') }}  {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.db
+; to validate the zone:  named-checkzone {{ thisDnsZone.name |regex_replace('\\.$', '') }}  {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.{{ thisDnsZone.zone_type }}
 ;
 
-; default ttl
+; Default ttl and origin
 $TTL 600
-; zone authority
 $ORIGIN {{ thisDnsZone.name |regex_replace('\\.$', '') }}.
-@       IN      SOA     {{ thisDnsZone.ns |first |lower }}. {{ thisDnsZone.email |default('nobody@nowhere.com') |replace('@','.') }}.  (
-                {{ thisDnsZone.serial }}	;	Serial
-                {{ thisDnsZone.refresh |default( 3600 ) }}	;	Refresh time
-                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Retry time
-                {{ thisDnsZone.expire |default( 1209600 ) }}	;	Expire time
-                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Minimum / Negative Cache TTL
-)
 
 
-; zone ns server
+; The SOA is separated for the serial management
+; A copy here of the other SOA settings is required to catch any change due to the split : {{ thisDnsZone.ns |first |lower }} / {{ thisDnsZone.email |default('') }} / {{ thisDnsZone.serial |default('') }} / {{ thisDnsZone.refresh |default('') }} / {{ thisDnsZone.refresh |default('') }} / {{ thisDnsZone.expire |default('') }} / {{ thisDnsZone.refresh |default('') }}
+$INCLUDE {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.{{ thisDnsZone.zone_type }}.soa
+
+
+; Zone ns server
 {% for loopNS in thisDnsZone.ns %}
 @                             IN      NS      {{ loopNS |lower }}.
 {% endfor %}
@@ -55,7 +52,7 @@ $ORIGIN {{ thisDnsZone.name |regex_replace('\\.$', '') }}.
 {% endfor %}
 
 {% if thisDnsZone.records_raw |default([]) | length > 0 %}
-; raw records
+; Raw records
 {%   for loopExtra in thisDnsZone.records_raw |flatten %}
 {{ loopExtra }}
 {%   endfor %}

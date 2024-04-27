@@ -2,37 +2,37 @@
 {# thisDnsZone is a variable from the dns-bind role, containing the informations of the current dns zone  -#}
 ;
 ; WARNING: do not use # for comments, but ;
-; to validate the zone:  named-checkzone {{ thisDnsZone.name }}  {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name }}.db
+; to validate the zone:  named-checkzone {{ thisDnsZone.name |regex_replace('\\.$', '') }}  {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.db
+;
+
 ;
 ; Notice: CNAME used in NS/MX record is illegal
 
-; default ttl
+; Default ttl and origin
 $TTL 600
-; zone authority
 $ORIGIN {{ thisDnsZone.name }}.
-@       IN      SOA     {{ thisDnsZone.ns |first |lower }}. {{ thisDnsZone.email |default('nobody@nowhere.com') |replace('@','.') }}.  (
-                {{ thisDnsZone.serial }}	;	Serial
-                {{ thisDnsZone.refresh |default( 3600 ) }}	;	Refresh time
-                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Retry time
-                {{ thisDnsZone.expire |default( 1209600 ) }}	;	Expire time
-                {{ (thisDnsZone.refresh |default( 3600 ) |int /2)|int }}	;	Minimum / Negative Cache TTL
-)
 
 
-; zone ns server
+; The SOA is separated for the serial management
+; A copy here of the other SOA settings is required to catch any change due to the split : {{ thisDnsZone.ns |first |lower }} / {{ thisDnsZone.email |default('') }} / {{ thisDnsZone.serial |default('') }} / {{ thisDnsZone.refresh |default('') }} / {{ thisDnsZone.refresh |default('') }} / {{ thisDnsZone.expire |default('') }} / {{ thisDnsZone.refresh |default('') }}
+$INCLUDE {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\.$', '') }}.{{ thisDnsZone.zone_type }}.soa
+
+
+; Zone ns server
 {% for loopNS in thisDnsZone.ns |flatten %}
 @                             IN      NS      {{ loopNS |lower }}.
 {% endfor %}
 
+
 {% if thisDnsZone.mx |default([]) | length > 0 %}
-; zone mx server
+; Zone mx server
 {%   for loopMX in thisDnsZone.mx |flatten %}
 @                             IN      MX      {{ loopMX |lower }}.
 {%   endfor %}
 
 {% endif %}
 
-; ansible inventory records
+; Ansible inventory records
 {% if thisDnsZone.records_inventory |default(True) |bool %}
 {#   # skip localhost/127.0.0.1 which are duplicates and those without the [ansible_facts] data  #}
 {%   for loopHost in hostvars|sort   if loopHost not in ['127.0.0.1','::1','localhost']  %}
@@ -80,7 +80,7 @@ $ORIGIN {{ thisDnsZone.name }}.
 {%  endif %}
 
 {% if thisDnsZone.records_raw |default([]) | length > 0 %}
-; raw records
+; Raw records
 {%   for loopExtra in thisDnsZone.records_raw |flatten %}
 {{ loopExtra }}
 {%   endfor %}
