@@ -1,6 +1,5 @@
 ---
 
-
 # import the package install role
 - name: Chrony NTP service | system - install packages
   include_role: name=_include-pkg_install
@@ -29,13 +28,17 @@
     mode: "0640"
   with_items:
     - "{{ role_chrony_dist.config }}"
-  register: task_chrony_config
+  notify: chrony stop
 
 
-- name: Chrony NTP service | system - restart the service on config change
+# force the notify handlers to execute now
+- meta: flush_handlers
+
+
+- name: Chrony NTP service | enable and start the service
   service:
     name: "{{ role_chrony_dist.service }}"
-    state: restarted
-  when: task_chrony_config is changed
+    state: started
+    enabled: yes
   become: yes
 

@@ -5,6 +5,7 @@
   become: yes
 
 
+# order is not really important with daemon-reload
 - name: timesyncd stop
   service:
     name: "systemd-timesyncd"
@@ -12,3 +13,8 @@
   become: yes
   failed_when: false
 
+
+- name: chrony stop
+  service:
+    name: "{{ role_chrony_dist.service }}"
+    state: stopped
