@@ -63,7 +63,6 @@ With no parameters, the role will skip the target server.
 | - | LVM vg name, must be unique on the host and follow the documentation in lvm(8)/valid names  | lvm_vgname: "string" | mandatory |
 | - | LVM lv name, same as lvm_vgname | lvm_lvname: "string" | mandatory |
 
-Regarding 
 
 ## Usage examples
 

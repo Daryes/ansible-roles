@@ -618,6 +618,18 @@
           }
         },
         {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": false,
+                "field": "Uptime"
+              }
+            ]
+          }
+        },
+        {
           "id": "limit",
           "options": {
             "limitField": 7

@@ -48,7 +48,7 @@ Docker and docker-compose must be already installed on the target hosts.
 | --------- | ----------- | ---- | ------------- |
 | arg_compose_env_template | Path to the ".env" template file. The name will be reused.<br />The name can differ from ".env", an extra ".env" symlink will be created. | "string" | "" |
 | arg_compose_conf_sensitive | Set to yes to have both the _env_template and _conf_extra set as sensitive, this will limit the ansible log output | boolean | no |
-| arg_compose_force_pull_always | force an image pull on each run, instead of only when one of the configuration file is updated.<br />Notice: to have this feature working as intented, the image tag must also be set to a generic tag, like "latest" | boolean | no |
+| arg_compose_force_pull_always | force an image pull on each run, instead of only when one of the configuration file is updated.<br />Notice: to have this feature working as intented, the image tag must also be set to a generic tag, like "latest" or "10" instead of "10.5.1" | boolean | no |
 | arg_compose_force_pull_on_change | Same as _force_pull_always, but only when a configuration change occurs, and it will update all the images.<br />If set to no, the image will be pulled only when docker itself decides to do it. | boolean | yes |
 | arg_compose_force_stop_on_change | The standard behavior is to only execute a "compose up -d".<br />Set this to "yes" to have a "compose down" first when configuration files from  _env_template and _conf_extra are updated | boolean | no |
 | arg_compose_up_execute | set to "no" to skip the "docker-compose up -d" execution.<br />If skipped, the calling role will have to start the container itself | boolean | yes |
