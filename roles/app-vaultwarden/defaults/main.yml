@@ -12,6 +12,10 @@ vaultwarden_install_dir: "/opt/vaultwarden"
 vaultwarden_use_compose_service: no
 
 
+# output the logs to syslog
+vaultwarden_logging_driver_syslog: no
+
+
 # external domain url, format: https://domain.dns
 vaultwarden_domain_url: "https://unknown.nowhere.tld"
 

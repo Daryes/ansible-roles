@@ -5,17 +5,25 @@ services:
   vaultwarden:
     image: vaultwarden/server:${VAULTWARDEN_VERSION}
     container_name: vaultwarden-server
-    restart: unless-stopped
+    restart: on-failure:5
     env_file:
       - ".env"
     ports:
       - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:80"
       - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT_WS}:3012"
     volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
       - ./data/vaultwarden:/data
       - ./log:/log
     networks:
       - vaultwarden
+{% if vaultwarden_logging_driver_syslog |bool %}
+    logging:
+      driver: syslog
+      options:
+        {% raw %}tag: docker-{{.Name}}{% endraw %}
+{% endif %}
 {% if vaultwarden_db == "psql" %}
     depends_on:
       - vaultwarden-db
@@ -28,9 +36,17 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
       - ./data/db:/var/lib/postgresql/data
     networks:
       - vaultwarden
+{%   if vaultwarden_logging_driver_syslog |bool %}
+    logging:
+      driver: syslog
+      options:
+        {% raw %}tag: docker-{{.Name}}{% endraw %}
+{%   endif %}
 {% endif %}
 
 
