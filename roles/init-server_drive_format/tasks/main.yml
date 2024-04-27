@@ -64,7 +64,7 @@
     gather_subset: [ "hardware" ]
   when: >
     task_lvm_bin.stat.exists
-    or  task_rescan_scsi_bin.stat.exists
+    or task_rescan_scsi_bin.stat.exists
 
 
 # create a new variable containing the real drive name under the property "device_name_real"
@@ -89,6 +89,7 @@
   with_items: "{{ system_drives_initialize }}"
   loop_control:
     label: "device_name: {{ item.device_name }}, drive_id: {{ item.device_id |default('Not defined')  }}, device_name_real: {{ var_drive_name }}"
+  # could do a comparison but it will generate a changed state while the drive could already be formated
   changed_when: false
 
 
@@ -122,7 +123,7 @@
   # hide the drive letter which is not used here
   loop_control:
     label: "mount_point: {{ item.mount_point }}, lvm: {{ var_lvm_name_final }},  fs_type: {{ item.fstype }}"
-  # dict2items will transform .lvs to this structure : { key: "lv name", value: { vg: "vg name", ... } }
+  # dict2items will transform .lvs to this structure usable by json_query : { key: "lv name", value: { vg: "vg name", ... } }
   # json_query will search for any entry with both value.vg="vg name" and key="lv name"
   when: ansible_lvm.lvs | dict2items |json_query( '[?value.vg == `' + item.lvm_vgname + '` && key == `' + item.lvm_lvname + '` ]' ) |list | length > 0
 

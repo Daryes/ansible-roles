@@ -11,3 +11,10 @@ role_hdd_format_pkg:
   redhat:
     - "system-storage-manager"
 
+
+role_filesystem_opts:
+  # support partitions 16Gb+ - blocksize has already an automatic detection
+  ext4: "-O 64bit"
+  # xfs has a tendency to fall back to the drive block size when used for lvm partitions
+  xfs: "-b {{ system_drives_block_size_default }}"
+

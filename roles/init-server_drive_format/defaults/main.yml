@@ -21,3 +21,9 @@ system_drives_initialize: []
 #   lvm_vgname: "vg{{ inventory_hostname |regex_replace('[_-]|\\..*','') }}"
 #   lvm_lvname: "lvdata"
 
+
+# default memory page size (used as block size for xfs & ext4)
+# TODO: find a way to retrieve automatically the system page size
+# ref: grep -m 1  -i PageSize /proc/1/smaps |cut -d ':' -f2  => |trim  |human_to_bytes
+system_drives_block_size_default: 4096
+
