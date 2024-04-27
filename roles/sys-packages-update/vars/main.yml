@@ -7,6 +7,11 @@ role_supported_modes:
   - "full-with-kernel"
 
 
+# modes always loaded for running the reboot check
+role_supported_modes_force_update_for_reboot:
+  - "full-with-kernel"
+
+
 # required packages
 role_pkg_install_reqs:
   common: []

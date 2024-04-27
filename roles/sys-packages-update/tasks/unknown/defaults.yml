@@ -1,0 +1,8 @@
+---
+
+- name: System Update | unsupported system
+  fail:
+    msg: "The family '{{ ansible_os_family|lower }}' for this system is not managed by this role"
+  # allow to continue
+  ignore_errors: yes
+

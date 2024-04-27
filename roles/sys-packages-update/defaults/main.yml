@@ -18,6 +18,16 @@ system_package_update_reboot: yes
 system_package_update_reboot_timeout: 600
 
 
+# target email address for the notifications on system reboot - disabled if empty
+# For debian-type systems only and the 'reboot-notifier' package is required
+system_package_update_reboot_notifier_email: ""
+
+
+# number of host on update and reboot task - this cannot exceed the process fork value in ansible.cfg (or command line)
+system_package_update_task_throttle: 8
+system_package_update_reboot_throttle: "{{ system_package_update_task_throttle }}"
+
+
 # host list to never reboot
 # the ansible server (or a group) must be present, otherwise the role will fail
 # syntax:

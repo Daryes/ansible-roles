@@ -1,12 +1,33 @@
 ---
 
-- name: System Update | APT | cache - refresh
-  apt: update_cache=yes
+- name: "System Update | APT | update-manager - verify update-manager presence (Ubuntu only)"
+  stat: path=/etc/update-manager/release-upgrades   get_checksum=no get_mime=no
+  register: task_ubuntu_update_mgr
+
+
+- name: "System Update | APT | update-manager - disable upgrade to next LTS release (Ubuntu only)"
+  lineinfile:
+    dest: /etc/update-manager/release-upgrades
+    state: present
+    regexp: '^Prompt *=.*'
+    line: "Prompt=never"
+  when: >
+    task_ubuntu_update_mgr.stat.exists
+    and system_package_update_ubuntu_disable_upgrade_next_lts |bool
+
+
+# apt uses "update" instead of "makecache" to update the cache
+- name: System Update | APT | cache - forced refresh
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get update"
+  args:
+    warn: false
+  changed_when: false
   become: yes
+  throttle: "{{ system_package_update_task_throttle }}"
 
 
 # not using apt-check which has been removed on Debian
-# alternative: apt -o 'Apt::Cmd::Disable-Script-Warning=true' list --upgradeable --quiet=2
+# other alternative: apt -o 'Apt::Cmd::Disable-Script-Warning=true' list --upgradeable --quiet=2
 - name: System Update | APT | check if updates are available
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get dist-upgrade --simulate --quiet=2"
   args:
@@ -24,6 +45,6 @@
   with_items:
     - { mode: "{{ system_package_update_mode }}", available_updates: "{{ task_update_available is changed |ternary('yes', 'none') }}" }
   when: >
-    system_package_update_mode in role_supported_modes
-    and task_update_available is changed
+    task_update_available is changed
+    or system_package_update_mode in role_supported_modes_force_update_for_reboot
 

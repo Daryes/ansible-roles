@@ -4,6 +4,8 @@
   shell: "{{ ansible_pkg_mgr }} autoremove -y"
   args:
     warn: false
+  register: task_autoremove_status
+  changed_when: "'nothing to' not in task_autoremove_status.stdout|lower"
   become: true
 
 
@@ -14,6 +16,7 @@
   args:
     warn: false
   become: true
+  throttle: "{{ system_package_update_task_throttle }}"
 
 
 - name: System Update | YUM | full update with kernel - verify if reboot is required
@@ -22,8 +25,8 @@
     warn: false
   become: true
   register: task_reboot_required
-  changed_when: task_reboot_required.stdout |length > 0
-  # on some versions using "-r" always has rc=1 even if a reboot is not required
+  # on some versions using "-r" always has rc=1 even if a reboot is not required but the stdout will be empty
+  changed_when: task_reboot_required.rc == 1 and task_reboot_required.stdout |length > 0
   failed_when: task_reboot_required.rc > 1
   notify: reboot on update
 

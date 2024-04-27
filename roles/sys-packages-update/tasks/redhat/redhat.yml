@@ -1,8 +1,13 @@
 ---
 
+# the yum module does not support python3 and the dnf module will fail on older systems => use the cmd line
 - name: System Update | YUM | cache - refresh
-  yum: update_cache=yes
+  shell: "{{ ansible_pkg_mgr }} makecache"
+  args:
+    warn: false
+  changed_when: false
   become: yes
+  throttle: "{{ system_package_update_task_throttle }}"
 
 
 # check-update will return rc=100 when updates are available
@@ -24,6 +29,6 @@
   with_items:
     - { mode: "{{ system_package_update_mode }}", available_updates: "{{ task_update_available is changed |ternary('yes', 'none') }}" }
   when: >
-    system_package_update_mode in role_supported_modes
-    and task_update_available is changed
+    task_update_available is changed
+    or system_package_update_mode in role_supported_modes_force_update_for_reboot
 
