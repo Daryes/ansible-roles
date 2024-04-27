@@ -89,7 +89,6 @@
     - { line: "IncludeOptional conf.d/*.conf",          state: "absent" }
 
 
-
 - name: webserver apache | config - RHEL enhancement - utilities
   copy:
     src: "templates/{{ item.src }}"

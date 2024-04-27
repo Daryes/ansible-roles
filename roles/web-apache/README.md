@@ -82,6 +82,17 @@ None.
 | apache_global_fcgi_handler_url | fcgi handler allowing to specify a socket or the remote url | "string" | "proxy:unix:/run/php/php-fpm.sock|fcgi://localhost" |
 
 
+To activate the fcgi module and make use of the custom configuration (globaly), the following parameters must be set in the inventory :
+```
+apache_global_extra_config: [ 'templates/etc/apache2/conf-available/conf_mod_fcgi_php-fpm.conf.j2' ]
+
+apache_global_modules_activate:
+  - 'proxy'
+  - 'proxy_fcgi'
+  (...)
+```
+
+
 **Module: MPM Event**  
 
 Reference : https://httpd.apache.org/docs/current/mod/mpm_common.html  
