@@ -1,0 +1,21 @@
+# {{ ansible_managed }}
+
+# cAdvisor uses a "v" as a prefix in the image tag versionning
+IMAGE_VERSION=v{{ cadvisor_version }}
+
+DOCKER_HOST_IP={{ cadvisor_host_listen_ip }}
+DOCKER_HOST_PORT={{ cadvisor_host_listen_port }}
+
+DOCKER_VAR_LIB={{ docker_data_dir }}
+
+# extra parameters to cAdvisor
+# ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md
+IMAGE_CMD=--store_container_labels={{ cadvisor_params_store_container_labels |bool |lower }} {{ cadvisor_extra_parameters }} {{ cadvisor_extra_parameters_disable_metrics }} {{ role_parameters_storage_driver }}
+
+# SSL certificate if used
+DOCKER_HOST_SSL_CERT_PEM={{ cadvisor_ssl_cert_pem }}
+DOCKER_HOST_SSL_CERT_KEY={{ cadvisor_ssl_cert_key }}
+
+# internal container port for the reverse proxy to map to DOCKER_HOST_PORT
+DOCKER_REVERSE_PROXY_PORT={{ ( cadvisor_ssl_cert_key |length > 0 ) |ternary( '443', '80' ) }}
+

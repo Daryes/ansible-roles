@@ -1,0 +1,21 @@
+---
+
+role_parameters_storage_driver_selection:
+  influxdb: >-
+    --storage_driver=influxdb
+    --storage_driver_host="{{ cadvisor_storage_driver_influxdb_host_port }}"
+    --storage_driver_secure="{{ cadvisor_storage_driver_influxdb_secure |bool |string | lower }}"
+    --storage_driver_db="{{ cadvisor_storage_driver_influxdb_db }}"
+    --storage_driver_user="{{ cadvisor_storage_driver_influxdb_user }}"
+    --storage_driver_password="{{ cadvisor_storage_driver_influxdb_password }}"
+    --storage_driver_buffer_duration="{{ cadvisor_storage_driver_influxdb_polling }}"
+    --storage_driver_influxdb_retention_policy="{{ cadvisor_storage_driver_influxdb_retention_policy }}"
+
+  #" # prometheus is enabled as default
+  # notice: basic_auth is borked and ssl it not supported (https://github.com/google/cadvisor/issues/2539)
+  prometheus: '--storage_driver="" --prometheus_endpoint="{{ cadvisor_storage_driver_prometheus_endpoint }}"'
+
+
+# storage driver final settings
+role_parameters_storage_driver: "{{ role_parameters_storage_driver_selection[ cadvisor_storage_driver ] |default( '' ) }}"
+

@@ -10,17 +10,60 @@ cadvisor_compose_dir: "/opt/cadvisor"
 
 
 # cadvisor external listen IP and port
-# if a monitoring system like prometheus is used without a reverse proxy for cadvisor, _listen_ip should be set to "0.0.0.0"
+# if driver="prometheus" =>  _listen_ip should be set to "0.0.0.0"
+# if driver="influxdb" then cadviser will push itself the metric and _listen_ip should be left to localhost
 cadvisor_host_listen_ip: "127.0.0.1"
 cadvisor_host_listen_port: "9135"
+
+
+# notice: _auth_basic & _ssl_cert will only activate for the "prometheus" driver
+# Activate basic auth usage to access the multiple exporters
+# Password is crypted with bcrypt
+# ref: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+cadvisor_auth_basic: no
+cadvisor_auth_basic_user: ""
+cadvisor_auth_basic_pass_crypted: ""
+
+
+# notice: _auth_basic & _ssl_cert will only activate for the "prometheus" driver
+# Activate https by specifying the ssl certificate to use
+# Fill with the full path to the .pem|crt and .key files
+cadvisor_ssl_cert_pem: ""
+cadvisor_ssl_cert_key: ""
+
+
+# 2 drivers supported : "prometheus" or "influxdb"
+cadvisor_storage_driver: "prometheus"
+
+
+# context root for the metrics endpoint
+cadvisor_storage_driver_prometheus_endpoint: "/metrics"
+
+
+# ip and port to the influxdb server
+cadvisor_storage_driver_influxdb_host_port: "10.11.12.13:8086"
+# set to yes to use a https connection
+cadvisor_storage_driver_influxdb_secure: no
+cadvisor_storage_driver_influxdb_db: "cadvisor"
+cadvisor_storage_driver_influxdb_user: ""
+cadvisor_storage_driver_influxdb_password: ""
+# retention policy - if left empty, will use the default retention
+cadvisor_storage_driver_influxdb_retention_policy: ""
+# time between each push to the driver backend
+cadvisor_storage_driver_influxdb_polling: "60s"
 
 
 # cadvisor extra parameters
 # ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md
 # Notice: "--store_container_labels=false" is already activated
 # Notice 2 : accelerator is not supported anymore since 2024
-cadvisor_extra_parameters: "--docker_only=true --housekeeping_interval=30s --disable_metrics=percpu,sched,tcp,udp,disk,diskIO,hugetlb,referenced_memory,cpu_topology,resctrl"
+cadvisor_extra_parameters: "--docker_only=true --housekeeping_interval=30s --storage_duration=5m0s"
+cadvisor_extra_parameters_disable_metrics: "--disable_metrics=percpu,sched,tcp,udp,disk,diskIO,hugetlb,referenced_memory,cpu_topology,resctrl"
 
+# notice : don't look for ssl => https://github.com/google/cadvisor/issues/2539
+
+
+cadvisor_params_store_container_labels: false
 
 # docker data dir in case it has been moved
 docker_data_dir: "/var/lib/docker"

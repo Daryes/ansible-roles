@@ -1,0 +1,32 @@
+# {{ ansible_managed }}
+
+{
+    # disable automatic certs management
+    auto_https off
+}
+
+:80 {
+{% if cadvisor_ssl_cert_key |length > 0 %}
+    handle {
+        # https redirect
+        redir https://{host}{uri} 307
+    }
+}
+
+:443 {
+    tls /etc/ssl/cert.pem /etc/ssl/cert.key {
+        # tls versions: minimum maximum(optional)
+        protocols tls1.2
+    }
+{% endif %}
+
+    encode zstd gzip
+
+{% if cadvisor_auth_basic |bool %}
+    basicauth {
+        {{ cadvisor_auth_basic_user }} {{ cadvisor_auth_basic_pass_crypted |b64encode }}
+    }
+{% endif %}
+
+    reverse_proxy http://cadvisor:8080
+}

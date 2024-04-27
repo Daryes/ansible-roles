@@ -1,0 +1,63 @@
+# {{ ansible_managed }}
+# ref: https://github.com/google/cadvisor
+# ref: https://prometheus.io/docs/guides/cadvisor/
+version: '3.2'
+
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:${IMAGE_VERSION}
+    container_name: cadvisor
+    # TODO: drop the privileged=true - requires 'devices: - "/dev/kmsg"'
+    privileged: true
+    command: "${IMAGE_CMD}"
+    restart: on-failure:10
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - ${DOCKER_VAR_LIB}:/var/lib/docker:ro
+{% if cadvisor_storage_driver != "prometheus" %}
+    ports:
+      - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:8080"
+{% endif %}
+{% if cadvisor_logging_driver_syslog |bool %}
+    logging:
+      driver: syslog
+      options:
+        {% raw %}tag: docker-{{.Name}}{% endraw %}
+{% endif %}
+    networks:
+      - cadvisor
+
+
+{% if cadvisor_storage_driver == "prometheus" %}
+  reverse:
+    image: caddy:latest
+    container_name: cadvisor_reverse
+    restart: on-failure:10
+    ports:
+      - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:${DOCKER_REVERSE_PROXY_PORT}"
+    volumes:
+      - ./conf/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+{%   if cadvisor_ssl_cert_key |length > 0 %}
+      - ${DOCKER_HOST_SSL_CERT_PEM}:/etc/ssl/cert.pem:ro
+      - ${DOCKER_HOST_SSL_CERT_KEY}:/etc/ssl/cert.key:ro
+{%   endif %}
+{%   if cadvisor_logging_driver_syslog |bool %}
+    logging:
+      driver: syslog
+      options:
+        {% raw %}tag: docker-{{.Name}}{% endraw %}
+{%   endif %}
+    networks:
+      - cadvisor
+
+{% endif %}
+
+networks:
+  cadvisor:
+
