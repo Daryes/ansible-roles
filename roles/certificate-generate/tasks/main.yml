@@ -4,12 +4,13 @@
   assert:
     that:
       - local_ca_type in [ 'variable', 'file' ]
+      - server_certificate_subject_name |length > 0
     fail_msg: "Error: local_ca_type does not have a supported value"
     quiet: yes
 
 
 - name: Certificate Generate | verify the certificate presence
-  stat: path={{ role_server_certificate_path }}  get_checksum=no  get_mime=no
+  stat: path={{ role_server_certificate_pem_path }}  get_checksum=no  get_mime=no
   register: task_cert_file_stat
   changed_when: not task_cert_file_stat.stat.exists
   become: yes
@@ -19,7 +20,7 @@
 # => read the content with slurp, and use it on the _cert_info module
 - name: Certificate Generate | retrieve the public certificate
   slurp:
-    path: "{{ role_server_certificate_path }}"
+    path: "{{ role_server_certificate_pem_path }}"
   when: task_cert_file_stat.stat.exists
   register: task_cert_data
   become: yes
@@ -65,20 +66,20 @@
 # using splitext returns a filename in 2 elements: [ filename_without_ext, ext]
 - name: Certificate Generate | create combined pem
   assemble:
-    src: "{{ role_server_certificate_path |dirname }}/"
+    src: "{{ role_server_certificate_storage_path }}/"
     dest: "{{ role_server_certificate_combined_path }}"
-    regexp: "^{{ role_server_certificate_path |basename |splitext |first }}.(pem|key)$"
+    regexp: "^{{ role_server_certificate_pem_path |basename |splitext |first }}.(pem|key)$"
   become: yes
 
 
 - name: Certificate Generate | enforce owner and permissions
   file:
     path: "{{ item }}"
-    mode: "0600"
+    mode: "0640"
     owner: "{{ server_certificate_owner }}"
     group: "{{ server_certificate_group |default(server_certificate_owner, true) }}"
   with_items:
-    - "{{ role_server_certificate_path }}"
+    - "{{ role_server_certificate_pem_path }}"
     - "{{ role_server_certificate_privatekey_path }}"
     - "{{ role_server_certificate_combined_path }}"
   become: yes
@@ -102,3 +103,4 @@
     cacheable: yes
   # task_status is registered in the included subtask
   changed_when: task_status is defined and task_status is changed
+

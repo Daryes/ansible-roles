@@ -48,7 +48,7 @@
 
   - name: Certificate Generate | OpenSSL - Signed certificate local generation
     community.crypto.x509_certificate:
-      path: "{{ role_cache_dir }}/{{ role_server_certificate_path | basename }}"
+      path: "{{ role_cache_dir }}/{{ role_server_certificate_pem_path | basename }}"
       csr_path: "{{ role_cache_dir }}/{{ role_server_certificate_csr_path | basename }}"
       provider: ownca
       force: "{{ server_certificate_force_replacement |bool }}"
@@ -70,7 +70,7 @@
 
   - name: Certificate Generate | OpenSSL - Insert the CA certificate pem as a chain
     blockinfile:
-      path: "{{ role_cache_dir }}/{{ role_server_certificate_path | basename }}"
+      path: "{{ role_cache_dir }}/{{ role_server_certificate_pem_path | basename }}"
       # lookup('file') is executed outside the task and does not benefit of become=yes => use lookup(pipe) + sudo instead
       block: "{{ lookup('pipe' , 'sudo cat ' + local_ca_path) if local_ca_type == 'file' else local_ca_content }}"
       insertafter: "EOF"
@@ -94,7 +94,7 @@
     owner: "{{ server_certificate_owner }}"
     group: "{{ server_certificate_group |default(server_certificate_owner, true) }}"
   with_items:
-    - "{{ role_server_certificate_path | dirname }}"
+    - "{{ role_server_certificate_storage_path }}"
   become: yes
 
 
@@ -104,9 +104,9 @@
     dest: "{{ item.dest }}"
     owner: "{{ server_certificate_owner }}"
     group: "{{ server_certificate_group |default(server_certificate_owner, true) }}"
-    mode: "0600"
+    mode: "0640"
   with_items:
-    - { src: "{{ role_cache_dir }}/{{ role_server_certificate_path |basename }}",  dest: "{{ role_server_certificate_path }}" }
+    - { src: "{{ role_cache_dir }}/{{ role_server_certificate_pem_path |basename }}",  dest: "{{ role_server_certificate_pem_path }}" }
     - { src: "{{ role_cache_dir }}/{{ role_server_certificate_privatekey_path |basename }}",  dest: "{{ role_server_certificate_privatekey_path }}"}
   register: task_status
   become: yes

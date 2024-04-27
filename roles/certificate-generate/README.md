@@ -44,6 +44,7 @@ Notice: the python cryptography library must be installed server-wide
 
 None.
 
+
 ### Optional parameters
 
 #### SSL certificate public variables
@@ -52,17 +53,21 @@ These settings are related to the public certificate usage and expiration.
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
-| server_certificate_dir | directory storing the certificate on the server | "string" | "/etc/ssl/private" |
+| server_certificate_dir | root directory for storing the certificates on the server | "string" | "/etc/ssl/private" |
 | server_certificate_owner | system user that will be given ownership of the certificates.<br />Usually, root | "string" | "root" |
 | server_certificate_group | system group getting ownership.<br />If empty, it will reuse `server_certificate_owner` value | "string" | "root" |
 | server_certificate_validity_duration | Number of day the certificate will be valid - format: "+????d"<br />Currently, a validity exceeding 1 year might not be accepted | "string" | "+365d" |
-| server_certificate_subject_name | Certificate subject, usually the requested domain name without wildcards or the server name.<br />It will also be used for the filename | "string" | "subject.example.tld" |
-| server_certificate_alt_name | Subject Alt Name, or SAN. This is the multiples names (with wildcards) the certificate will answer to.<br />The "DNS:" prefix must be present in front of each entry<br />Ex:<br />`- "DNS:{{ server_certificate_subject_name }}"`<br />`- "DNS:*.{{ server_certificate_subject_name }}"`<br />`- "DNS:subject-alt.example.tld"`<br />`- "DNS:*.subject-alt.example.tld"` | list[ "string" ] | [ ] |
+| server_certificate_subject_name | Certificate subject, usually the requested domain name without wildcards or the server name.<br />It will also be used for the filenames | "string" | "subject.example.tld" |
+| server_certificate_alt_name | Subject Alt Name, or SAN. This is the multiples names (with wildcards) the certificate will answer to.<br />The "DNS:" prefix must be present in front of each entry<br />Example:<br />`- "DNS:{{ server_certificate_subject_name }}"`<br />`- "DNS:*.{{ server_certificate_subject_name }}"`<br />`- "DNS:subject-alt.example.tld"`<br />`- "DNS:*.subject-alt.example.tld"` | list[ "string" ] | [ ] |
 | server_certificate_chain_add_ca_public_cert | Insert the local_ca public certificate in the server public certificate.<br />Usually required if the CA is an intermediate CA | boolean | no |
 | server_certificate_force_replacement | Force the recreation of the certificate even if it is still valid | boolean | no |
 | | | | |
 | server_certificate_delete_certs_in_ansible_cache | Set to yes to purge the certificates in the ansible cache when finished.<br />Any certificate renewal will also get a new private key | boolean | no |
 | ansible_cache_root_dir | Full path for the cache directory used to store the certificates on the ansible controller.<br />It will be created if missing. | "string" | "/opt/ansible/cache" |
+
+
+Each certificate files and private key will be stored on the servers under : `< server_certificate_dir >/< subject name >/`  
+So be carefull with the subject name to avoid duplicate, unless to replace an unused one.
 
 
 #### SSL private key variables
@@ -73,7 +78,6 @@ Ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/openss
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
-| server_certificate_privatekey_dir | Directory storing the private key on the server<br />Usually the same as `server_certificate_dir` | "string" | "{{ server_certificate_dir }}" |
 | server_certificate_privatekey_passphrase | private key passphrase - can be empty if required.<br />If set, the passphrase will be requested by the webserver at each launch | "string" | "" |
 | server_certificate_privatekey_type | Private key type - carefull to the upper/lower case<br />Ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/openssl_privatekey_module.html#parameter-type | "string" | "RSA" |
 | server_certificate_privatekey_size | Key size, in bits | numeric | 4096 |
@@ -132,8 +136,6 @@ The following role's settings are to be used either in a playbook, or set in Ans
     server_certificate_digest: "sha512"
 
     # Server variables for the private key
-    server_certificate_dir: "/etc/ssl/private"
-    server_certificate_privatekey_dir: "{{ server_certificate_dir }}"
     # no passphrase on purpose
     server_certificate_privatekey_passphrase: ""
     server_certificate_privatekey_type: "RSA"

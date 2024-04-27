@@ -3,11 +3,12 @@
 # local cache
 role_cache_dir: "{{ ansible_cache_root_dir }}/{{ role_name |basename }}"
 
-
-role_server_certificate_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}.pem"
-role_server_certificate_csr_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}.csr"
-role_server_certificate_privatekey_path: "{{ server_certificate_privatekey_dir }}/{{ server_certificate_subject_name }}.key"
-role_server_certificate_combined_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}.combined.pem"
+role_server_certificate_storage_path: "{{ server_certificate_dir }}/{{ server_certificate_subject_name }}"
+role_server_certificate_pem_path: "{{ role_server_certificate_storage_path }}/{{ server_certificate_subject_name }}.pem"
+role_server_certificate_csr_path: "{{ role_server_certificate_storage_path }}/{{ server_certificate_subject_name }}.csr"
+role_server_certificate_combined_path: "{{ role_server_certificate_storage_path }}/{{ server_certificate_subject_name }}.combined.pem"
+# allow a possible different location for the key
+role_server_certificate_privatekey_path: "{{ server_certificate_privatekey_dir }}/{{ server_certificate_subject_name }}/{{ server_certificate_subject_name }}.key"
 
 
 # required to access the /etc/ssl/private directory
