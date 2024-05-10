@@ -10,7 +10,7 @@ DOCKER_VAR_LIB={{ docker_data_dir }}
 
 # extra parameters to cAdvisor
 # ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md
-IMAGE_CMD=--store_container_labels={{ cadvisor_params_store_container_labels |bool |lower }} {{ cadvisor_extra_parameters }} {{ cadvisor_extra_parameters_disable_metrics }} {{ role_parameters_storage_driver }}
+IMAGE_CMD=--store_container_labels={{ cadvisor_params_store_container_labels |bool |lower }} --whitelisted_container_labels="{{ cadvisor_params_whitelisted_container_labels }}" {{ cadvisor_extra_parameters }} {{ cadvisor_extra_parameters_disable_metrics }} {{ role_parameters_storage_driver }}
 
 # SSL certificate if used
 DOCKER_HOST_SSL_CERT_PEM={{ cadvisor_ssl_cert_pem }}

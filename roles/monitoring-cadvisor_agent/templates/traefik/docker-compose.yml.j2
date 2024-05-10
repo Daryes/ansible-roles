@@ -21,6 +21,17 @@ services:
 {% if cadvisor_storage_driver != "prometheus" %}
     ports:
       - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:8080"
+{% else %}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.rule=HostRegexp(`{host:.+}`) && PathPrefix(`{{ cadvisor_storage_driver_prometheus_endpoint }}`)"
+      - "traefik.http.routers.cadvisor.entrypoints={{ ( cadvisor_ssl_cert_key |length > 0 ) |ternary( 'websecure', 'web' ) }}"
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+{%   if cadvisor_auth_basic |bool %}
+      - "traefik.http.routers.cadvisor.middlewares=prometheus-auth"
+      # moddlewares cannot be declared in the main config but ony in labels/dynamic
+      - "traefik.http.middlewares.prometheus-auth.basicAuth.users={{ cadvisor_auth_basic_user }}:{{ cadvisor_auth_basic_pass_crypted |replace('$', '$$') }}"
+{%   endif %}
 {% endif %}
 {% if cadvisor_logging_driver_syslog |bool %}
     logging:
@@ -34,15 +45,16 @@ services:
 
 {% if cadvisor_storage_driver == "prometheus" %}
   reverse:
-    image: caddy:latest
+    image: traefik:latest
     container_name: cadvisor_reverse
     restart: on-failure:10
     ports:
       - "${DOCKER_HOST_IP:-127.0.0.1}:${DOCKER_HOST_PORT}:${DOCKER_REVERSE_PROXY_PORT}"
     volumes:
-      - ./conf/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./conf/traefik.toml:/etc/traefik/traefik.toml:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 {%   if cadvisor_ssl_cert_key |length > 0 %}
       - ${DOCKER_HOST_SSL_CERT_PEM}:/etc/ssl/cert.pem:ro
       - ${DOCKER_HOST_SSL_CERT_KEY}:/etc/ssl/cert.key:ro
@@ -55,8 +67,8 @@ services:
 {%   endif %}
     networks:
       - cadvisor
-
 {% endif %}
+
 
 networks:
   cadvisor:

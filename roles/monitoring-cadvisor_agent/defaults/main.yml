@@ -9,6 +9,10 @@ cadvisor_version: "CHANGE_ME_IN_GROUP_VARS"
 cadvisor_compose_dir: "/opt/cadvisor"
 
 
+# supported values are "caddy" and "traefik"
+cadvisor_compose_reverse_proxy: "caddy"
+
+
 # cadvisor external listen IP and port
 # if driver="prometheus" =>  _listen_ip should be set to "0.0.0.0"
 # if driver="influxdb" then cadviser will push itself the metric and _listen_ip should be left to localhost
@@ -63,7 +67,11 @@ cadvisor_extra_parameters_disable_metrics: "--disable_metrics=percpu,sched,tcp,u
 # notice : don't look for ssl => https://github.com/google/cadvisor/issues/2539
 
 
+# to make use of whitelisted labels, store labels must be set to false
 cadvisor_params_store_container_labels: false
+# comma separated list of container labels. The image and version informations are already present
+cadvisor_params_whitelisted_container_labels: ""
+
 
 # docker data dir in case it has been moved
 docker_data_dir: "/var/lib/docker"

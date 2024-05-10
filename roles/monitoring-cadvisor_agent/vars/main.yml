@@ -19,3 +19,17 @@ role_parameters_storage_driver_selection:
 # storage driver final settings
 role_parameters_storage_driver: "{{ role_parameters_storage_driver_selection[ cadvisor_storage_driver ] |default( '' ) }}"
 
+
+
+role_cadvisor_reverse_template_select:
+  caddy:
+    compose: "templates/caddy/docker-compose.yml.j2"
+    conf: "templates/caddy/conf/Caddyfile.j2"
+  traefik:
+    compose: "templates/traefik/docker-compose.yml.j2"
+    conf: "templates/traefik/conf/traefik.toml.j2"
+
+role_cadvisor_reverse_template:
+  compose: "{{ role_cadvisor_reverse_template_select[ cadvisor_compose_reverse_proxy ].compose }}"
+  conf: "{{ role_cadvisor_reverse_template_select[ cadvisor_compose_reverse_proxy ].conf }}"
+

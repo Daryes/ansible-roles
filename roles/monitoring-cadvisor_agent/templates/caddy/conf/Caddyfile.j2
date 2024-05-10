@@ -18,15 +18,15 @@
         # tls versions: minimum maximum(optional)
         protocols tls1.2
     }
-{% endif %}
 
+{% endif %}
     encode zstd gzip
 
 {% if cadvisor_auth_basic |bool %}
     basicauth {
         {{ cadvisor_auth_basic_user }} {{ cadvisor_auth_basic_pass_crypted |b64encode }}
     }
-{% endif %}
 
+{% endif %}
     reverse_proxy http://cadvisor:8080
 }

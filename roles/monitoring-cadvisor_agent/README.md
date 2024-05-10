@@ -20,6 +20,9 @@ This is a compose limitation.
 For such situation, you need to execute first a "docker-compose down reverse" on the servers with either basic auth or ssl active, using an Ansible ad-hoc command and the shell module.  
 Only after the reverse proxy container has been cleaned, you can execute the role to deactivate both basic auth and ssl.
 
+A template for using Traefik instead of Caddy is present and fully working with SSL and/or basic auth.  
+No option is available for switching between both, it must be done manually in the role.
+
 
 ## Requirements
 
@@ -42,12 +45,14 @@ mandatory role :
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
 | cadvisor_compose_dir | Directory to install compose and configuration files | "string" | "/opt/cadvisor" |
+| cadvisor_compose_reverse_proxy | Reverse proxy selection between Caddy and Traefik | "caddy" or "traefik" | "caddy" |
 | cadvisor_host_listen_ip | Cadvisor external listen IP.<br />If driver="prometheus" =>  _listen_ip should be set to "0.0.0.0"<br />If driver="influxdb" then cadviser will push itself the metric and _listen_ip should be left to localhost | "string" | "127.0.0.1" |
 |cadvisor_host_listen_port | Cadvisor external listen port. | "string" | "9135" |
 | |
 | cadvisor_extra_parameters | Cadvisor extra parameters<br />Ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md<br />Notice: `--store_container_labels=xxx` is already managed. | "string" | "--docker_only=true --housekeeping_interval=30s --storage_duration=5m0s" |
 | cadvisor_extra_parameters_disable_metrics | Defined metric to skip and not retrieve (single line).<br />* the 'accelerator' metric  is not supported anymore since 2024 | "string" | "--disable_metrics=percpu,sched, tcp,udp,disk,diskIO, hugetlb,referenced_memory, cpu_topology,resctrl" |
-| cadvisor_params_store_container_labels | Allow to retrieve and store in the metrics the container labels | boolean | false |
+| cadvisor_params_store_container_labels | Allow to retrieve and store as labels in the metrics all container labels | boolean | false |
+| cadvisor_params_whitelisted_container_labels | Comma separated list of container labels to use in the output metrics.<br />The parameter _store_container_labels must also be set to false | "string" | "" |
 | docker_data_dir | Docker data dir in case it has been moved | "string" | "/var/lib/docker" |
 | cadvisor_logging_driver_syslog | Special configuration to redirect to syslog and tag the container logs | boolean | no |
 

@@ -1,0 +1,51 @@
+# {{ ansible_managed }}
+
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+
+# to activate the port 8080 on traefik also need to be reachable
+#[api]
+#  insecure = true
+#  dashboard = true
+
+[providers]
+  [providers.docker]
+    exposedByDefault = false
+    # limit this traefik to the cadvisor container
+    constraints= "Label(`com.docker.compose.service`,`cadvisor`)"
+
+
+[entryPoints]
+  # notice: gzip compression is automatic
+  [entryPoints.web]
+    address = ":80"
+{% if cadvisor_ssl_cert_key |length > 0 %}
+    [entryPoints.web.http]
+      [entryPoints.web.http.redirections]
+        [entryPoints.web.http.redirections.entryPoint]
+          to = "websecure"
+          scheme = "https"
+
+  [entryPoints.websecure]
+    address = ":443"
+    # required to activate tls
+    [entryPoints.websecure.http.tls]
+
+
+[tls.stores]
+  [tls.stores.default]
+    [tls.stores.default.defaultCertificate]
+      CertFile = "/etc/ssl/cert.pem"
+      KeyFile = "/etc/ssl/cert.key"
+
+[tls.options]
+  [tls.options.default]
+    minVersion = "VersionTLS13"
+{% endif %}
+
+
+# cannot be defined in the main config
+# the basic auth must be defined as a label
+# [http.middlewares]
+
