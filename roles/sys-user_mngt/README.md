@@ -36,20 +36,31 @@ None.
 
 ### Optional parameters
 
+#### Global parameters
+
+Aside the ssh key directory which is a basic directory, these global parameters are applied on a system level, and will affect all new created users.
+
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
-| users_default_shell | The default shell for a user if none is specified. | string | "/bin/bash" |
-| users_default_sudo_timeout | Timeout duration for sudo - in mins | number or string | 15 |
-| users_default_group | Default primary group for new users if none is specified | string | "users" |
+| users_default_shell | The default shell for a user if none is specified. | "string" | "/bin/bash" |
+| users_default_sudo_timeout | Timeout duration for sudo - in mins | numeric or "string" | 15 |
+| users_default_group | Default primary group for new users if none is specified | "string" | "users" |
+| users_default_home_access_mode | Global access mode for the home directories | "string" | "0750" |
 | user_mngt_sync_ssh_keys | Allow to sync a whole ssh_keys directory to the host | boolean | false |
-| user_mngt_sync_ssh_keys_ansible_source | the source directory on the ansible server to sync to the servers | string | "/opt/ansible/data/ssh_pub_keys" |
-| user_mngt_sync_ssh_keys_dir_dest | The full path destination on the servers | string | "/opt/system/ssh" |
+| user_mngt_sync_ssh_keys_ansible_source | the source path for the ssh key directory on the ansible server | "string" | "/opt/ansible/data/ssh_pub_keys" |
+| user_mngt_sync_ssh_keys_dir_dest | The destination path on the target servers for the ssh key directory | "string" | "/opt/system/ssh" |
+
+
+#### Group creation parameters
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
 | groups_to_create_all | List of system groups to create on all servers.<br />Example: ` - { name: "devel", gid: 10000 }`<br />  | list:<br/>- { name, gid }| [ ] |
 | - | username to create  | name: "string" | |
 | - | guid for the user to create  | guid: number | |
+
+
+#### User removal parameters
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
@@ -62,6 +73,9 @@ None.
 | - | skip the user removal for the servers in this list | skip_hosts: [ "string" ] | [ ] |
 
 Both "target_hosts:" and "skip_hosts:" can also specify a group (or multiples) using `skip_hosts: "{{ groups['my_group'] + groups[...] }}"`
+
+
+#### User creation parameters
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
@@ -95,7 +109,7 @@ Both "target_hosts:" and "skip_hosts:" can also specify a group (or multiples) u
 
 
 On linux, a user password is expected to be encrypted, use this interactive command to generate the hash : `mkpasswd --method=sha-512`  
-It is provided by the package 'mkpasswd' on RHEL, 'whois' on Debian
+Provided by the package 'mkpasswd' on RHEL, 'whois' on Debian.
 
 Ansible user module's documentation and behavior : http://docs.ansible.com/ansible/latest/modules/user_module.html
 
