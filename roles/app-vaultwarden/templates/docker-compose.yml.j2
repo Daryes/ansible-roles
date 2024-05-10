@@ -22,7 +22,7 @@ services:
     logging:
       driver: syslog
       options:
-        {% raw %}tag: docker-{{.Name}}{% endraw %}
+        {% raw %}tag: docker-{{.Name}}{% endraw +%}
 {% endif %}
 {% if vaultwarden_db == "psql" %}
     depends_on:
@@ -45,10 +45,9 @@ services:
     logging:
       driver: syslog
       options:
-        {% raw %}tag: docker-{{.Name}}{% endraw %}
+        {% raw %}tag: docker-{{.Name}}{% endraw +%}
 {%   endif %}
 {% endif %}
-
 
 networks:
   vaultwarden:
