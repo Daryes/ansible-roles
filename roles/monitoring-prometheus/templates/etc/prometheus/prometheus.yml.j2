@@ -97,6 +97,20 @@ scrape_configs:
 {%  endfilter %}
 
 
+  - job_name: 'telegraf'
+    file_sd_configs:
+      - files:
+        - 'prometheus.d/scrape-telegraf*.yml'
+    relabel_configs:
+      # override the instance label
+      - source_labels: [__address__]
+        regex: "([^:]*):[0-9]+"
+        target_label: instance
+{%  filter indent(width=4, first=True) %}
+{%  include "prometheus.d/config-common.include.j2" %}
+{%  endfilter %}
+
+
   - job_name: 'database'
     file_sd_configs:
       - files:

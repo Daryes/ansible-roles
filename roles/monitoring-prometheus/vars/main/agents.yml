@@ -12,7 +12,6 @@ role_system_agent_port:
   grafana: 3000
   pushgateway: "9091"
   haproxy: "9101"
-  telegraf: "9102"
   mysql: "9104"
   blackbox: "9115"
   snmp: "9116"
@@ -21,6 +20,7 @@ role_system_agent_port:
   oracledb: "9161"
   postgresql: "9187"
   mongodb: "9216"
+  telegraf: "9273"
   smokeping: "9374"
   script: "9469"
   smartctl: "9633"

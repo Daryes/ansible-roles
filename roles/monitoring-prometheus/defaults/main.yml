@@ -144,6 +144,16 @@ prometheus_job_node_labels_group_filter: []
 #  - 'sys-docker'
 
 
+# telegraf job ---------------------------------------------
+# list of hosts (all systems) to monitor for the usual system metrics (cpu, ram, network, ...)
+# telegraf is a single agent able to replace many prometheus collectors as an alternative.
+
+prometheus_job_telegraf: []
+#  - "{{ groups['all'] }}"
+
+# no extra tags, they are to be set in the configuration of each of telegraf's modules
+
+
 # database job ---------------------------------------------
 # list of host to monitor for each db engine
 #
