@@ -1,6 +1,15 @@
 
 # Jobs: Blackbox
 
+The blackbox probe is the agent for the certificate, website, icmp, and other jobs.
+
+## Job: Blackbox general parameters
+
+| Parameter | Description | Type | Default value |
+| --------- | ----------- | ---- | ------------- |
+| prometheus_job_blackbox | list of remote blackbox instance ip addresses<br />If multiple instances are listed, the role does not support specific configurations, the exact same jobs will be executed on all of them (with an extra tag for distinction)<br/>Set to an empty list do disable. | list["string"] | ['127.0.0.1'] |
+
+
 ## Job: Blackbox websites
 
 | Parameter | Description | Type | Default value |

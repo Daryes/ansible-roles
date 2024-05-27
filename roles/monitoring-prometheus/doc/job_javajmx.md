@@ -4,7 +4,7 @@
 The configuration will search for all variables reusing an inventory group name and ending with '_exporter_jmx'  
 For example: `myapp_exporter_jmx`  
 
-A server will be skipped when such variable is found and the server is not a member of the group, and it will not be collected.
+A server will be skipped when such variable is found and the server is not a member of the group : it will not be collected.
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |

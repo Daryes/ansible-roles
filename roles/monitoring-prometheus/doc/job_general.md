@@ -25,7 +25,6 @@ prometheus_job_node:
 | prometheus_scrape_timeout | scrape/collect timeout | "string" | "30s" |
 | prometheus_scrape_interval_realtime | Dedicated interval for specific cases.<br />Lower than 10s will cause a cpu strain on the servers | "string" | "10s" |
 | prometheus_data_retention_time | Data retention, in days | "string" |"15d" |
-| prometheus_job_blackbox | list of remote blackbox instances<br /> The blackbox probe is the agent for the certificate, website, icmp, and other jobs<br />If multiple instances are listed, the role does not support specific configurations, the exact same jobs will be executed on all of them (with an extra tag for distinction) | list["string"] | ['127.0.0.1'] |
 
 
 ## Jobs general labels (or tags)

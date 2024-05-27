@@ -3,8 +3,8 @@
 Install the Prometheus and Alertmanager servers using the official tar.gz archives.  
 The role has the possibility to move the configuration and data to another location, if desired.
 
-Official site : https://prometheus.io
-https://prometheus.io/download/
+Official site : https://prometheus.io  
+Binaries : https://prometheus.io/download/  
 
 
 ## Restrictions and limitations
