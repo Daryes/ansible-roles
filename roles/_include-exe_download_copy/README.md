@@ -59,7 +59,6 @@ Setting them in a role can lead to a discrepancy between them, using different v
 | arg_install_exe_fullpath | Full path of the location the binary file will be installed to. | "string" |
 | arg_install_exe_version | Version to download and deploy, usually '1.23.4' | "string" |
 | arg_install_exe_download_url | Remote url to download the file if missing from the cache | "string" | 
-| arg_install_exe_hash | Hash for the downloaded file. Syntax follows the hashlib python package.<br />This setting is not required and can be omitted. | "sha256:xyz..." |
 
 
 ### Optional parameters
@@ -73,6 +72,7 @@ Setting them in a role can lead to a discrepancy between them, using different v
 | arg_install_exe_mode| Access mode (octal) of the destination directory. | "string" | "0755" |
 | arg_install_exe_version_arg | Command parameter to show the version information | "string" | "--version" |
 | arg_install_exe_version_string | Version string number to compare with the installed binary.<br />Notice: the value will be used as a regex.  | "string" | "{{ arg_install_exe_version }}" |
+| arg_install_exe_version_altcmd | Alternate command to verify the version, default to the exe file itself.<br />See the example after for usage with archives like java jar | "string" | "{{ arg_install_exe_fullpath  }}" |
 | arg_install_exe_is_compressed_archive | Set to 'yes' if the downloaded file is a compressed archive" | boolean | no |
 | arg_install_exe_compressed_archive_binaries_to_link | list of file in the archive to be symlinked under the installation directory.<br />Example :  [ "binary1", "bin/file2", ... ] | list[ "string" ] | [ ] |
 | arg_install_exe_compressed_archive_skip_subdirs_arg | Specify the archiver parameter to skip 1 or more directory levels<br />The default value is for GNU tar.<br />Set to empty `""` if unwanted | "string" | "--strip-components=1" |
@@ -119,10 +119,29 @@ For this example, no variable is used.
     arg_install_exe_download_url: "https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz"
     arg_install_exe_is_compressed_archive: yes
     arg_install_exe_compressed_archive_binaries_to_link: [ "node_exporter" ]
-    arg_install_exe_service: ""node-exporter.service""
+    arg_install_exe_service: "node-exporter.service"
 ```
 The result will be the archive extracted under `/usr/local/bin/node_exporter-archive`, and the node_exporter binary linked as `/usr/local/bin/node_exporter`  
 The node-exporter service will also be stopped if an update was required.
+
+
+**Handling Java jar and other package files**  
+Some files might not allow to be executed with a version parameter, like jar files.  
+As long they can be manipulated with a shell command to extract the version number, such files are supported by this role.  
+
+Example for a standard jar file having the version contained in the manifest, which is a text file in the jar.  
+Use the following :  
+
+```
+- include_role: name=_include-exe_download_copy
+  vars:
+    ...
+    arg_install_exe_version_altcmd: "unzip -p /full/path/to/my.jar META-INF/MANIFEST.MF"
+    arg_install_exe_version_arg: "|grep -i 'Implementation-Version' "
+```
+
+This will unzip to the stdout the manifest, then piped to grep for filtering to the line with the version string.  
+The role will then look for the version number in the filtered output.
 
 
 # Licence and informations
