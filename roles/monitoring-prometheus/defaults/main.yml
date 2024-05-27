@@ -51,7 +51,7 @@ prometheus_syslog_history_days: 31
 #   - user: "anotherone"
 #     pass_crypted: "$5..."
 #
-# Notice: this will prevent prometheus to monitor itself, prometheus_scrape_auth_basic_user & _password & _pass_crypted must be filled
+# Notice: this will prevent prometheus to monitor itself, prometheus_scrape_auth_basic_user & _password & _pass_crypted must be filled with a valid account
 # This scrape account must also be set in _basic_users
 prometheus_auth_basic_users: []
 

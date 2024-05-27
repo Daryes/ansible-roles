@@ -272,7 +272,8 @@ scrape_configs:
         regex: "([^:]*):[0-9]+"
         target_label: instance
 {%  with %}
-{#    # overwrite the _ssl verify with grafana dedicated value #}
+{#    # uses with/endwith to overwrite with the grafana values the _ssl* params from the include file #}
+{%    set prometheus_scrape_ssl = prometheus_job_grafana_ssl %}
 {%    set prometheus_scrape_ssl_insecure_skip_verify = prometheus_job_grafana_ssl_insecure_skip_verify %}
 {%  filter indent(width=4, first=True) %}
 {%  include "prometheus.d/config-common.include.j2" %}
