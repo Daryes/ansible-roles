@@ -11,17 +11,15 @@ The role uses the official docker image.
 Cadvisor does not support basic auth nor SSL on the metrics endpoint for prometheus and statd.  
 For more information : https://github.com/google/cadvisor/issues/2539  
 To alleviate this limitation, the webserver Caddy is used as a companion in a reverse proxy mode, managing the ssl and basic auth configuration.  
-More information can be found in the docker-compose template.
+A parameter is available to use Traefik instead of Caddy in the same manner.  
+Please note the reverse proxy is always present for the "prometheus" storage driver, with or without ssl or basic auth.
 
 
-If you have cadvisor installed with cadvisor_auth_basic and/or cadvisor_ssl_cert_* settings and you want to deactivate both, the reverse proxy service will be removed from the compose file.  
+If you have cadvisor installed using the  "prometheus" storage driver and want to switch to another one, the reverse proxy service might be removed from the compose file.  
 Then, docker-compose will fail on this situation, as the loss of the service will keep the container running.  
 This is a compose limitation.  
-For such situation, you need to execute first a "docker-compose down reverse" on the servers with either basic auth or ssl active, using an Ansible ad-hoc command and the shell module.  
-Only after the reverse proxy container has been cleaned, you can execute the role to deactivate both basic auth and ssl.
-
-A template for using Traefik instead of Caddy is present and fully working with SSL and/or basic auth.  
-No option is available for switching between both, it must be done manually in the role.
+For such situation, you need to execute first a "docker-compose down reverse" on the related servers, using an Ansible ad-hoc command and the shell module.  
+Only after the reverse proxy container has been cleaned, you can execute the role to switch the storage driver.  
 
 
 ## Requirements
@@ -46,7 +44,7 @@ mandatory role :
 | --------- | ----------- | ---- | ------------- |
 | cadvisor_compose_dir | Directory to install compose and configuration files | "string" | "/opt/cadvisor" |
 | cadvisor_compose_reverse_proxy | Reverse proxy selection between Caddy and Traefik | "caddy" or "traefik" | "caddy" |
-| cadvisor_host_listen_ip | Cadvisor external listen IP.<br />If driver="prometheus" =>  _listen_ip should be set to "0.0.0.0"<br />If driver="influxdb" then cadviser will push itself the metric and _listen_ip should be left to localhost | "string" | "127.0.0.1" |
+| cadvisor_host_listen_ip | Cadvisor (or the reverse proxy) external listen IP.<br />If driver="prometheus" =>  _listen_ip should be set to "0.0.0.0"<br />If driver="influxdb" then cadvisor will push itself the metric and _listen_ip should be left to localhost | "string" | "127.0.0.1" |
 |cadvisor_host_listen_port | Cadvisor external listen port. | "string" | "9135" |
 | |
 | cadvisor_extra_parameters | Cadvisor extra parameters<br />Ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md<br />Notice: `--store_container_labels=xxx` is already managed. | "string" | "--docker_only=true --housekeeping_interval=30s --storage_duration=5m0s" |
@@ -64,7 +62,7 @@ mandatory role :
 | --------- | ----------- | ---- | ------------- |
 | cadvisor_storage_driver | For now, 2 drivers are supported : "prometheus" or "influxdb" | "string" | "prometheus" |
 | | 
-| cadvisor_storage_driver_prometheus_endpoint | Context root for the metrics endpoint | "string" | "/metrics" |
+| cadvisor_storage_driver_prometheus_endpoint | Context root for the prometheus metrics endpoint | "string" | "/metrics" |
 | |
 | cadvisor_storage_driver_influxdb_host_port | Ip and port to the influxdb server | "string" |"10.11.12.13:8086" |
 | cadvisor_storage_driver_influxdb_secure | Set to yes to use a https connection to the influxdb server | boolean | no |
@@ -77,7 +75,7 @@ mandatory role :
 
 **Basic auth and TLS settings**  
 
-Notice: these parameters will only activate for the "prometheus" driver
+Notice: these parameters will only activate for the "prometheus" storage driver
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
@@ -94,8 +92,9 @@ Notice: these parameters will only activate for the "prometheus" driver
 ```
 cadvisor_version: "0.49.1"
 
-# not much is need for a prometheus usage
+# not much is needed for a prometheus usage
 cadvisor_compose_dir: "/server/sys-cadvisor"
+cadvisor_storage_driver: "prometheus"
 cadvisor_host_listen_ip: "0.0.0.0"
 cadvisor_host_listen_port: "9135"
 

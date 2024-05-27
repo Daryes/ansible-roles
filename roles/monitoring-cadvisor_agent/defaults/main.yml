@@ -9,7 +9,8 @@ cadvisor_version: "CHANGE_ME_IN_GROUP_VARS"
 cadvisor_compose_dir: "/opt/cadvisor"
 
 
-# supported values are "caddy" and "traefik"
+# reverse proxy selection - supported values are "caddy" and "traefik"
+# notice : don't look for integrated ssl in cadvisor => https://github.com/google/cadvisor/issues/2539
 cadvisor_compose_reverse_proxy: "caddy"
 
 
@@ -59,12 +60,10 @@ cadvisor_storage_driver_influxdb_polling: "60s"
 
 # cadvisor extra parameters
 # ref: https://github.com/google/cadvisor/blob/master/docs/runtime_options.md
-# Notice: "--store_container_labels=false" is already activated
+# Notice 1 : "--store_container_labels=false" is already activated
 # Notice 2 : accelerator is not supported anymore since 2024
 cadvisor_extra_parameters: "--docker_only=true --housekeeping_interval=30s --storage_duration=5m0s"
 cadvisor_extra_parameters_disable_metrics: "--disable_metrics=percpu,sched,tcp,udp,disk,diskIO,hugetlb,referenced_memory,cpu_topology,resctrl"
-
-# notice : don't look for ssl => https://github.com/google/cadvisor/issues/2539
 
 
 # to make use of whitelisted labels, store labels must be set to false
