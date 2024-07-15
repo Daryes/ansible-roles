@@ -31,11 +31,5 @@
 
 
 # API provisining can only be done when the service is running
-- import_tasks: provisioning/api_access.yml
-
-- import_tasks: provisioning/orgs_api.yml
-
-- import_tasks: provisioning/users_api.yml
-
-- import_tasks: provisioning/users_org_api.yml
+- import_tasks: provisioning/main.yml
 
