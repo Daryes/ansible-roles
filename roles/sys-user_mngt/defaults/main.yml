@@ -58,6 +58,6 @@ users_accounts_host: []
 # <ansible_group>_users_account: []
 
 
-# ansible user - only used to protect from possible deletion
+# ansible user - only used to protect the user from possible deletion
 users_accounts_ansible_user: "ansible"
 

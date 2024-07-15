@@ -88,7 +88,7 @@
       }}
   with_items: "{{ system_drives_initialize }}"
   loop_control:
-    label: "device_name: {{ item.device_name }}, drive_id: {{ item.device_id |default('Not defined')  }}, device_name_real: {{ var_drive_name }}"
+    label: "device_name: {{ item.device_name }}, drive_id: {{ item.device_id |default('Not defined')  }}, device_name_final: {{ var_drive_name }}"
   # could do a comparison but it will generate a changed state while the drive could already be formated
   changed_when: false
 
