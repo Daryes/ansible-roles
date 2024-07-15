@@ -282,6 +282,6 @@ scrape_configs:
 
 
 {% for loopRaw in prometheus_job_raw_settings |default( [] ) |flatten %}
-    {{ loopRaw }}
+  {{ loopRaw }}
 {% endfor %}
 
