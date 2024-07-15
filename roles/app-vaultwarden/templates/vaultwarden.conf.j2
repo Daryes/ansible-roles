@@ -41,6 +41,7 @@ DOCKER_HOST_IP={{ vaultwarden_listen_ip }}
 DOCKER_HOST_PORT={{ vaultwarden_listen_port }}
 DOCKER_HOST_PORT_WS={{ vaultwarden_listen_port_ws }}
 
+
 # used for the first launch, change the data/config.json after
 # If not set, the admin panel is disabled
 ADMIN_TOKEN={{ vaultwarden_admin_token }}
@@ -67,6 +68,9 @@ LOG_FILE=/log/vaultwarden.log
 
 # DB Configuration ----------------------------------------
 {% if vaultwarden_db == "psql" %}
+# PostgreSQL version
+PSQL_VERSION={{ vaultwarden_db_psql_version }}
+
 # dockerized PostgreSQL connection string
 DATABASE_URL=postgresql://vaultwarden:{{ vaultwarden_db_local_password }}@vaultwarden-db/vaultwarden
 

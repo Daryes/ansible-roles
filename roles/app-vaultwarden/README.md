@@ -56,6 +56,7 @@ None.
 | vaultwarden_logging_driver_syslog | Set to yes to redirect all logs to syslog. | boolean | no |
 | |
 | vaultwarden_db | Database type, set to :<br />- `"sqlite"` for a local sqlite file<br />- `"psql"` for a dockerized postgresql companion within the same compose file<br />- `"external"` for any supported remote database | "string" | "sqlite" |
+| vaultwarden_db_psql_version | PostgreSQL only: database container version to use | "string" | "16" |
 | vaultwarden_db_local_password | PostgreSQL only: database password | "string" | "n8p2dRnPSqxoPea3Y8Bi" |
 | vaultwarden_db_external_url | External db only : Full connection string.<br />Supported formats:<br />- Mysql & MariaDB : `mysql://[[user]:[password]@]host[:port][/database]`<br />- PGSQL : `postgresql://[[user]:[password]@]host[:port][/database]` | "string" | "" |
 | |

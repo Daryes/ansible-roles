@@ -37,6 +37,10 @@ vaultwarden_admin_token: ""
 # - "external" for a remote database
 vaultwarden_db: "sqlite"
 
+
+# psql version (if activated)
+vaultwarden_db_psql_version: 16
+
 # psql db only: db password (if activated)
 vaultwarden_db_local_password: "n8p2dRnPSqxoPea3Y8Bi"
 
