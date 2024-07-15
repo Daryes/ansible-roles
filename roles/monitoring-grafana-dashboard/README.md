@@ -13,7 +13,6 @@ The main grafana role will manage and sync those files using the settings in the
 ## Requirements
 
 The following Grafana plugins are used by the dashboards :  
-* mxswat-separator-panel
 * natel-discrete-panel 
 
 

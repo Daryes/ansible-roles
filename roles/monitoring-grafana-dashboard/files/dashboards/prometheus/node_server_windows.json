@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 32,
+  "id": 36,
   "links": [
     {
       "asDropdown": true,
@@ -107,6 +107,11 @@
       "id": 70,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<div style=\"text-align:center;font-size:1.3em\" >\n  Domain ${__org.name}\n  <hr style=\"background-image:linear-gradient(to right, goldenrod, firebrick);height:1px;border:0; margin:auto 42%\" />\n  Windows server : $server\n</div>\n",
         "mode": "html"
       },
@@ -1286,7 +1291,7 @@
       "gridPos": {
         "h": 4,
         "w": 7,
-        "x": 15,
+        "x": 16,
         "y": 7
       },
       "hideTimeOverride": false,
@@ -1309,7 +1314,8 @@
         "showUnfilled": false,
         "text": {
           "valueSize": 14
-        }
+        },
+        "valueMode": "color"
       },
       "pluginVersion": "9.1.7",
       "targets": [
@@ -2010,7 +2016,7 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 7,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 28
       },
@@ -2149,7 +2155,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 42
       },
       "id": 80,
       "panels": [],
@@ -2351,7 +2357,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 43
       },
       "id": 189,
       "interval": "1m",
@@ -2615,7 +2621,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 43
       },
       "id": 157,
       "interval": "1m",
@@ -2702,7 +2708,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 51
       },
       "height": "350",
       "hiddenSeries": false,
@@ -2893,7 +2899,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 60
       },
       "id": 81,
       "panels": [],
@@ -2948,7 +2954,7 @@
         "h": 2,
         "w": 12,
         "x": 0,
-        "y": 54
+        "y": 61
       },
       "hideTimeOverride": false,
       "id": 185,
@@ -3000,10 +3006,20 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 63
       },
       "id": 88,
       "links": [],
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "",
+        "mode": "markdown"
+      },
+      "pluginVersion": "9.1.7",
       "targets": [
         {
           "datasource": {
@@ -3013,9 +3029,8 @@
           "refId": "A"
         }
       ],
-      "title": "Separator",
       "transparent": true,
-      "type": "mxswat-separator-panel"
+      "type": "text"
     },
     {
       "datasource": {
@@ -3085,7 +3100,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 64
       },
       "id": 193,
       "interval": "1m",
@@ -3190,7 +3205,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 65
+        "y": 72
       },
       "id": 197,
       "interval": "1m",
@@ -3290,7 +3305,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 65
+        "y": 72
       },
       "id": 199,
       "interval": "1m",
@@ -3471,7 +3486,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 73
+        "y": 80
       },
       "id": 203,
       "interval": "1m",
@@ -3542,7 +3557,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 81
+        "y": 88
       },
       "id": 83,
       "panels": [],
@@ -3604,7 +3619,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -3663,7 +3679,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 82
+        "y": 89
       },
       "id": 207,
       "interval": "1m",
@@ -3793,7 +3809,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 82
+        "y": 89
       },
       "id": 211,
       "interval": "1m",
@@ -3862,7 +3878,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 89
+        "y": 96
       },
       "id": 84,
       "panels": [],
@@ -3938,7 +3954,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 90
+        "y": 97
       },
       "id": 215,
       "interval": "1m",
@@ -3988,7 +4004,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 98
+        "y": 105
       },
       "id": 219,
       "panels": [],
@@ -4012,7 +4028,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 99
+        "y": 106
       },
       "height": "250",
       "hiddenSeries": false,
@@ -4189,7 +4205,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 106
+        "y": 113
       },
       "height": "250",
       "hiddenSeries": false,
@@ -4351,8 +4367,8 @@
       }
     }
   ],
-  "refresh": false,
-  "schemaVersion": 37,
+  "refresh": "",
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "device",
@@ -4426,9 +4442,9 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": "cerberus-2",
-          "value": "cerberus-2"
+          "selected": false,
+          "text": "prom",
+          "value": "prom"
         },
         "datasource": {
           "type": "prometheus",
@@ -4611,6 +4627,6 @@
   "title": "server: Windows",
   "uid": "server-windows",
   "description": "Custom dashboard by HAL",
-  "version": 29,
+  "version": 30,
   "weekStart": ""
 }

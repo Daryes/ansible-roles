@@ -480,7 +480,7 @@
         "type": "prometheus",
         "uid": "${dsdashboard}"
       },
-      "fontSize": "100%",
+      "fontSize": "90%",
       "gridPos": {
         "h": 6,
         "w": 9,
@@ -501,7 +501,7 @@
       "pluginVersion": "9.1.4",
       "showHeader": true,
       "sort": {
-        "col": 6,
+        "col": 2,
         "desc": false
       },
       "styles": [
@@ -515,7 +515,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
-          "decimals": 2,
+          "decimals": 1,
           "pattern": "Value",
           "thresholds": [
             "300",
@@ -570,7 +570,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "node_time_seconds{job=~\"$job\",geo=\"$geodc\"} - node_boot_time_seconds{job=~\"$job\",geo=\"$geodc\"}",
+          "expr": "(node_time_seconds{job=~\"$job\",geo=\"$geodc\"} - node_boot_time_seconds{job=~\"$job\",geo=\"$geodc\"}) or (windows_os_time{job=~\"$job\",geo=\"$geodc\"} - windows_system_system_up_time{job=~\"$job\",geo=\"$geodc\"})",
           "format": "table",
           "instant": true,
           "legendFormat": "{{instance}}",
@@ -586,8 +586,8 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "env": false,
-              "env_char": true,
+              "env": true,
+              "env_char": false,
               "geo": true,
               "instance": false,
               "job": true,

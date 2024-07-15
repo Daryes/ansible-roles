@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 25,
+  "id": 23,
   "links": [
     {
       "asDropdown": true,
@@ -108,6 +108,11 @@
       "id": 81,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<div style=\"text-align:center;font-size:1.3em\" >\n  Domain ${__org.name}\n  <hr style=\"background-image:linear-gradient(to right, goldenrod, firebrick);height:1px;border:0; margin:auto 42%\" />\n  Linux server : $server\n</div>\n",
         "mode": "html"
       },
@@ -1308,7 +1313,8 @@
         "showUnfilled": false,
         "text": {
           "valueSize": 14
-        }
+        },
+        "valueMode": "color"
       },
       "pluginVersion": "9.1.7",
       "targets": [
@@ -2814,12 +2820,22 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 53
       },
       "id": 235,
       "links": [],
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "",
+        "mode": "markdown"
+      },
+      "pluginVersion": "9.1.7",
       "transparent": true,
-      "type": "mxswat-separator-panel"
+      "type": "text"
     },
     {
       "datasource": {
@@ -2889,7 +2905,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 54
       },
       "id": 337,
       "interval": "$frequency",
@@ -2998,7 +3014,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 62
       },
       "id": 346,
       "interval": "$frequency",
@@ -3048,7 +3064,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 70
       },
       "id": 222,
       "panels": [],
@@ -3113,7 +3129,7 @@
         "h": 2,
         "w": 12,
         "x": 0,
-        "y": 67
+        "y": 71
       },
       "hideTimeOverride": false,
       "id": 112,
@@ -3178,12 +3194,22 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 69
+        "y": 73
       },
       "id": 236,
       "links": [],
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "",
+        "mode": "markdown"
+      },
+      "pluginVersion": "9.1.7",
       "transparent": true,
-      "type": "mxswat-separator-panel"
+      "type": "text"
     },
     {
       "datasource": {
@@ -3250,7 +3276,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 70
+        "y": 74
       },
       "id": 210,
       "interval": "$frequency",
@@ -3350,7 +3376,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 70
+        "y": 74
       },
       "id": 15,
       "interval": "$frequency",
@@ -3434,7 +3460,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           },
@@ -3530,7 +3557,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 78
+        "y": 82
       },
       "id": 28,
       "interval": "$frequency",
@@ -3601,7 +3628,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 86
+        "y": 90
       },
       "id": 224,
       "panels": [],
@@ -3663,7 +3690,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -3722,7 +3750,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 87
+        "y": 91
       },
       "id": 19,
       "interval": "$frequency",
@@ -3815,7 +3843,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           },
@@ -3863,7 +3892,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 87
+        "y": 91
       },
       "id": 9,
       "interval": "$frequency",
@@ -3938,7 +3967,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 94
+        "y": 98
       },
       "height": "250",
       "hiddenSeries": false,
@@ -3962,7 +3991,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4100,7 +4129,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 94
+        "y": 98
       },
       "height": "250",
       "hiddenSeries": false,
@@ -4124,7 +4153,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4255,7 +4284,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 101
+        "y": 105
       },
       "height": "250",
       "hiddenSeries": false,
@@ -4279,7 +4308,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4408,7 +4437,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -4424,7 +4454,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 101
+        "y": 105
       },
       "id": 420,
       "interval": "$frequency",
@@ -4482,7 +4512,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 108
+        "y": 112
       },
       "id": 225,
       "panels": [],
@@ -4545,7 +4575,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           },
@@ -4557,7 +4588,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 109
+        "y": 113
       },
       "id": 11,
       "interval": "$frequency",
@@ -4647,7 +4678,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           },
@@ -4659,7 +4691,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 117
+        "y": 121
       },
       "id": 373,
       "interval": "$frequency",
@@ -4752,7 +4784,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           },
@@ -4764,7 +4797,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 117
+        "y": 121
       },
       "id": 364,
       "interval": "$frequency",
@@ -4818,7 +4851,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 125
+        "y": 129
       },
       "id": 247,
       "panels": [],
@@ -4850,7 +4883,7 @@
         "h": 8,
         "w": 22,
         "x": 0,
-        "y": 126
+        "y": 130
       },
       "height": "250",
       "hiddenSeries": false,
@@ -4876,7 +4909,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -5012,7 +5045,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#f53636"
+                "color": "#f53636",
+                "value": null
               },
               {
                 "color": "#31ab2c",
@@ -5028,7 +5062,7 @@
         "h": 4,
         "w": 2,
         "x": 22,
-        "y": 126
+        "y": 130
       },
       "hideTimeOverride": false,
       "id": 255,
@@ -5052,7 +5086,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "targets": [
         {
           "datasource": {
@@ -5099,7 +5133,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#fe3636"
+                "color": "#fe3636",
+                "value": null
               },
               {
                 "color": "#2f575e",
@@ -5115,7 +5150,7 @@
         "h": 4,
         "w": 2,
         "x": 22,
-        "y": 130
+        "y": 134
       },
       "hideTimeOverride": false,
       "id": 254,
@@ -5139,7 +5174,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "targets": [
         {
           "datasource": {
@@ -5174,7 +5209,7 @@
         "h": 7,
         "w": 22,
         "x": 0,
-        "y": 134
+        "y": 138
       },
       "height": "250",
       "hiddenSeries": false,
@@ -5200,7 +5235,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -5367,7 +5402,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#fe3636"
+                "color": "#fe3636",
+                "value": null
               },
               {
                 "color": "#2f575e",
@@ -5383,7 +5419,7 @@
         "h": 4,
         "w": 2,
         "x": 22,
-        "y": 134
+        "y": 138
       },
       "hideTimeOverride": false,
       "id": 355,
@@ -5407,7 +5443,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.1.8",
+      "pluginVersion": "9.1.7",
       "targets": [
         {
           "datasource": {
@@ -5433,7 +5469,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 157
+        "y": 145
       },
       "id": 393,
       "panels": [
@@ -5648,8 +5684,8 @@
       "type": "row"
     }
   ],
-  "refresh": false,
-  "schemaVersion": 37,
+  "refresh": "",
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "device",
@@ -5686,7 +5722,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "fr-mpl",
           "value": "fr-mpl"
         },
@@ -5926,6 +5962,6 @@
   "title": "server: Linux",
   "uid": "server_linux_prom",
   "description": "Custom dashboard by HAL",
-  "version": 8,
+  "version": 9,
   "weekStart": ""
 }
