@@ -50,16 +50,22 @@ server {
     # Allow large attachments
     client_max_body_size 128M;
 
-
     location / {
         proxy_pass              {{ thisVhost.proxypass_target }};
         include conf.d/proxy_params.include;
         proxy_http_version 1.1;
 
         proxy_set_header X-Forwarded-Port $server_port;
+    }
 
-        # websocket support
+    # websocket support
+    location /notifications/hub {
+        proxy_pass 		{{ thisVhost.proxypass_notification_target }};
         include conf.d/proxy_websocket.include;
+    }
+    location /notifications/hub/negotiate {
+        proxy_pass		{{ thisVhost.proxypass_target }};
+        # no websocket on this location
     }
 
 

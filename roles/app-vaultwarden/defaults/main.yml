@@ -33,7 +33,7 @@ vaultwarden_admin_token: ""
 
 # db usage type, set to :
 # - "sqlite" for a local sqlite file
-# - "psql" for a dockerized postgresql companin within the same compose file
+# - "psql" for a dockerized postgresql companion within the same compose file
 # - "external" for a remote database
 vaultwarden_db: "sqlite"
 
