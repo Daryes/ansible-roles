@@ -13,6 +13,9 @@ Notice : if you need a playground but don't have one aside WSL or a single serve
 Last thing : english is not my native language, so please bear with any mistake.
 
 
+A changelog [is available](CHANGELOG.md).  
+
+
 ## Usage and notice
 
 Most of the roles will list their requirements, but some collections might be missing from time to time.  
