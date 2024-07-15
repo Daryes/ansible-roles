@@ -23,7 +23,11 @@ system_package_update_reboot_timeout: 600
 system_package_update_reboot_notifier_email: ""
 
 
-# number of host on update and reboot task - this cannot exceed the process fork value in ansible.cfg (or command line)
+# print the list of packages to update
+system_package_update_print_list: yes
+
+
+# number of host in a single batch on update and reboot task - this do not allow to exceed the process fork value in ansible.cfg (or command line)
 system_package_update_task_throttle: 8
 system_package_update_reboot_throttle: "{{ system_package_update_task_throttle }}"
 

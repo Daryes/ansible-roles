@@ -1,12 +1,30 @@
 ---
 
-# https://raphaelhertzog.com/2010/09/21/debian-conffile-configuration-file-managed-by-dpkg/
-# use shell instead of the ansible module due to instability
-# TODO: implement "unattended-upgrade" instead
-- name: System Update | APT | update - security patches only
-  shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade"
+# No easy argument to apt limiting to only the security packages
+# Instead run apt in simulation mode to filter on packages coming only from any '*-security' repos
+# This will give the list of packages to update
+#
+# alternative : generate a new source list with only the security repos and use the new file with apt-get
+#   grep -i security /etc/apt/sources.list | sudo tee /tmp/security.sources.list
+#   sudo apt-get upgrade -o Dir::Etc::SourceList=/tmp/security.sources.list
+#
+- name: System Update | APT | security update only - filtering packages
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get upgrade --simulate --quiet=2 |grep -i '^Inst .* .*\\-security' | cut -d ' '  -f2 || true"
   args:
     warn: false
   become: yes
   throttle: "{{ system_package_update_task_throttle }}"
+  register: task_updateonly_packages
+  changed_when: false
+
+
+# https://raphaelhertzog.com/2010/09/21/debian-conffile-configuration-file-managed-by-dpkg/
+# use shell instead of the ansible module due to instability
+- name: System Update | APT | security update only
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade   {{ task_updateonly_packages.stdout_lines |join(' ') }}"
+  args:
+    warn: false
+  become: yes
+  throttle: "{{ system_package_update_task_throttle }}"
+  when: task_updateonly_packages.stdout |trim |length > 0
 

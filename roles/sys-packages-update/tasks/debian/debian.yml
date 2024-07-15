@@ -37,6 +37,15 @@
   become: yes
 
 
+# each package appears 2 times with "Inst " and "Conf " prefixes
+- name: System Update | APT | print available updates
+  debug:
+    msg: "{{ task_update_available.stdout_lines |select('search', '(?i)^Inst ') |list |default('') }}"
+  when: >
+    system_package_update_print_list |bool
+    and task_update_available.stdout |default('') |length > 0
+
+
 - name: System Update | APT | load corresponding mode
   include_tasks: "update-{{ display_mode.mode }}.yml"
   # mostly for log output purpose - visible when skipped

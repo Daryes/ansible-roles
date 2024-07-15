@@ -1,6 +1,6 @@
 ---
 
-- name: System Update | parameters validation"
+- name: System Update | parameters validation
   assert:
     that:
       - system_package_update_mode |length > 0
