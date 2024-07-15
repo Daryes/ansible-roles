@@ -1,5 +1,37 @@
 ---
 
+# The .extend() in "if var.extend(value) %}{% endif" is a jinja2 v2.9- hack to insert data in a loop. Check namespace for jinja2 v2.10+
+# The .extend() is NOT set to ([ ]), as the variable to insert is already a dict
+# the >- expand to everything after as a string, while removing the carriage return.
+- name: Bind DNS | concatenate inventory group variables
+  set_fact:
+    # WARNING : this bloc differs from the usual sequence : an extra loop is present for parsing all hosts instead of targeting only the current server
+    task_bind_zones_extra_merged: >-
+      {%- set groupSuffix = '_bind_zones_extra' -%}
+      {%- set loopOutput = [] -%}
+      {%- for loopHost in hostvars -%}
+      {%-   set hostvarCache = hostvars[loopHost] -%}
+      {%-   for loopGroup in hostvarCache['group_names'] -%}
+      {%-       if hostvarCache[loopGroup + groupSuffix] is defined -%}
+      {%-       if loopOutput.extend( hostvarCache[loopGroup + groupSuffix] ) %}{% endif -%}
+      {%-       endif -%}
+      {%-   endfor -%}
+      {%- endfor -%}
+      {{ loopOutput }}
+
+#- debug: var=task_bind_zones_extra_merged
+
+
+# When an error in the syntax is present under group_vars or host_vars, it's possible ansible won't report it
+# The error message won't be clear, but still contains the bad item name.
+- name: Bind DNS | check variables validity
+  assert:
+    that:
+      - task_bind_zones_extra_merged is defined
+    fail_msg: "one of the parameters '<app>_bind_zones_extra' is not correctly defined, or is missing an entry in the vault"
+    quiet: yes
+
+
 - import_tasks: installation.yml
 
 

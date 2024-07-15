@@ -6,6 +6,16 @@ Ansible will populate their content using all the known servers from the invento
 Any ansible variable available to the current dns server can be reused in the zone configuration.
 
 
+This template also has the capability to search in the whole inventory, looking for a particular variable name based on group membership's, following this format: `<a_group_name>_bind_zones_extra`.  
+As such, it is possible to declare additional dns records in multiple locations, either globally, or only for a specific group or host.  
+
+Example: a host member of the inventory groups "group1" and "group2" will be scanned for variables named :
+* group1_bind_zones_extra
+* group2_bind_zones_extra
+
+If a variable group9_bind_zones_extra exists for this host, it will be ignored as the host is not a member of group9_test.
+
+
 ## Restrictions and limitations
 
 To be able to generate a record for the servers in the inventory, some configuration changes are required in ansible.cfg:
@@ -75,6 +85,25 @@ Options are available to create an entry for each known server from the ansible'
 | - | Add additional records, using the standard DNS syntax.<br />Can be empty. | records_raw: [ "string" ] | [ ] |
 
 
+**Inventory additional records**  
+
+This allow to create partial definitions in groups, without having to change the main configuration.  
+The role will search for the definitions and add them, after removing the duplicates.
+
+| Parameter | Description | Type | Default value |
+| --------- | ----------- | ---- | ------------- |
+| `<group_name>_bind_zones_extra` | list of zone with additional raw dns records | list[ object ] | [ ] |
+| - | dns domain name. Ex : "sub.domain.tld"<br />Exact same value as for the zone template. | name: "string" | mandatory |
+| - | Template zone type. Fixed value | zone_type: "db" | N/A |
+| - | Add additional records, using the standard DNS syntax.<br />Can be empty.<br />Duplicates will be removed. | records_raw: [ "string" ] | [ ] |
+
+Any valid value can be used in records_raw, even comments (using %).  
+Given they will complete the main zone, it is possible to use only CNAME records here.  
+Duplicates will be removed when combining all `records_raw` but only for those parsed from the whole inventory, the main definition will not be altered.  
+
+Please note identicals records of type A are accepted, but not for other type. CNAME duplicates, for example will generate an error.
+
+
 ## Examples
 
 ### Complete dns zone declaration
@@ -116,6 +145,7 @@ bind_zones_dns:
 As declarations in the ansible inventory allow the use of filters, it is possible to have simple entries to more complex ones.
 
 ```
+    (...)
     records_raw:
       - "test           IN    CNAME    server1"
       - "10.11.12.13    IN    A        static-server"
@@ -124,3 +154,24 @@ As declarations in the ansible inventory allow the use of filters, it is possibl
       # get the servers from the 'test' group, remove a 'prefix-' string and generate a CNAME entry: server-name  IN CNAME prefix-server-name
       - "{{ groups['test'] |unique |select('search', 'prefix-') |map('regex_replace', '^([a-z]+-)(.*)$', '\\g<2>     IN  CNAME   \\g<1>\\g<2>') |list }}"
 ```
+
+### partial records in inventory
+
+Given the current host is a member of `my-group` and the main configuration manage a "zone.domain.tld" zone.  
+Add these lines to the group_vars/my-group file in the inventory :
+
+```
+my-group_bind_zones_extra:
+  - name: "zone.domain.tld"
+    zone_type: "db"
+    records_raw:
+      - "test2          IN    CNAME    server2"
+      - "10.11.12.134   IN    A        static-server"
+      - ...
+```
+
+The raw records will be inserted at the end of the configuration for the zone.  
+In case the entries are missing in the db file, make sure the zone name is the exact same, and the `zone_type: "db"` is also present.  
+
+Please remember the usual DNS rules still apply. Especialy as, while duplicates are removed from the combinated result, the main configuration will also generate its own records.
+

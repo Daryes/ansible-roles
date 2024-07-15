@@ -50,9 +50,8 @@
     owner: "root"
     group: "{{ role_bind_dist.group }}"
     mode: "{{ thisDnsZone.zone_template_mode |default('0644') }}"
-    # validate the .db files with checkzone
-    # if having a missing file for the "$include" statement is not accepted anymore, remove the validate test and let the global test do the validation
-    validate: "/bin/bash -c \"if [ '{{ thisDnsZone.zone_type }}' =='db' ]; then /usr/sbin/named-checkzone {{ var_dns_zone_name }} %s; fi\""
+    # No dedicated validation due to having an error in a zome will prevent the SOA generation task to be executed, even for the valid zones
+    # Let the validation handler do the work instead
   with_items:
     - "{{ bind_zones_dns }}"
   vars:
@@ -60,6 +59,15 @@
     var_dns_zone_name: "{{ thisDnsZone.name |regex_replace('\\.$', '') }}"
     var_zone_template_src: "{{ thisDnsZone.zone_template }}"
     var_zone_template_dst: "{{ role_bind_dist.etc }}/zones.d/{{ var_dns_zone_name }}.{{ thisDnsZone.zone_type }}"
+    # extract all data related to the current zone, same name and type, from "task_bind_zones_extra_merged"
+    var_dns_zone_inventory_extra: >-
+      {{ task_bind_zones_extra_merged
+          |selectattr( "name", 'equalto', thisDnsZone.name)
+          |selectattr( "zone_type", 'defined' )
+          |selectattr( "zone_type", 'equalto', thisDnsZone.zone_type )
+          |selectattr( "records_raw", 'defined' )
+          |map( attribute='records_raw', default=[] ) |select() |list
+      }}
   when: thisDnsZone.zone_type in [ 'zone', 'db', 'reverse' ]
   loop_control:
     loop_var: thisDnsZone
@@ -68,10 +76,11 @@
   register: task_zones_installed
 
 
-# Little trick : a registered variable from a loop contains also the inbound array under register_var.results.[x].item
-# So instead of comparing and filtering 2 arrays together, just filter out the registered variable to keep the items with changed=true and zone_type=db
-# And filter the templates to only those supporting the feature (role_bind_templates_with_external_soa)
-# Also using 'thisDnsZone' instead of 'item' due to the previous loop_control/loop_var setting.
+# Little trick : a registered variable from a loop contains also the inbound array under register_var.results.[x].item.
+# So instead of comparing and filtering 2 arrays together, just filter out the registered variable from the previous task
+# to keep only the items with changed=true and zone_type=db.
+# And filter the templates to only those supporting the feature (cf role_bind_templates_with_external_soa).
+# Finally, uses 'thisDnsZone' instead of 'item' as the previous task also changed the 'item' variable name with loop_control/loop_var.
 - name: Bind DNS | config - retrieve the updated zones for the automatic serial management
   set_fact:
     task_zones_for_soa: >-
@@ -94,7 +103,7 @@
     group: "{{ role_bind_dist.group }}"
     mode: "{{ thisDnsZone.zone_template_mode |default('0644') }}"
     # validate the .db files with checkzone
-    # if having a missing file for the "$include" statement is not accepted anymore, remove the validate test and let the global test do the validation
+    # if having a missing file for the "$include" statement is not accepted anymore, remove the validate test and let the handler do the validation instead
     validate: "/bin/bash -c \"if [ '{{ thisDnsZone.zone_type }}' =='db' ]; then /usr/sbin/named-checkzone {{ var_dns_zone_name }} %s; fi\""
   with_items:
     - "{{ task_zones_for_soa }}"

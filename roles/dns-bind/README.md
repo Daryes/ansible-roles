@@ -2,6 +2,8 @@
 
 Install the dns server Bind with a full configuration, and generate dns zones using the ansible inventory.
 
+It also has the capability to parse the inventory to look for partial dns zone entries to add to an existing zone.
+
 
 ## Restrictions and limitations
 
