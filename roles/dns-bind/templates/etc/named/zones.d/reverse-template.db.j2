@@ -57,6 +57,8 @@ $INCLUDE {{ role_bind_dist.etc }}/zones.d/{{ thisDnsZone.name |regex_replace('\\
 {{ loopExtra }}
 {%   endfor %}
 
+{% endif %}
+
 {% if var_dns_zone_inventory_extra |default([]) |length > 0 %}
 ; Raw records from all the inventory
 {%   for loopExtraInv in var_dns_zone_inventory_extra |flatten |unique %}
