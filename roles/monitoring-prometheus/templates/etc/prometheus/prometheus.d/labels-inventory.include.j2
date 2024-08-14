@@ -5,7 +5,7 @@
 {% if hostvarsCache is defined %}
     # basic labels
     os_type: "{{ hostvarsCache.ansible_system |default('unknown', true) |lower }}"
-    os_desc: "{{ hostvarsCache.ansible_lsb.description |default(hostvarsCache.ansible_distribution + ' ' + hostvarsCache.ansible_distribution_version) |trim |default('unknown', true) |lower |replace('red hat enterprise linux', 'rhel') }}"
+    os_desc: "{{ hostvarsCache.ansible_lsb.description |default(hostvarsCache.ansible_distribution + ' ' + hostvarsCache.ansible_distribution_version + ' (' + hostvarsCache.ansible_distribution_release + ')') |lower |replace('red hat enterprise linux', 'rhel') }}"
 {%   if prometheus_job_all_labels_variable_name |length > 0 %}
     # labels from variable names set in the inventory
 {%     for loopVarItem in prometheus_job_all_labels_variable_name |flatten %}
