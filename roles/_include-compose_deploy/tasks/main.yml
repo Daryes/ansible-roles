@@ -93,6 +93,17 @@
     and task_compose_env_basename != ".env"
 
 
+- name: "{{ arg_compose_comment }} | compose - add managed by ansible marker"
+  copy:
+    content: ""
+    dest: "{{ arg_compose_deploy_dir }}/#0_MANAGED_BY_ANSIBLE"
+    force: false
+    group: ansible
+    owner: ansible
+    mode: "0640"
+  when: arg_compose_managed_by_ansible |bool
+
+
 - name: "{{ arg_compose_comment }} | compose - validate configuration"
   shell:
     cmd: "docker-compose config"
