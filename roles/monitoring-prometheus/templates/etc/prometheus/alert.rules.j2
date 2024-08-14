@@ -29,8 +29,8 @@ groups:
 
 
   - alert: CPU_Stalled
-    expr: (1 - min by (job, geo, instance) (rate(node_cpu_seconds_total{mode="idle"}[24h])) ) * 100 > 20
-    for: 1h
+    expr: (1 - max by (job, geo, instance) (rate(node_cpu_seconds_total{mode="idle"}[24h:1h])) ) * 100 > 20
+    for: 24h
     labels: &cpu_stalled_labels
       severity: warning
     annotations: &cpu_stalled_annotations
@@ -38,8 +38,8 @@ groups:
       description: This device's CPU usage has never been lower than 20% usage with a minimum value of {{$value}} for at least 24 hours.
 
   - alert: CPU_Stalled_Win
-    expr: (1 - min by (job, geo, instance) (rate(windows_cpu_time_total{mode="idle"}[24h])) ) * 100 > 20
-    for: 1h
+    expr: (1 - max by (job, geo, instance) (rate(windows_cpu_time_total{mode="idle"}[24h:1h])) ) * 100 > 20
+    for: 24h
     labels: *cpu_stalled_labels
     annotations: *cpu_stalled_annotations
 
