@@ -43,7 +43,7 @@ None.
 | system_package_update_reboot | if the kernel is updated, will follow with a reboot if required when the mode is set to `full-with-kernel` .<br />Change it to no to prevent any reboot | boolean | yes |
 | system_package_update_reboot_timeout | Maximum seconds to wait for a host to reboot and respond | numeric | 600 |
 | system_package_update_reboot_skip_hosts | host list to never reboot.<br />the ansible server must be present, by itself or in a group, otherwise the role will raise an error<br />syntax:<br />`  - "{{ groups['ansible'] }}"`<br />`  - "server1"`<br />`  - "{{ groups['mygroup'] }}"`<br />`  - "..."` | list[ string ] | `"{{ groups['ansible'] }}"` |
-| system_package_update_ubuntu_disable_upgrade_next_lts | Ubuntu only: disable in update-manager the automatic upgrade to a new major LTS release when one is available | boolean | yes |
+| system_package_update_print_list | Print the package updates available before updating the system<br />Notice : it can generate a lot of lines in the output | boolean | no |
 ||
 | system_package_update_task_throttle | Limit the number of simultaneous hosts for running the update tasks.<br />The value will not allow to exceed the process fork value in ansible.cfg (or command line) | numeric | 8 |
 | system_package_update_reboot_throttle | Same as the task throttle, but for rebooting the hosts. | numeric | {{ system_package_update_task_throttle }} |

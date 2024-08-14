@@ -24,7 +24,7 @@ system_package_update_reboot_notifier_email: ""
 
 
 # print the list of packages to update
-system_package_update_print_list: yes
+system_package_update_print_list: no
 
 
 # number of host in a single batch on update and reboot task - this do not allow to exceed the process fork value in ansible.cfg (or command line)
