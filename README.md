@@ -168,7 +168,7 @@ By the way, don't go too crazy at start with the nginx role.
 
 ## The ugly stuff
 
-These roles are provided as-is. They are not available in collections, as I don't have much time keeping up with the maintenance.  
+These roles are provided as-is. They are not available in collections, as I don't have much time for keeping up with the maintenance.  
 For the same reason, the repository itself will rarely be updated. Maybe from time to time, but this is not the initial objective.  
 
 If you want to take over, please, by all means.  

@@ -1,5 +1,22 @@
 # Changelog
 
+
+## release 2024-08-15
+
+* role monitoring-prometheus: fix for the CPU_Stalled alerts being too aggressive and firing when not necessary.
+
+* role monitoring-prometheus: updated the system label 'os_desc' to implement the ansible_distrib_version fact when LSB is not installed
+
+* role sys-packages-update: set the update list printing to off as default value.  
+  The update list print parameter has also been added to the readme  
+
+* role app-vaultwarden: activate the new managed_by_ansible marker in _include-compose_deploy
+
+* role _include-compose_deploy: new parameter to create an empty file MANAGE_BY_ANSIBLE used as a visual marker
+
+* role dns-bind: fix in the reverse-template.db zone with a missing endif, rendering the template unusable
+
+
 ## release 2024-07-15
 
 * role app-vaultwarden: New parameter `vaultwarden_db_psql_version` to select the pgsql container version, when activated.  
