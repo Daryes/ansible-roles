@@ -55,6 +55,7 @@ docker_proxy_no_proxy: ""
 # conf: log driver, can be journald, syslog, ... - the driver 'json-file' will be used if empty
 docker_config_log_driver: "json-file"
 # conf: log driver opts, all the json parameters must be as a string on a single line
+# notice : using journald driver does not support the "max-size" & "max-file" parameters
 docker_config_log_opts: '"max-size": "10m", "max-file": "3"'
 
 # conf: registry mirrors list, syntax: [ "https://myregistry.domain.tld", "http://myregistry2:5002", ... ]

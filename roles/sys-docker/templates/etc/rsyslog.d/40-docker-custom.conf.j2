@@ -8,7 +8,7 @@ if $msg contains "run-docker-runtime" and $msg contains ".mount: Succeeded." the
 
 
 # send syslog messages to dedicated log files under /var/log/docker/
-# note: directory might require to be created with :  sudo install --o root -g adm -m 755 -d /var/log/docker
+# note: the directory might require to be created with :  sudo install --owner root --group root -m 751 -d /var/log/docker
 #
 # define a file output template
 $template DOCKER_CUSTOM_LOGS,"{{ role_docker_compose_log_dir.path  }}/%programname%.log"
