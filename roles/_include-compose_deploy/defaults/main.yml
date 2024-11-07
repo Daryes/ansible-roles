@@ -63,3 +63,7 @@ arg_compose_up_options: ""
 # If skipped, the role calling "_include-compose_deploy"  will have to start the container itself, but also able to to do other stuff meanwhile.
 arg_compose_up_execute: yes
 
+
+# remove unused images
+arg_compose_remove_old_images: no
+
