@@ -1,5 +1,7 @@
 # {{ ansible_managed }}
 
+/var/lib/mysql/mysqld.log
+/var/lib/mysql/mariadb.log
 /var/log/mysql.log
 {{ role_mysql_dist.log }}/*.log {
         daily

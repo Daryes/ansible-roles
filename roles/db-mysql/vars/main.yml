@@ -73,7 +73,7 @@ role_mysql_install_ppa:
 - name: mariadb-org
   apt_key_url: "https://mariadb.org/mariadb_release_signing_key.asc"
   # yamllint disable-line rule:line-length
-  apt_repository: "deb https://mirrors.xtom.nl/mariadb/repo/{{ mysql_version }}/{{ ansible_distribution |lower }} {{ ansible_distribution_release |lower }} main"
+  apt_repository: "deb https://mirrors.xtom.ee/mariadb/repo/{{ mysql_version }}/{{ ansible_distribution |lower }} {{ ansible_distribution_release |lower }} main"
   apt_filename: "mariadb.list"
 
 
