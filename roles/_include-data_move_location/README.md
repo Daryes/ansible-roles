@@ -1,9 +1,12 @@
 # Ansible role: _include-data_move_location
 
+Move a given directory to another location, and create a symlink behind to alleviate the location change.  
+It is usually desired with system packages to move the data and configuration files from the default location to a dedicated drive, without the need of dedicated mount points.  
 
-Move a given directory to another location, and create a symlink to alleviate the location change.  
 
-Unless forced, the source data will not be moved if the target already contains existing data. Instead, an error will be raised.
+The initial configuration will not move the source if the target already contains existing data. Instead, an error will be raised.  
+Multiple parameter can be activated if necessary, to fine tune the behavior when facing different situations.  
+Such as reinstalling a fresh system while having the existing data kept on a secondary drive.
 
 
 ## Restrictions and limitations
@@ -17,6 +20,10 @@ Insert a call in your tasks with the following command:
   vars:
     <parameters>
 ```
+
+Please note there still exist programs and binaries not working well with the use of symlinks.  
+In such case, it might be necessary to update the configuration files of such programs to target directly the final location, and use the symlink just as a reminder.
+Some programs also accept a symlink in the path, as long as it is not the target itself. See if positionning the symlink one directory higher can work, when possible.
 
 
 ## Requirements
