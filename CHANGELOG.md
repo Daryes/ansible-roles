@@ -1,5 +1,23 @@
 # Changelog
 
+## release 2025-01-15
+
+* role web-nginx: vhost templates - the proxypass section is now optional and will remove the default location if not set.  
+  This allow the template to be reused for a standard website using the `raw_settings` parameter
+
+* role db-mysql: new empty template for logrotate to handle system differences.
+  The role also now use the xtom.ee mirror
+
+* role app-vaultwarden: fix for the ADMIN_TOKEN in the config file when special chars were used.  
+  The previous older image is also removed when updating
+
+* roles certificate-generate* (all): new parameters for the 'locality', 'province', 'key usage' and 'key usage extended' when they were missing
+
+* role _include-data_move_location: readme additions about symlinks and existing data.
+
+* role _include-compose_deploy: add capability to remove old docker images when upgrading the version.
+  the value of the _compose_force_pull_always argument is also printed in the execution as an item
+
 
 ## release 2024-08-15
 
