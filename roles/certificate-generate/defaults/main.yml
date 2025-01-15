@@ -9,8 +9,11 @@ server_certificate_owner: "root"
 # if empty, will reuse the owner as group name
 server_certificate_group: ""
 
-# number of day the certificate will be valid - format: "+????d"
+# number of days the certificate will be valid - format: "+????d"
 server_certificate_validity_duration: "+365d"
+# number of days the certificate will start to be valid
+server_certificate_validity_not_before: "-1d"
+
 # server subject: enter the requested domain name without wildcards - it will also be used for the filename
 server_certificate_subject_name: "subject.example.tld"
 # server alt name - wildcards must go into the alt_name, DNS: must be present in alt_name
@@ -41,10 +44,22 @@ server_certificate_privatekey_size: 4096
 # Server certificate CSR variables
 server_certificate_common_name: "{{ server_certificate_subject_name }}"
 server_certificate_email_address: "someone@wsomewhere.tld"
+server_certificate_digest: "sha512"
 server_certificate_country_name: "FR"
 server_certificate_organization_name: "company"
 server_certificate_organization_unit: ""
-server_certificate_digest: "sha512"
+server_certificate_locality_name: ""
+server_certificate_locality_state_or_province: ""
+
+
+# key usages (names or IOD values can both be used)
+# ref: https://www.ietf.org/rfc/rfc3280.txt  => 4.2.1.3 & 4.2.1.13
+# ref: https://docs.openssl.org/master/man5/x509v3_config/#key-usage
+server_certificate_key_usage: [ "digitalSignature" ]
+server_certificate_key_usage_critical: false
+
+server_certificate_key_usage_extended: ["serverAuth", "clientAuth"]
+server_certificate_key_usage_extended_critical: false
 
 
 # CA variables

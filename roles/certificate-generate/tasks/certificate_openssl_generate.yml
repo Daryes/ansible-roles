@@ -38,9 +38,19 @@
       subject_alt_name: "{{ server_certificate_alt_name }}"
       country_name: "{{ server_certificate_country_name }}"
       organization_name: "{{ server_certificate_organization_name }}"
-      organizational_unit_name: "{{ server_certificate_organization_unit | default(omit) }}"
+      organizational_unit_name: "{{ server_certificate_organization_unit | default(omit, true) }}"
+      locality_name: "{{ server_certificate_locality_name | default(omit, true) }}"
+      state_or_province_name: "{{ server_certificate_locality_state_or_province | default(omit, true) }}"
       email_address: "{{ server_certificate_email_address }}"
       digest: "{{ server_certificate_digest }}"
+      # according pki-tutorial and others the RFC do not stipulate the presence for a user cert, but it is still enforced by cert authorities
+      basic_constraints:
+        - 'CA:FALSE'
+      basic_constraints_critical: no
+      key_usage: "{{ server_certificate_key_usage |default(omit, true) }}"
+      key_usage_critical: "{{ server_certificate_key_usage_critical }}"
+      extended_key_usage: "{{ server_certificate_key_usage_extended |default(omit, true) }}"
+      extended_key_usage_critical: "{{ server_certificate_key_usage_extended_critical }}"
       mode: "0600"
       owner: "{{ role_ansible_user }}"
       group: "{{ role_ansible_user }}"
@@ -54,7 +64,7 @@
       force: "{{ server_certificate_force_replacement |bool }}"
       # validity for the certificate to generate
       ownca_not_after: "{{ server_certificate_validity_duration }}"
-      ownca_not_before: "-1d"   # valid since yesterday
+      ownca_not_before: "{{ server_certificate_validity_not_before }}"   # valid since yesterday
       # manage ownca source types
       ownca_path: "{{ local_ca_path if local_ca_type == 'file' else omit }}"
       ownca_privatekey_path: "{{ local_ca_privatekey_path if local_ca_type == 'file' else omit }}"

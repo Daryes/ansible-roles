@@ -80,11 +80,13 @@ Ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/openss
 | --------- | ----------- | ---- | ------------- |
 | ca_certificate_common_name | Certificate common name | "string" | "My Own CA" |
 | ca_certificate_email_address | Contact email address | "string" | "someone@wsomewhere.tld" |
-| ca_certificate_country_name: | Country code, 2 letters | "string" | "FR" |
-| ca_certificate_organization_name | Organization name<br />It will be listed on the certificate | "string" | "company" |
-| ca_certificate_organization_unit | Organization unit | "string" | "branch" |
 | ca_certificate_digest | Certificate digest when signed with the private key | "string" | "sha512" |
-
+| |
+| ca_certificate_country_name | Country code, 2 letters | "string" | "FR" |
+| ca_certificate_organization_name | Organization name, also known as O<br />Usually the company name, visible on the final certificate | "string" | "company" |
+| ca_certificate_organization_unit | Organization unit, also known as OU<br />Usually the company branch, can be omited | "string" | "" |
+| ca_certificate_locality_name | Locality name, also known as L<br />Usually the city, can be omited | "string" | "" |
+| ca_certificate_locality_state_or_province | State or province name, also known as ST<br />Usually the province of the city, can be omited | "string" | "" |
 
 
 ## Usage examples

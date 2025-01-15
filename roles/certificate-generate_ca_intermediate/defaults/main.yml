@@ -35,10 +35,12 @@ cainter_certificate_privatekey_size: 4096
 # CA certificate CSR variables
 cainter_certificate_common_name: "My Own Intermediate CA"
 cainter_certificate_email_address: "someone@wsomewhere.tld"
+cainter_certificate_digest: "sha512"
 cainter_certificate_country_name: "FR"
 cainter_certificate_organization_name: "company"
-cainter_certificate_organization_unit: "branch"
-cainter_certificate_digest: "sha512"
+cainter_certificate_organization_unit: ""
+cainter_certificate_locality_name: ""
+cainter_certificate_locality_state_or_province: ""
 
 
 # CA variables

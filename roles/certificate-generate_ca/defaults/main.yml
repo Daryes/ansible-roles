@@ -27,10 +27,12 @@ ca_certificate_privatekey_size: 4096
 # CA certificate CSR variables
 ca_certificate_common_name: "My Own CA"
 ca_certificate_email_address: "someone@wsomewhere.tld"
+ca_certificate_digest: "sha512"
 ca_certificate_country_name: "FR"
 ca_certificate_organization_name: "company"
-ca_certificate_organization_unit: "branch"
-ca_certificate_digest: "sha512"
+ca_certificate_organization_unit: ""
+ca_certificate_locality_name: ""
+ca_certificate_locality_state_or_province: ""
 
 
 # should be under this_role/vars/

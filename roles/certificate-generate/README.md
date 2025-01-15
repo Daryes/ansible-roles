@@ -56,7 +56,7 @@ These settings are related to the public certificate usage and expiration.
 | server_certificate_dir | root directory for storing the certificates on the server | "string" | "/etc/ssl/private" |
 | server_certificate_owner | system user that will be given ownership of the certificates.<br />Usually, root | "string" | "root" |
 | server_certificate_group | system group getting ownership.<br />If empty, it will reuse `server_certificate_owner` value | "string" | "root" |
-| server_certificate_validity_duration | Number of day the certificate will be valid - format: "+????d"<br />Currently, a validity exceeding 1 year might not be accepted | "string" | "+365d" |
+| server_certificate_validity_duration | Number of days the certificate will be valid - format: "+????d"<br />Currently, a validity exceeding 1 year might not be accepted | "string" | "+365d" |
 | server_certificate_subject_name | Certificate subject, usually the requested domain name without wildcards or the server name.<br />It will also be used for the filenames | "string" | "subject.example.tld" |
 | server_certificate_alt_name | Subject Alt Name, or SAN. This is the multiples names (with wildcards) the certificate will answer to.<br />The "DNS:" prefix must be present in front of each entry<br />Example:<br />`- "DNS:{{ server_certificate_subject_name }}"`<br />`- "DNS:*.{{ server_certificate_subject_name }}"`<br />`- "DNS:subject-alt.example.tld"`<br />`- "DNS:*.subject-alt.example.tld"` | list[ "string" ] | [ ] |
 | server_certificate_chain_add_ca_public_cert | Insert the local_ca public certificate in the server public certificate.<br />Usually required if the CA is an intermediate CA | boolean | no |
@@ -85,16 +85,19 @@ Ref: https://docs.ansible.com/ansible/latest/collections/community/crypto/openss
 
 #### SSL certificate CSR variables
 
-These settings are related to the public certificate informations.
+These settings are related to the certificate informations which will be public.
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
 | server_certificate_common_name | Certificate common name | "string" | "{{ server_certificate_subject_name }}" |
 | server_certificate_email_address | Contact email address | "string" | "someone@wsomewhere.tld" |
-| server_certificate_country_name | Country code, 2 letters | "string" | "FR" |
-| server_certificate_organization_name | Organization name<br />It will be listed on the certificate | "string" | "company" |
-| server_certificate_organization_unit | Organization unit | "string" | "branch" |
 | server_certificate_digest | Certificate digest when signed with the private key | "string" | "sha512" |
+| |
+| server_certificate_country_name | Country code, 2 letters | "string" | "FR" |
+| server_certificate_organization_name | Organization name, also known as O<br />Usually the company name, visible on the final certificate | "string" | "company" |
+| server_certificate_organization_unit | Organization unit, also known as OU<br />Usually the company branch, can be omited | "string" | "" |
+| server_certificate_locality_name | Locality name, also known as L<br />Usually the city, can be omited | "string" | "" |
+| server_certificate_locality_state_or_province | State or province name, also known as ST<br />Usually the province of the city, can be omited | "string" | "" |
 
 
 #### CA certificate variables

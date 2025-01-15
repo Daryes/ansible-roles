@@ -36,7 +36,9 @@
     common_name: "{{ ca_certificate_common_name  }}"
     country_name: "{{ ca_certificate_country_name }}"
     organization_name: "{{ ca_certificate_organization_name }}"
-    organizational_unit_name: "{{ ca_certificate_organization_unit | default(omit) }}"
+    organizational_unit_name: "{{ ca_certificate_organization_unit | default(omit, true) }}"
+    locality_name: "{{ ca_certificate_locality_name | default(omit, true) }}"
+    state_or_province_name: "{{ ca_certificate_locality_state_or_province | default(omit, true) }}"
     email_address: "{{ ca_certificate_email_address }}"
     digest: "{{ ca_certificate_digest }}"
     # prevent creating an alt_name ['DNS:subject'] which shouldn't be present for any type of CA
