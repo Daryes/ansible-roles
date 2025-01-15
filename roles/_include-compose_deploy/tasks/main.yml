@@ -134,7 +134,7 @@
 
 
 # refresh - or not - the images
-- name: "{{ arg_compose_comment }} | compose - pull images {{ arg_compose_force_pull_always |bool |ternary('always', 'on config change') }}"
+- name: "{{ arg_compose_comment }} | compose - pulling images - can take some time"
   shell:
     cmd: "docker-compose pull"
     chdir: "{{ arg_compose_deploy_dir }}"
@@ -145,10 +145,13 @@
   register: task_compose_image_pull
   changed_when: task_compose_image_pull.stderr_lines |length > 2
   become: yes
+  # only for logging purpose - item is unused
+  with_items:
+    - { pull_mode: "{{ arg_compose_force_pull_always |bool |ternary('always', 'only on config change') }}" }
 
 
-# some containers require a "down" when the config is updated, other must not even be stopped aside a specific service
-# can't handle everything, just limit to the 2 standard cases: always or on config change
+# Some containers require a "down" when the config is updated, other must not even be stopped aside a specific service
+# Can't handle everything, just limit to the 2 standard cases: always or on config change
 - name: "{{ arg_compose_comment }} | compose - service stop on change if requested"
   shell:
     cmd: "docker-compose down"
