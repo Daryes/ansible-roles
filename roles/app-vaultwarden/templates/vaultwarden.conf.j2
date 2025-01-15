@@ -44,7 +44,7 @@ DOCKER_HOST_PORT_WS={{ vaultwarden_listen_port_ws }}
 
 # used for the first launch, change the data/config.json after
 # If not set, the admin panel is disabled
-ADMIN_TOKEN={{ vaultwarden_admin_token }}
+ADMIN_TOKEN='{{ vaultwarden_admin_token }}'
 
 # activate websocket
 # warning: extra configuration is required on the reverse proxy
