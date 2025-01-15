@@ -20,6 +20,7 @@ server {
     {{ loopRaw }}
 {% endfor %}
 
+{% if thisVhost.proxypass_target is defined %}
     location / {
         proxy_pass              {{ thisVhost.proxypass_target }};
         include conf.d/proxy_params.include;
@@ -28,5 +29,6 @@ server {
         # websocket support
         include conf.d/proxy_websocket.include;
     }
+{% endif %}
 }
 
