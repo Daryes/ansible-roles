@@ -24,14 +24,14 @@
   become: yes
 
 
-# add a new ppa or external repo key in the system
-- name: "{{ arg_install_comment }} | pkg install APT - add ppa keys via apt-key"
+# add a new ppa or external repo key in the system - exlusive with _use_gpg
+- name: "{{ arg_install_comment }} | pkg install APT - add repo keys via apt-key"
   apt_key:
     url: "{{ item.apt_key_url | default(omit) }}"
     keyserver: "{{ item.apt_key_server | default(omit) }}"
     id: "{{ item.apt_key_id |default(omit) }}"
   with_items:
-    - "{{ arg_install_ppa }}"
+    - "{{ arg_install_deb_repo_final }}"
   loop_control:
     label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
   when: >
@@ -44,29 +44,31 @@
 # ref: https://github.com/ansible/ansible/issues/64016
 - block:
 
-  - name: "{{ arg_install_comment }} | pkg install APT - add ppa keys via gpg - key presence check"
+  - name: "{{ arg_install_comment }} | pkg install APT - add repo keys via gpg - key presence check"
     stat:
       path: "/etc/apt/trusted.gpg.d/{{ item.name }}.asc"
       get_checksum: no
       get_mime: no
     with_items:
-      - "{{ arg_install_ppa }}"
+      - "{{ arg_install_deb_repo_final }}"
     loop_control:
       label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
     register: task_stat_key_gpg
-    changed_when: not task_stat_key_gpg.stat.exists |bool
+    changed_when: >
+      not task_stat_key_gpg.stat.exists |bool
+      or arg_install_force_all |bool
 
-
+  # add a new gpg key - exclusive with the previous apt_key
   # ref: https://github.com/ansible/ansible/issues/78063
   # dearmor command: gpg --output dest.gpg  --dearmor file.key
-  - name: "{{ arg_install_comment }} | pkg install APT - add ppa keys via gpg - key installation"
+  - name: "{{ arg_install_comment }} | pkg install APT - add repo keys via gpg - key installation"
     get_url:
       url: "{{ item.apt_key_url }}"
       # possible alt location: /usr/share/keyrings/
       dest: "/etc/apt/trusted.gpg.d/{{ item.name }}.asc"
       force: no
     with_items:
-      - "{{ arg_install_ppa }}"
+      - "{{ arg_install_deb_repo_final }}"
     loop_control:
       label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
     when: task_stat_key_gpg is changed
@@ -80,21 +82,21 @@
 
 
 # remove the previous repo file as the ansible _repo module is not able to do so
-- name: "{{ arg_install_comment }} | pkg install APT - remove previous ppa definition"
+- name: "{{ arg_install_comment }} | pkg install APT - remove previous repo definition"
   file:
     path: "/etc/apt/sources.list.d/{{ var_repo_filename }}"
     state: absent
   vars:
     var_repo_filename: "{{ item.apt_filename |default(item.name) |replace('.list', '') }}.list"
   with_items:
-    - "{{ arg_install_ppa }}"
+    - "{{ arg_install_deb_repo_final }}"
   loop_control:
     label: "{{ item.name }} => {{ item.apt_repository is defined |ternary( var_repo_filename, 'no repository required') }}"
   when: item.apt_repository is defined
 
 
 # add a new ppa or external repo in the system
-- name: "{{ arg_install_comment }} | pkg install APT - register ppa"
+- name: "{{ arg_install_comment }} | pkg install APT - register repo"
   apt_repository:
     repo: "{{ item.apt_repository |regex_replace('^deb (\\[.*\\] )*', 'deb ' + var_repo_signed_by +' ') }}"
     filename: "{{ item.apt_filename |default(item.name) |replace('.list', '') }}"
@@ -103,11 +105,11 @@
     # yamllint disable-line rule:line-length
     var_repo_signed_by: "{{ task_repo_key_use_gpg |bool |ternary( '[arch=' + role_system_arch + ' signed-by=/etc/apt/trusted.gpg.d/' + item.name + '.asc]', '') }}"
   with_items:
-    - "{{ arg_install_ppa }}"
+    - "{{ arg_install_deb_repo_final }}"
   loop_control:
     label: "{{ item.name }} => {{ item.apt_repository |default('no repository required') }}"
   when: item.apt_repository is defined
-  register: task_update_ppa
+  register: task_update_repo
   become: yes
 
 
@@ -130,7 +132,7 @@
   when: >
     ( lookup('pipe', 'date +%s')|float - task_update_cache_stat.stat.mtime ) > 60*60*3
     or task_update_package_lists_empty is changed
-    or task_update_ppa is changed
+    or task_update_repo is changed
   register: task_update_refresh
   become: yes
 

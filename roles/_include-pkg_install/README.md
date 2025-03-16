@@ -21,21 +21,24 @@ Insert a call in your tasks with the following command:
     <parameters>
 
 
-# example using the return variable '_pkg_install_status'
+# example using the variable '_pkg_install_status' returned by the role
+# using this variable is optional, and not required most of the time
 - module: ...
+    ... start a service or update a config file
   when: _pkg_install_status is changed
 ```
 
-The role is able to register a custom repository or ppa in the system, but is not able to update them. They must be removed manually.  
+The role is able to register or update a custom repository or ppa in the system, but it does not have the capability to only remove them. They must be removed manually.  
 
 
-When on a Debian-based distribution the following error occurs: "apt cache update failed" or similar, and using a custom ppa, verify the url and version.  
-This error occurs frequently when on a given repo, a specific version is requested but does not exist for the current system release.
+When on a Debian-based distribution, if the following error "apt cache update failed" occurs (or similar), and a custom external repo/ppa is used, verify the url and version.  
+This error occurs frequently when on a given repo, a specific version is requested but does not exist for the current system release, or if the repo url has changed.  
 
 
 ## Requirements
 
-Same as ansible modules `apt` and `yum_repository`
+Same as the ansible modules `apt` and `dnf` (or the `yum` alias ) and the dedicated `*_repository` modules in the ansible.builtin collection.  
+Ansible will usually install itself the requirements on the targeted hosts.
 
 
 ## Parameters
@@ -65,7 +68,7 @@ arg_install_packages:
 ```
 
 The structure common / debian / redhat are all mandatory.  
-If no package is to be provided, use an empty list, like this : `common: []`
+If there is no package to provide, use an empty list for each, like this : `common: []`
 
 
 ### Optional parameters
@@ -73,12 +76,13 @@ If no package is to be provided, use an empty list, like this : `common: []`
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
 | arg_remove_packages | List of packages to uninstall from the system.<br />The expected structure is exactly the same as `arg_install_packages`  | common: [ "string" ]<br />debian: [ "string" ]<br />redhat: [ "string" ] | [ ] |
+| arg_install_force_all | When the desired packages are already present, the repo configuration is skipped. Activate this parameter to force the execution of the full sequence.<br />When an external repo change its address abruptly, without a redirect, it will at least break the system updates. Fix the calling role with the new repo url, and use this parameter on the command like with : `ansible-playbook ... my_playbook.yml -e arg_install_force_all=yes` | boolean | no |
 
 
 **Debian type repositories**  
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
-| arg_install_ppa | list of Debian PPA to install and activate | list[ object ] | [ ] |
+| arg_install_deb_repo | list of one or multiple Debian repo/PPA to install and activate.<br />Notice: the old name `arg_install_ppa` is still supported. | list[ object ] | [ ] |
 | - | module name | name: "string" | mandatory |
 | - | repo filename placed under `/etc/apt/sources.list.d/` | apt_filename: "string" | "{{ this.name }}" |
 | - | repository full url.<br />Ex: `"deb http://ppa.launchpad.net/<...ppa...>/ubuntu {{ ansible_distribution_release.lower() }} main"` | apt_repository: "string" | mandatory | 
@@ -86,10 +90,11 @@ If no package is to be provided, use an empty list, like this : `common: []`
 | - | dns for the key server, if used. Ex: "keyserver.ubuntu.com" | apt_key_server: "string" | "" |
 | - | Key id hash | apt_key_id: "string" | "" |
 
+
 **Redhat type repositories**  
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
-| arg_install_yumrepo | list of yum/dnf repo to install and activate | list[ object ] | [ ] |
+| arg_install_rpm_repo | list of one or multiple Rpm repo for yum/dnf to install and activate.<br />Notice: the old name `arg_install_rpm_repo` is still supported. | list[ object ] | [ ] |
 | - | module name | name: "string" | mandatory |
 | - | file name to store the repo information (without the path)<br />Optional when already integrated in the system repo list| yumrepo_file: "string" | "{{ this.name }}.repo" |
 | - | repository full url.<br />Ex: "https://myrepo.domain.tld"<br />This parameter must be omitted for repos already integrated in the system | yumrepo_baseurl: "string" | mandatory<br />Myst be omitted if in the system |
@@ -144,13 +149,13 @@ The package name is the same for both distributions, only Debian is requesting a
         - "MariaDB-client"
         - "MariaDB-backup"
     #
-    arg_install_ppa:
+    arg_install_deb_repo:
       - name: mariadb-org
         apt_key_url: "https://mariadb.org/mariadb_release_signing_key.asc"
         apt_repository: "deb https://deb.mariadb.org/10.10/debian {{ ansible_distribution_release |lower }} main"
         apt_filename: "mariadb.list"
     #
-    arg_install_yumrepo: 
+    arg_install_rpm_repo:
       - name: mariadb-org
         yumrepo_file: "mariadb-org"
         yumrepo_description: "MariaDB from mariadb.org"        
@@ -166,8 +171,8 @@ The task call can be reduced to something like this :
   vars:
     arg_install_comment: "MySQL/MariaDB"
     arg_install_packages: "{{ role_mysql_install_packages }}"
-    arg_install_ppa: "{{ role_mysql_install_ppa }}"
-    arg_install_yumrepo: "{{ role_mysql_install_yumrepo }}"
+    arg_install_deb_repo: "{{ role_mysql_install_ppa }}"
+    arg_install_rpm_repo: "{{ role_mysql_install_yumrepo }}"
 ```
 
 

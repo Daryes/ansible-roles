@@ -31,5 +31,7 @@
 
 - name: "{{ arg_install_comment }} | pkg install APT - load the install module"
   include_tasks: debian_proc-install.yml
-  when: _pkg_install_status is changed
+  when: >
+    _pkg_install_status is changed
+    or arg_install_force_all |bool
 

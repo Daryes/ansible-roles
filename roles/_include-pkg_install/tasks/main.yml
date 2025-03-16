@@ -1,9 +1,17 @@
 ---
 
+# handle changes in the parameter names to keep the compatibility with older roles not updated
+- name: "{{ arg_install_comment }} | pkg install - compatibility settings"
+  set_fact:
+    cacheable: no
+    arg_install_deb_repo_final: "{{ arg_install_ppa     |default( arg_install_deb_repo ) }}"
+    arg_install_rpm_repo_final: "{{ arg_install_yumrepo |default( arg_install_rpm_repo ) }}"
+
+
 #- debug: var=arg_remove_packages
 #- debug: var=arg_install_packages
-#- debug: var=arg_install_ppa
-#- debug: var=arg_install_yumrepo
+#- debug: var=arg_install_deb_repo_final
+#- debug: var=arg_install_rpm_repo_final
 
 
 - name: "{{ arg_install_comment }} | pkg install - parameters validation"

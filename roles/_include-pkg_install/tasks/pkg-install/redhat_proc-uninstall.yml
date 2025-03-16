@@ -3,7 +3,7 @@
 # combine both without a loop to prevent listing every packages which could not exist anywmore
 # the match filter expect a regex:
 # => combine both _packages list and transform to string with a join('|')
-# => as apt accepts wildcard, replace '*' by '.*'
+# => as dnf accepts wildcard, replace '*' by '.*'
 # => add '^(...)$' around as it's a list and the search must be an exact match
 - name: "{{ arg_install_comment }} | pkg install YUM - filter packages to remove"
   set_fact:
@@ -15,7 +15,6 @@
     }}"
 
 
-# yum:state=absent does not handle malformed package name and will silently exit without error nor action
 - name: "{{ arg_install_comment }} | pkg install YUM - remove packages"
   yum:
     pkg: "{{ task_package_uninstall_list }}"

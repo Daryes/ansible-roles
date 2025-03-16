@@ -17,11 +17,11 @@
 # - debug: msg="{{ task_package_uninstall_list }}"
 
 
-# apt:state=absent does not handle malformed package name and will silently exit without error nor action
+# the module "apt" with "state=absent" does not handle malformed package names and will silently exit without error nor action
 - name: "{{ arg_install_comment }} | pkg install APT - remove packages"
   shell: "LANG=C /usr/bin/apt-get -q -y purge {{ task_package_uninstall_list |join(' ') }} "
   args:
-    warn: no
+  #  warn: no
   when: task_package_uninstall_list |default([]) |length > 0
   become: yes
 
