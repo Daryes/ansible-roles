@@ -1,5 +1,60 @@
 # Changelog
 
+## release 2025-03-16 : ansible-core v2.16
+
+**BREAKING:**  
+* Global switch to ansible-core v2.16  
+  All roles are still fully compatible with older ansible-core versions, but a warning will now be visible when using specific shell commands.  
+  This is due to the `warn=false` now raising a blocking error on `shell:` and `command:` modules, since ansible-core v2.14+  
+  See the dedicated section for switching back and forth between ansible versions.  
+  Please note that in the future, the compatibility might broke.  
+  
+* role web-nginx: the template `vhost-template.conf` has been renamed to `vhost-reverse.conf`  
+  The definitions in the inventory should switch to the `vhost-reverse.conf` template.  
+  A symlink is present for the role compatibility, there is no urgency to make the switch, but note the symlink will be removed on a future time.  
+ 
+  
+**CHANGES:**
+* role web-apache:  
+  - readme : split the documentation for the templates in dedicated files.
+  - mod_expire: added a default expiration value for the 'image/webp' type.
+
+* role web-nginx:  
+  - readme : split the documentation for the templates in dedicated files.
+  - explicit installation of the stream module `nginx-mod-stream` for RHEL systems.
+  - new global template `global_websocket_map.conf` for a correct handling when opening and closing a websocket.
+  - new virtual host template `vhost-standard.conf` and the _no_ssl variant expecting a full directory configuration.
+
+* role sys-docker: logrotate config - the rotation will occur even for empty files.
+
+* role _include-pkg_install:  
+  - new parameter `arg_install_force_all` to force the full remove/install/update sequence even if the packages are already installed.
+  - new parameters `arg_install_deb_repo` and `arg_install_rpm_repo` replacing the '*_ppa_repo' and '*_yum_repo' parameters.  
+    The old parameters are still supported, just not visible anymore.
+
+* role sys-packages-update: readme - clarity on the direct usage of apt and dnf, and about the reboot sequence.
+
+* role ntp-chrony: normalization of the handler names and definition.
+
+* role monitoring-prometheus_agent:  
+  - readme - add the missing `_auth_basic_*` parameters to the readme. 
+  - typo fix in the installation task for the snmp agent.
+
+* role monitoring-prometheus:  
+  - system flag activated for the user group creation.
+  - removal of the requirement installation which was not used.
+
+* role monitoring-grafana: explicit parameter `grafana_config_dashboards_versions_to_keep` for the history of dashboard versions.
+
+* role monitoring-grafana-dashboard:
+  - dashboard home - fix the alignement and use the environment full name instead of the single char in the server table list.
+  - dashboard node_server_linux - show the shared memory usage.
+
+* role db-postgresql: use the 'libpq5' package name with the explicit version on debian.
+
+* role dns-bind handlers - removal of the explicit full path for the bind commands due to being moved from /usr/sbin to /usr/bin
+
+
 ## release 2025-01-15
 
 * role web-nginx: vhost templates - the proxypass section is now optional and will remove the default location if not set.  
