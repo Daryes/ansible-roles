@@ -49,14 +49,15 @@ role_postgresql_install_packages:
   common:
     # required for the collection community.postgresql
     - "python3-psycopg2"
-    - "libpq"
     # required to allow ansible to switch to the pgsql user
     - "acl"
   debian:
     - "postgresql-{{ postgresql_version_major }}"
     - "postgresql-client-{{ postgresql_version_major }}"
+    - "libpq5"
   redhat:
     - "postgresql{{ postgresql_version_major }}-server"
+    - "libpq"
 
 
 role_postgresql_remove_packages:
