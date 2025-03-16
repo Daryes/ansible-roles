@@ -19,5 +19,5 @@
   with_items:
     - "/etc/systemd/system/systemd-timesyncd.service.d/disable-with-time-daemon.conf"
   become: yes
-  notify: [ "timesyncd stop", "systemctl daemon-reload" ]
+  notify: [ "timesyncd stop", "reload systemd-daemon" ]
 

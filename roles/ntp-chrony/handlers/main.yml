@@ -1,11 +1,11 @@
 ---
 
-- name: systemctl daemon-reload
-  command: systemctl daemon-reload
+- name: reload systemd-daemon
+  systemd:
+    daemon-reload: true
   become: yes
 
 
-# order is not really important with daemon-reload
 - name: timesyncd stop
   service:
     name: "systemd-timesyncd"
@@ -18,3 +18,5 @@
   service:
     name: "{{ role_chrony_dist.service }}"
     state: stopped
+  become: yes
+
