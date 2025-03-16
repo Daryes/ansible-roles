@@ -70,7 +70,7 @@
 
 
 # Role certificate_push_private generate a fact if a change occured to a certificate
-- name: webserver apache | stop the service in case of certificate renewal
+- name: webserver apache | stop the service due to a certificate renewal
   service:
     name: "{{ role_apache_dist.service }}"
     state: "stopped"
