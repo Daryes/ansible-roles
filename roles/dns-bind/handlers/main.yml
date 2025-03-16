@@ -1,11 +1,11 @@
 ---
 
 - name: validate bind config
-  command: "/usr/sbin/named-checkconf -z {{ role_bind_dist.etc }}/named.conf"
+  command: "named-checkconf -z {{ role_bind_dist.etc }}/named.conf"
 
 
 - name: reload bind
-  command: "/usr/sbin/rndc reload"
+  command: "rndc reload"
   # only if the service is active
   when: task_service_status_for_rndc.rc == 0
 
