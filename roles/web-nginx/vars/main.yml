@@ -6,7 +6,12 @@ role_webserver_nginx_install_packages:
     - "nginx"
   debian:
     - "nginx-common"
-  redhat: []
+    - "nginx-core"            # <= necessary for the modules but on Debian it is not requested by the "nginx" package
+    # - "libnginx-mod-stream" # <= already required by nginx-core
+  redhat:
+    # - "nginx-core"          # <= already required by "nginx" on RHEL
+    - "nginx-all-modules"     # <= necessary for the modules, as  "nginx-core" on RHEL will not ask for the modules
+    - "nginx-mod-stream"      # <= not always requested on RHEL by "nginx-all-modules" while it should be
 
 
 # mandatory defaut vhost
@@ -18,6 +23,11 @@ role_nginx_default_sites:
   - server_name: "server-status"
     site_vhost_template: "templates/etc/nginx/sites-available/server-status.conf.j2"
     site_vhost_standalone: True
+
+
+# mandatory modules
+role_nginx_mandatory_modules:
+  - "templates/etc/nginx/modules-available/stream-servers.conf.j2"
 
 
 # default system log directory

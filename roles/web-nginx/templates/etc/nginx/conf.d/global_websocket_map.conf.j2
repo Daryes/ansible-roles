@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+
+# global config for websockets - manage both opening and closing
+map $http_upgrade $connection_upgrade {
+  # The RFC 6455/1.3-Opening_Handshake specify Upgrade with a first letter upper case - some apps pay attention to this.
+  default Upgrade;
+  '' close;
+}
+

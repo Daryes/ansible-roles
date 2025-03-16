@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 
-# websocket support
+# websocket support - requires the global config global_proxy_websocket_map.conf
 proxy_set_header Upgrade     $http_upgrade;
-proxy_set_header Connection  "Upgrade";
+proxy_set_header Connection  $connection_upgrade;
 

@@ -31,7 +31,7 @@
     # variable for the template stream-servers
     allStream: "{{ task_web_nginx_stream_merged }}"
   with_items:
-    - "templates/etc/nginx/modules-available/stream-servers.conf.j2"
+    - "{{ role_nginx_mandatory_modules }}"
     - "{{ nginx_global_extra_modules }}"
     - "{{ task_web_nginx_merged |map(attribute='extra_modules', default=[]) |select() |list |sum(start=[]) }}"
   loop_control:
@@ -51,7 +51,7 @@
   vars:
     var_module_name: "{{ item |basename |regex_replace('.j2$', '') }}"
   with_items:
-    - "templates/etc/nginx/modules-available/stream-servers.conf.j2"
+    - "{{ role_nginx_mandatory_modules }}"
     - "{{ nginx_global_extra_modules }}"
     - "{{ task_web_nginx_merged |map(attribute='extra_modules', default=[]) |select() |list |sum(start=[]) }}"
   loop_control:
