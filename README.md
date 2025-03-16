@@ -29,14 +29,22 @@ Due to this, using "git clone" or the tar format on a Linux system is prefered t
 
 
 **Supported ansible versions**  
-The current roles are structured for Ansible v2.9 (don't ask), but are also valid and tested up to Ansible v2.15.  
+The current roles are structured for Ansible v2.14+, but are valid and tested starting with Ansible v2.9.  
 Given the major incompatibility with the warn=false parameter, they were altered to ensure a simple grep+sed would make them working correctly.  
-If you are using Ansible v2.14+, they can be made compatible with the following one-liner :  
+If you are using Ansible v2.13 or lower down to v2.9, the roles can be made compatible with the following one-liner to uncomment the 'warn:' lines :  
 ```
-egrep -ri '^ *  warn: .*' /etc/ansible/roles/*/{handlers,tasks,vars}/ | cut -d ':' -f1 |sort -u |xargs --no-run-if-empty sed -i '/^ *  warn: .*/d'
+# remove the comment on the warn: lines
+egrep -ri '^ *#  warn: .*' /etc/ansible/roles/*/{handlers,tasks,vars}/ | cut -d ':' -f1 |sort -u |xargs --no-run-if-empty sed -i 's/#  warn:/  warn:/'
 ```
 Adjust the path at the start if the roles are not under `/etc/ansible/roles/`  
-If you want to verify which files will be altered, remove the `|xargs ` part up to the end of the command.
+If you want to verify which files will be altered, remove the `|xargs ` part up to the end of the command.  
+
+
+If you need to set back the comment, use this one-liner :
+```
+# comment warn: lines
+egrep -ri '^ *  warn: .*' /etc/ansible/roles/*/{handlers,tasks,vars}/ | cut -d ':' -f1 |sort -u |xargs --no-run-if-empty sed -i -e '/^ *  warn: .*/  s/  warn:/#  warn:/'
+```
 
 
 # Available roles
