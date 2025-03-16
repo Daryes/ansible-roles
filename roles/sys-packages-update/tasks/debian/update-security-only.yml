@@ -11,7 +11,7 @@
 - name: System Update | APT | security update only - filtering packages
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get upgrade --simulate --quiet=2 |grep -i '^Inst .* .*\\-security' | cut -d ' '  -f2 || true"
   args:
-    warn: false
+  #  warn: false
   become: yes
   throttle: "{{ system_package_update_task_throttle }}"
   register: task_updateonly_packages
@@ -23,7 +23,7 @@
 - name: System Update | APT | security update only
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade   {{ task_updateonly_packages.stdout_lines |join(' ') }}"
   args:
-    warn: false
+  #  warn: false
   become: yes
   throttle: "{{ system_package_update_task_throttle }}"
   when: task_updateonly_packages.stdout |trim |length > 0

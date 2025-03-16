@@ -11,15 +11,15 @@
 # on RHEL, bind isn't started at the end of the first installation, but rndc cannot work if the service isn't up
 # => check the service state, and skip rdnc handler if it is not started
 - name: Bind DNS | system - retrieve service status
-  shell: "service {{ role_bind_dist.service }} status"
+  shell: "service {{ role_bind_dist.service }} status"  # noqa: command-instead-of-module
   args:
-    warn: no
+  #  warn: no
   register: task_service_status_for_rndc
   changed_when: false
   failed_when: false
 
 
-- name: BIND DNS | system - directory requirements
+- name: Bind DNS | system - directory requirements
   file:
     path: "{{ item.path }}"
     state: directory
@@ -37,7 +37,7 @@
 
 
 # a bug exists on Debian where the owner is not root and can cause access errors
-- name: BIND DNS | system - adjust rndc key owner
+- name: Bind DNS | system - adjust rndc key owner
   file:
     path: "{{ item.path }}"
     state: "file"

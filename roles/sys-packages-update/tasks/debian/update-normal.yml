@@ -7,7 +7,7 @@
   #apt: upgrade=safe
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade"
   args:
-    warn: false
+  #  warn: false
   become: yes
   throttle: "{{ system_package_update_task_throttle }}"
 

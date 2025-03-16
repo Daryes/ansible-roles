@@ -6,7 +6,7 @@
 - name: User mgr | create user home directories using pam_mkhomedir
   shell:
     cmd: 'if [ ! -d $( bash -c "echo ~{{ item.username }}" ) ]; then echo "impersonate"; sudo su - {{ item.username }} -c "true"; fi '
-    warn: no
+  #  warn: no
   with_items:
     - "{{ users_accounts_all |selectattr('ssh_pub_keys', 'defined') |selectattr('skip_create_user', 'defined') |list }}"
     - "{{ users_accounts_host |selectattr('ssh_pub_keys', 'defined') |selectattr('skip_create_user', 'defined')  |list }}"

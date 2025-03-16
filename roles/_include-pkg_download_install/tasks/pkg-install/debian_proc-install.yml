@@ -1,7 +1,8 @@
 ---
 
 # import the common part for downloading and syncing the package
-- set_fact:
+- name: "{{ arg_install_comment }} | pkg down+install - common parameter adjustements"
+  set_fact:
     task_install_pkg_target_url: "{{ arg_install_pkg_deb_url }}"
     task_install_pkg_target_file: "{{ arg_install_pkg_deb_file }}"
     task_install_pkg_target_hash: "{{ arg_install_pkg_deb_hash }}"
@@ -12,7 +13,7 @@
 
 # install the package file without starting the service
 # note: allow_downgrade=yes is available with ansible 2.12+  - use force=true instead
-- name: "{{ arg_install_comment }} | pkg down+install - install pkg file"
+- name: "{{ arg_install_comment }} | pkg down+install - install the pkg file"
   apt: deb=/tmp/{{ arg_install_pkg_deb_file }} dpkg_options='force-confold' force=true policy_rc_d=101
   register: task_pkg_installed
 

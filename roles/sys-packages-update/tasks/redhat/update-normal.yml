@@ -5,7 +5,7 @@
 - name: System Update | YUM | normal update without kernel
   shell: "{{ ansible_pkg_mgr }} update -y  --exclude='kernel*'"
   args:
-    warn: false
+  #  warn: false
   become: true
   throttle: "{{ system_package_update_task_throttle }}"
 

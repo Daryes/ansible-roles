@@ -1,7 +1,8 @@
 ---
 
 # import the common part for downloading and syncing the package
-- set_fact:
+- name: "{{ arg_install_comment }} | pkg down+install - common parameter adjustements"
+  set_fact:
     task_install_pkg_target_url: "{{ arg_install_pkg_rpm_url }}"
     task_install_pkg_target_file: "{{ arg_install_pkg_rpm_file }}"
     task_install_pkg_target_hash: "{{ arg_install_pkg_rpm_hash }}"
@@ -18,7 +19,7 @@
 
 
 # install the package file without starting the service
-- name: "{{ arg_install_comment }} | pkg down+install - install pkg file"
+- name: "{{ arg_install_comment }} | pkg down+install - install the pkg file"
   yum:
     state: present
     name: "/tmp/{{ arg_install_pkg_rpm_file }}"

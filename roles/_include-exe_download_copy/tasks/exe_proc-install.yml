@@ -35,7 +35,7 @@
     dest: "{{ role_archive_storage_dir }}/{{ role_exe_storage_file }}"
     checksum: "{{ arg_install_exe_hash |default(omit) }}"
     force: no
-  when: task_exe_available.stat.exists == false
+  when: not task_exe_available.stat.exists
   register: task_pkg_downloaded
   become: false
   # one file after the other to handle having the same file multiple times

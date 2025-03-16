@@ -20,7 +20,7 @@
 - name: System Update | APT | cache - forced refresh
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get update"
   args:
-    warn: false
+  #  warn: false
   changed_when: false
   become: yes
   throttle: "{{ system_package_update_task_throttle }}"
@@ -31,7 +31,7 @@
 - name: System Update | APT | check if updates are available
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get dist-upgrade --simulate --quiet=2"
   args:
-    warn: false
+  #  warn: false
   register: task_update_available
   changed_when: task_update_available.stdout |default('') |length > 0
   become: yes

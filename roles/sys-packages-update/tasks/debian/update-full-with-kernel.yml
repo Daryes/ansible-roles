@@ -21,7 +21,7 @@
 - name: System Update | APT | full update - autoremove unused packages
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y autoremove"
   args:
-    warn: false
+  #  warn: false
   register: task_autoremove_status
   changed_when: task_autoremove_status.stdout |length > 0
   become: true
@@ -32,7 +32,7 @@
 - name: System Update | APT | full update with kernel
   shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' dist-upgrade"
   args:
-    warn: false
+  #  warn: false
   become: true
   throttle: "{{ system_package_update_task_throttle }}"
 

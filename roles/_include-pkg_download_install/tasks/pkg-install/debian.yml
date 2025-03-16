@@ -6,7 +6,7 @@
 - name: "{{ arg_install_comment }} | pkg down+install - check if install/update is required"
   command: dpkg-query --list {{ arg_install_pkg_name }}
   args:
-    warn: no
+  #  warn: no
   register: _pkg_install_status
   become: yes
   failed_when: _pkg_install_status.rc > 1

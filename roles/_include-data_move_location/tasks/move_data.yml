@@ -76,7 +76,7 @@
       if [ -d '{{ item.dest }}' ]; then rmdir '{{ item.dest }}'; fi;
       mv  --no-target-directory  '{{ item.source }}' '{{ item.dest }}'
     # do not warn about using rmdir
-    warn: no
+  #  warn: no
   with_items:
     - { source: "{{ arg_move_data_source_path }}",  dest: "{{ arg_move_data_dest_path }}" }
   when: >

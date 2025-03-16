@@ -30,7 +30,7 @@
 - name: "{{ arg_install_comment }} | executable down+install - verify version"
   shell: "{{ item.exe }} {{ item.arg }} 2>&1 || echo 'missing'"
   args:
-    warn: false
+  #  warn: false
   with_items:
     - { exe: "{{ arg_install_exe_version_altcmd }}", arg: "{{ arg_install_exe_version_arg }}" }
   loop_control:

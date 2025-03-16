@@ -3,7 +3,7 @@
 - name: System Update | YUM | full update - autoremove unused packages
   shell: "{{ ansible_pkg_mgr }} autoremove -y"
   args:
-    warn: false
+  #  warn: false
   register: task_autoremove_status
   changed_when: "'nothing to' not in task_autoremove_status.stdout|lower"
   become: true
@@ -14,7 +14,7 @@
 - name: System Update | YUM | full update with kernel
   shell: "{{ ansible_pkg_mgr }} update -y"
   args:
-    warn: false
+  #  warn: false
   become: true
   throttle: "{{ system_package_update_task_throttle }}"
 
@@ -22,7 +22,7 @@
 - name: System Update | YUM | full update with kernel - verify if reboot is required
   shell: "needs-restarting -r"
   args:
-    warn: false
+  #  warn: false
   become: true
   register: task_reboot_required
   # on some versions using "-r" always has rc=1 even if a reboot is not required but the stdout will be empty
