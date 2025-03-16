@@ -66,6 +66,8 @@ grafana_config_metrics: no
 grafana_config_metrics_basic_auth_username: ""
 grafana_config_metrics_basic_auth_password: ""
 
+# Number of dashboard versions to keep (per dashboard). Default: 20, Minimum: 1
+grafana_config_dashboards_versions_to_keep: 20
 
 # duration to keep the annotations (manual and automatic) - default is 0 to keep them forever
 # Examples: 6h (hours), 10d (days), 2w (weeks), 1M (month).

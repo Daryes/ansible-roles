@@ -43,6 +43,10 @@ role_grafana_config_settings_force:
     param: "basic_auth_password"
     value: "{{ grafana_config_metrics_basic_auth_password }}"
 
+  - section: "dashboards"
+    param: "versions_to_keep"
+    value: "{{ grafana_config_dashboards_versions_to_keep }}"
+
   # annotations maximum age
   - section: "alerting"
     param: "max_annotation_age"

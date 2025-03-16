@@ -47,6 +47,7 @@ mandatory role :
 | grafana_config_metrics | activate the internal metrics for prometheus and/or graphite | boolean | no |
 | grafana_config_metrics_basic_auth_username | basic auth to require authorization to access the metrics endpoints<br />disabled if empty | "string" | "" |
 | grafana_config_metrics_basic_auth_password | password (clear text) for the metrics basic auth | "string" | "" |
+| grafana_config_dashboards_versions_to_keep | Number of dashboard versions to keep (per dashboard). Default: 20, Minimum: 1 | numeric | 20 |
 | grafana_config_annotations_max_age | Duration to keep the annotations (manual and automatic)<br />Default is 0 to keep them forever, which can consume a lot of space in time.<br />Examples: 6h (hours), 10d (days), 2w (weeks), 1M (month). | "string" | "0" |
 | |
 | grafana_provisioning_org_name | Main organisation name | "string" | "Main Org." |
