@@ -17,10 +17,3 @@ role_prometheus_package_url: "https://github.com/prometheus/prometheus/releases/
 # yamllint disable-line rule:line-length
 role_prometheus_alertmanager_package_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_version }}/alertmanager-{{ prometheus_alertmanager_version }}.{{ ansible_system |lower }}-{{ role_system_arch }}.tar.gz"
 
-
-# requirement packages
-role_prometheus_requirement_packages:
-  common: []
-  debian: []
-  redhat: []
-

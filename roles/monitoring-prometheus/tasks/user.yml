@@ -4,6 +4,7 @@
 - name: Monitoring Prometheus | system - create user group
   group:
     name: "{{ item }}"
+    system: yes
     state: present
   with_items:
     - "{{ role_prometheus_dist.user }}"

@@ -1,12 +1,5 @@
 ---
 
-# not used currently
-#- include_role: name=_include-pkg_install
-#  vars:
-#    arg_install_comment: "Monitoring Prometheus"
-#    arg_install_packages: "{{ role_prometheus_requirement_packages }}"
-
-
 - include_role: name=_include-exe_download_copy
   vars:
     arg_install_comment: "Monitoring Prometheus | prometheus"
