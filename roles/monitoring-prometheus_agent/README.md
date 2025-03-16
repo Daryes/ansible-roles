@@ -46,8 +46,8 @@ These settings are applied to all agents
 | --------- | ----------- | ---- | ------------- |
 | prometheus_agent_syslog_history_days | log retention in days for the system logs under /var/log/prometheus | numeric | 15 |
 | prometheus_agent_auth_basic | Activate basic auth usage to access the multiple exporters metrics | boolean | no |
-| prometheus_agent_auth_basic_user | username for basic auth.<br />Disabled if empty| string | "" |
-| prometheus_agent_auth_basic_pass_crypted| Password for basic auth.<br />Password is crypted with bcrypt.<br />Ref: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md | string | "" |
+| prometheus_agent_auth_basic_user | username for basic auth.<br />Disabled if empty| "string" | "" |
+| prometheus_agent_auth_basic_pass_crypted| Password for basic auth.<br />Password is crypted with bcrypt.<br />Ref: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md | "string" | "" |
 | prometheus_agent_version_same_for_all | It is expected each agent version selected will be the same for all servers<br />Set to false if it is not the case to prevent a possible error with a file missing in the cache when one server uses a specific version | boolean | true |
 | prometheus_agent_ssl_cert_pem | ssl PEM certificate to use for https<br />The file must already be present on the server.<br />Syntax: "/path/to/cert.pem" | "string" | "" |
 | prometheus_agent_ssl_cert_key | ssl private key.<br />Same requirements as the _cert_pem parameter.<br />Syntax: "/path/to/cert.key" | "string" | "" |

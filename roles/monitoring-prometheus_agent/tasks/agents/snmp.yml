@@ -61,7 +61,7 @@
     owner: "root"
     mode: '0644'
   vars:
-    var_mibs_dest: "{{ role_prometheus_agent_snmp_dist.mibs }}/{{ item )}"
+    var_mibs_dest: "{{ role_prometheus_agent_snmp_dist.mibs }}/{{ item }}"
   loop_control:
     label: "source: {{ item }}, dest: {{ var_mibs_dest }}"
   with_items: "{{ prometheus_agent_snmp_mibs_deploy_files }}"
