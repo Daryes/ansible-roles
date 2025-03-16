@@ -3,31 +3,40 @@
 This role manage system updates and updating behavior.  
 It is able to handle both Debian and Redhat based distributions, using apt or yum.
 
+It is on purpose that the ansible modules related to the packages manager are not used by the main update tasks.  
+Instead,  the package manager command (apt, dnf, ...)  is directly called with explicit settings.  
+This is due to conflicts with system versions, update trouble with older ansible versions, lack of clarity about the updater final commands and so on.  
+This said, the related ansible modules are still used for simple and maintenance tasks.  
+
 
 ## Requirements
 
 The role will install its own requirements, which are system packages like python-apt and yum-utils.  
 
 The default value of the `system_package_update_reboot_skip_hosts` parameter expects a group named `ansible` defined in the inventory, containing the ansible controllers.  
-It can be changed to anything as long as the ansible servers are present.
+It is  used as a security to prevent rebooting the ansible server itself.  
+The group can be renamed as long as the ansible servers are in this group.  
+
+The reboot step will raise an error as a failsafe if the ansible controller is not excluded, as it cannot handle its own reboot.
 
 
 ## Restrictions and limitations
 
 Kernel and other updates requiring a reboot can keep some tasks to be in the "changed" state after multiple run on modes other than 'full-with-kernel'.  
-This is expected as they were not installed on those modes, but will still be present until a full mode is executed.
+This is expected as they were not installed on those modes, but will still be present until a `full` mode is executed.
 
 
-The reboot sequence occurs at the end of the playbook, after the updates are applied, and can be limited with the parameter `system_package_update_reboot_throttle`.  
-Please note this is related to the number of ansible processes allowed, and cannot go higher. If 10 workers are allowed for Ansible, 10 servers will be rebooted simultaneously if the reboot throttle is higher. The limitation will be applied only when lower.  
+The reboot sequence will occur at the end of the playbook, after the updates are applied, and the number of server simultaneously rebooted can be limited with the parameter `system_package_update_reboot_throttle`.  
+Please note this is related to the number of processes allowed to ansible, and cannot go higher. If 10 workers are allowed for Ansible, 10 servers will be rebooted simultaneously even if the reboot throttle is higher. The limitation will work when lower : with 10 workers for ansible, a throttle set to 3 will reboot only 3 servers.  
 If necessary, for fine tuning, it is also possible to apply the `serial:` keyword in the playbook.  
 When updating clusters, It might be more usefull to separate the cluster members in a specific group with a dedicated step in the playbook.  
 
-Also, the reboot step will raise an error as a failsafe if the ansible controller is not excluded, as it cannot handle its own reboot.
 
-Some extra commands might be required before any reboot occurs. As such, the `tasks/custom_pre_reboot.yml` task file is available for any change.
+Some extra commands might be required before any reboot occurs. As such, the `tasks/custom_pre_reboot.yml` task file can be updated for any desired commands.
+
 
 Notice : currently, on Debian systems, the `security-only` mode has no difference with the `normal` mode, both will gave the same result as a normal update.
+
 
 ## Parameters
 
