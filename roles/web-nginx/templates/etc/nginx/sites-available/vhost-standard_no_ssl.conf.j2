@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+{# thisVhost is a variable from the web-nginx role, containing the informations from <app-group>_nginx  -#}
+{# -#}
+{% set current_vhost_log_dir = thisVhost.site_vhost_log_dir |default( role_nginx_log )  -%}
+{% set current_vhost_log_name = thisVhost.site_vhost_log_name |default("vhost-" + thisVhost.server_name)  -%}
+{# -#}
+# http server
+server {
+    listen {{ thisVhost.listen_ip |default('*') }}:80;
+    server_name {{ thisVhost.server_name }}{% if thisVhost.server_alias |default( [] ) |length > 0 %} {{ thisVhost.server_alias |join(" ") }}{% endif %};
+
+    access_log {{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_access.log main;
+    error_log  {{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_error.log  error;
+
+    # security through ip address filtering
+    {% if not thisVhost.corp_access |default(false) |bool %}# not activated - {% endif %}if ($corp_access = 0) { return 403; }
+
+{% for loopRaw in thisVhost.raw_settings |default( [] ) |flatten %}
+    {{ loopRaw }}
+{% endfor %}
+}
