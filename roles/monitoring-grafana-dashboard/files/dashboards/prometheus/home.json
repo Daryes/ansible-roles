@@ -426,7 +426,7 @@
       "options": {
         "colorMode": "background",
         "graphMode": "none",
-        "justifyMode": "auto",
+        "justifyMode": "center",
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -586,8 +586,8 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "env": true,
-              "env_char": false,
+              "env": false,
+              "env_char": true,
               "geo": true,
               "instance": false,
               "job": true,

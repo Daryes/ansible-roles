@@ -2186,7 +2186,7 @@
         "type": "prometheus",
         "uid": "${dsdashboard}"
       },
-      "description": "* User: processes usage\n* Buffered : block device mapping cache \n* Slab : cache for memory object addresses\n* Cached : general cache (reused if required)\n\nMore information can be found here : \nhttps://www.kernel.org/doc/html/latest/filesystems/proc.html#meminfo",
+      "description": "* User: processes usage\n* Buffered : block device mapping cache \n* Slab : cache for memory object addresses\n* Cached : general cache (reused if required)\n* Shared : shared data and tmps/ram storage\n\nMore information can be found here : \nhttps://www.kernel.org/doc/html/latest/filesystems/proc.html#meminfo",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2317,7 +2317,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#614D93",
+                  "fixedColor": "transparent",
                   "mode": "fixed"
                 }
               },
@@ -2356,6 +2356,21 @@
                 "id": "color",
                 "value": {
                   "fixedColor": "#ef843c",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/shared/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-purple",
                   "mode": "fixed"
                 }
               }
@@ -2404,7 +2419,7 @@
             "uid": "${dsdashboard}"
           },
           "editorMode": "code",
-          "expr": "node_memory_MemTotal_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_MemFree_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Slab_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Buffers_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Cached_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"}",
+          "expr": "node_memory_MemTotal_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_MemFree_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Slab_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Buffers_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Cached_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"} - node_memory_Shmem_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"}",
           "hide": false,
           "legendFormat": "used",
           "range": true,
@@ -2433,6 +2448,18 @@
           "legendFormat": "slab cache",
           "range": true,
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${dsdashboard}"
+          },
+          "editorMode": "code",
+          "expr": "node_memory_Shmem_bytes{job=\"$job\",geo=\"$geodc\",instance=\"$server\"}",
+          "hide": false,
+          "legendFormat": "shared",
+          "range": true,
+          "refId": "G"
         },
         {
           "datasource": {
