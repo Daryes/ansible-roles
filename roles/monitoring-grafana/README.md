@@ -41,6 +41,9 @@ mandatory role :
 | grafana_conf_dir | configuration directory, can be moved on a different filesystem<br />A symlink will be created at the original location | "string" | "/etc/grafana" |
 | grafana_data_dir | data directory (plugin, dashboards, ...), can be moved | "string" | "/var/lib/grafana" |
 | |
+| grafana_system_use_home | The systemd service will prevent the access to the real /home for grafana files.<br />Change this parameter to true if such access is required. | boolean | false |
+| grafana_system_use_tmp | Same as the _use_home parameter, but for accessing the real /tmp directory instead of the process' stub.  | boolean | false |
+| |
 | grafana_plugins_install | additional grafana plugins to install<br />ref: https://grafana.com/grafana/plugins/<br />Ex:<br />- "vonage-status-panel"<br />- "natel-discrete-panel" | list[ "string" ] | [] |
 | grafana_plugins_update_all | update all installed plugins - set to yes to activate | boolean | no |
 | |

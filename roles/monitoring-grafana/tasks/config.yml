@@ -16,7 +16,22 @@
     - { path: "{{ grafana_conf_dir }}/{{ role_grafana_dist.provisioning.plugins_subdir }}",     owner: "root",  group: "{{ role_grafana_dist.user }}" }
     - { path: "{{ grafana_data_dir }}",  owner: "{{ role_grafana_dist.user }}",     mode: "0750" }
     - { path: "{{ grafana_data_dir }}/{{ role_grafana_dist.data_plugin_subdir }}",  owner: "{{ role_grafana_dist.user }}",  mode: "0750" }
+    - { path: "/etc/systemd/system/grafana-server.service.d" }
   become: yes
+
+
+# notice : must be after the directory creation for the service under /etc/systemd
+- name: Monitoring Grafana | systemd - allow access to the real home or tmp if requested
+  template:
+    src: "templates/{{ item |basename }}.j2"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  with_items:
+    - "/etc/systemd/system/grafana-server.service.d/systemd-custom-grafana.conf"
+  become: yes
+  notify: [ "stop grafana", "reload systemd-daemon" ]
 
 
 - name: Monitoring Grafana | config - setting values

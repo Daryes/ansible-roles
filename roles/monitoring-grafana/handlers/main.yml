@@ -1,5 +1,11 @@
 ---
 
+- name: reload systemd-daemon
+  systemd:
+    daemon-reload: true
+  become: yes
+
+
 - name: stop grafana
   service:
     name: "{{ role_grafana_dist.service }}"

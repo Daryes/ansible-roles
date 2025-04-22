@@ -57,7 +57,6 @@ server {
     location / {
         proxy_pass              {{ thisVhost.proxypass_target }};
         include conf.d/proxy_params.include;
-        proxy_http_version 1.1;
 
         # prevent rewriting grafana data
         proxy_redirect off;

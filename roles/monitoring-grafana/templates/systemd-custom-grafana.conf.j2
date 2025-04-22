@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+
+[Service]
+{% if grafana_system_use_home |bool %}
+# allow access to /home
+ProtectHome=read-only
+{% endif %}
+{% if grafana_system_use_tmp |bool %}
+# allow access to /tmp
+PrivateTmp=false
+{% endif %}
+

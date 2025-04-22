@@ -31,6 +31,12 @@ grafana_conf_dir: "/etc/grafana"
 grafana_data_dir: "/var/lib/grafana"
 
 
+# the service default state will prevent the use of /home for grafana files or accessing the real /tmp instead of a process' dedicated tmp
+# change these to "true" to allow such situation
+grafana_system_use_home: false
+grafana_system_use_tmp: false
+
+
 # grafana additional plugins to install
 # ref: https://grafana.com/grafana/plugins/
 # example:

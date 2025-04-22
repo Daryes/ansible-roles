@@ -22,7 +22,7 @@
     owner: "{{ role_grafana_dist.user }}"
     mode: '0644'
   vars:
-    var_provisioning_dest: "{{ task_provisioning_dest_root }}/{{ item.dest |default( item.source |dirname |basename + '/') )}"
+    var_provisioning_dest: "{{ task_provisioning_dest_root }}/{{ item.dest |default( item.source |dirname |basename + '/') }}"
   loop_control:
     label: "source: {{ item.source }}, dest: {{ var_provisioning_dest }}"
   with_items: "{{ task_provisioning_transferts }}"
