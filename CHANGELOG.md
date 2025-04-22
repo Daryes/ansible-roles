@@ -1,5 +1,60 @@
 # Changelog
 
+
+## release 2025-04-22
+
+**BREAKING:**
+
+* **SECURITY:** role web-nginx : the role had a wrongly placed `add_header` which was disabling all the other headers.  
+  The Nginx behavior when using add_header under `location{}` is to remove all existing headers coming from a higher level.  
+  While fixed in the role, this will reactivate some intrusive security headers used before.
+
+* role web-nginx : The `proxy_http_version` parameter has been centralized in the `proxy_params.include` file.  
+  This parameter must be removed from all the external templates calling this include file, otherwise an error for duplicate setting will be raised at the validation step. 
+
+
+**CHANGES:**  
+
+* ansible.cfg:  
+  - adjust collections_path parameter spelled without a 's', this will remove a warning.  
+
+* role _include-compose_deploy:  
+  - support of changing the 'docker-compose' command.  
+  - Fixes for some rare occurences when the current image name is lacking a version.  
+
+* role web-nginx:  
+  - removal of a wrongly placed add_headers disabling all other headers.  
+parameter error.  
+  - new parameter: nginx_global_ssl_protocols   
+  - new parameter: nginx_global_ssl_ciphers  
+  - new parameter: nginx_global_ssl_ecdh_curve  
+  - new parameter: nginx_global_http_header_x_frame_options  
+  - The indentation of the raw_settings lines has been fixed in the vhost templates.  
+
+* role web-apache:  
+  - new parameter: apache_global_ssl_protocol  
+  - new parameter: apache_global_ssl_ciphersuite  
+  - new parameter: apache_global_ssl_ecdh_curve  
+  - new parameter: apache_global_http_header_x_frame_options    
+  - The indentation of the raw_settings lines has been fixed in the vhost templates.  
+
+* role sys-docker:  
+  - new parameter: docker_config_log_retention_days, for the number of day the logs redirected from rsyslog are kept.
+
+* role app-vaultwarden:  
+  - removal of a unused handler.  
+  - removal of the duplicate `proxy_http_version` parameter in the nginx vhost templates.  
+
+* role monitoring-grafana-dashboard:  
+  - normalizing the default refresh to 5m in the prometheus dashboards "home" and "node_server_linux"
+
+* role monitoring-grafana:  
+  - new parameter : grafana_system_use_home for accessing the real /home directory, currently redirected by the systemd service.  
+  - new parameter : grafana_system_use_tmp for accessing the real /tmp directory.  
+  - Syntax fix to the provisioning path for the dashboards when using the `file` mode.  
+  - removal of the duplicate `proxy_http_version` parameter in the nginx vhost templates.  
+
+
 ## release 2025-03-16 : ansible-core v2.16
 
 **BREAKING:**  
