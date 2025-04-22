@@ -54,7 +54,6 @@ server {
     location / {
         proxy_pass              {{ thisVhost.proxypass_target }};
         include conf.d/proxy_params.include;
-        proxy_http_version 1.1;
 
         proxy_set_header X-Forwarded-Port $server_port;
 
@@ -71,7 +70,6 @@ server {
 #
 #        proxy_pass              {{ thisVhost.proxypass_target }};
 #        include conf.d/proxy_params.include;
-#        proxy_http_version 1.1;
 #
 #        proxy_set_header X-Forwarded-Port $server_port;
 #   }
