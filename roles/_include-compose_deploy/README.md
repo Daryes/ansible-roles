@@ -46,6 +46,8 @@ Docker and docker-compose must be already installed on the target hosts.
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
+| arg_compose_command | Compose command to use. Change to `docker compose` if using compose integrated as a plugin in docker.<br />It is possible to set this parameter globally in the inventory. | "str
+ing" | "docker-compose" |
 | arg_compose_env_template | Path to the ".env" template file. The name will be reused.<br />The name can differ from ".env", an extra ".env" symlink will be created. | "string" | "" |
 | arg_compose_conf_sensitive | Set to yes to have both the _env_template and _conf_extra set as sensitive, this will limit the ansible log output | boolean | no |
 | arg_compose_managed_by_ansible | Add an empty 'MANAGED_BY_ANSIBLE' file used as a visual marker | boolean | yes |

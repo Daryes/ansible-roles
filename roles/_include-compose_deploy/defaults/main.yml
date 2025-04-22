@@ -5,6 +5,11 @@
 arg_compose_comment: "CHANGE ME - _include-compose_deploy"
 
 
+# command to use - change to docker compose if using docker compose integrated as a plugin in docker
+# it is possible to set this parameter globally in the inventory
+arg_compose_command: "docker-compose"
+
+
 # installation directory - usually "/opt/myapp"
 # it will be created if required
 arg_compose_deploy_dir: ""
