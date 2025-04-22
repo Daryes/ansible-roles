@@ -17,13 +17,12 @@ server {
     {% if not thisVhost.corp_access |default(false) |bool %}# not activated - {% endif %}if ($corp_access = 0) { return 403; }
 
 {% for loopRaw in thisVhost.raw_settings |default( [] ) |flatten %}
-    {{ loopRaw }}
+    {{ loopRaw |indent(width=4, first=false) }}
 {% endfor %}
 
     location / {
         proxy_pass              {{ thisVhost.proxypass_target }};
         include conf.d/proxy_params.include;
-        proxy_http_version 1.1;
 
         # websocket support
         include conf.d/proxy_websocket.include;

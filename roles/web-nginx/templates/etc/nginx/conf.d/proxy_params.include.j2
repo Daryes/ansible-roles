@@ -1,7 +1,13 @@
 # {{ ansible_managed }}
 
+# due to nginx add_header behavior blocking any inheritance from a higher level
+# do not use add_header in a sub-level such as "location { }", only at the parent level "server{ }"
+
+
 # General proxy settings
-add_header       X-Served-By        $host;
+proxy_http_version 1.1;
+
+# General proxy headers
 proxy_set_header Host               $http_host;                   # old name: $host;
 proxy_set_header X-Forwarded-Scheme $scheme;
 proxy_set_header X-Forwarded-Proto  $scheme;

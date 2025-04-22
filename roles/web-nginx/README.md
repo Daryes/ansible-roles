@@ -52,6 +52,12 @@ None.
 | nginx_global_extra_modules | Allow to insert extra modules, with their configuration based on new templates<br />Example:<br />- "templates/etc/nginx/modules-availables/mod-1.conf.j2"<br />- "myapp/templates/module.conf.j2" | list[ "string" ] | [ ] |
 | nginx_geoip_access_bitbucket | Include the known Bitbucket IP addresses into the global access IP list<br />Notice: the list in the template might be outdated | boolean | no |
 | nginx_global_revproxy_list | List of other reverse proxies placed in front of nginx to trust | list:<br />- { ip: "x.x.x.x",  description: "text" } | [ ] |
+| nginx_global_http_header_x_frame_options | Configure the x-frame-option header at a global level. Use "DENY" to prevent any iframe usage.<br />Only the values "SAMEORIGIN" and "DENY" are supported by the current browsers | "string" | "SAMEORIGIN" |
+| |
+| nginx_global_ssl_protocols | List of allowed SSL/TLS protocols. | "string" | "TLSv1.2 TLSv1.3" |
+| nginx_global_ssl_ciphers | List of allowed SSL ciphers by the server.<br /> Please note the parameter "ssl_prefer_server_ciphers" is active. | string | "EECDH+CHACHA20:EECDH+AESGCM :EDH+AESGCM" |
+| nginx_global_ssl_ecdh_curve | Ecdh curve selections for SSL. | "string" | "secp521r1:secp384r1:prime256v1" |
+| |
 | nginx_default_site_listen_ip | listen address (IPv4/v6 or unix socket) for the default website.<br />If a website or a stream server is binded to a specific IP, it might be required to also have an explicit bind setting on all sites. | "string" | "*" |
 | nginx_default_site_ssl_cert_pem | path to the ssl certificate public key, in text format.<br />Example: "/etc/ssl/private/path/to/cert.pem" | "string" | "" |
 | nginx_default_site_ssl_cert_key | path to the ssl certificate private key, in text format.<br />Example: "/etc/ssl/private/path/to/cert.key" | "string" | "" |
@@ -66,6 +72,8 @@ Each vhost has to activate the basic auth usage in its own configuration, using,
 raw_settings:
   - "auth_basic_user_file '/etc/nginx/conf.d/auth.htpasswd';"
 ```
+An advanced example for `raw_settings` usage is available at the end of the documentation for the standard vhost.
+
 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
