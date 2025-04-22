@@ -70,10 +70,15 @@ None.
 | --------- | ----------- | ---- | ------------- |
 | apache_conf_dir | Apache configuration location, can be moved elsewere using symlink. Ex: "/opt/apache/conf" | "string" | "/etc/apache2" or "/etc/httpd" |
 | apache_webroot_dir | Web root directory, can be moved using symlinks. Ex: "/opt/apache/webroot" | "string" | "/var/www" or "/var/lib/httpd" |
-| apache_global_vhost_disable | List of virtual host sites to disable.<br />It is the name of each link under `/etc/apache2/site-enabled/` without the .conf extension<br/>Example:<br />- "vhost_name"<br />- "vhost_name2" | list[ "string" ] | [ ] |
+| apache_global_vhost_disable | List of virtual host sites to disable.<br />It is the name of each link under `/etc/apache2/site-enabled/` without the .conf extension<br/>Example:<br />- "vhost_name"<br />- "vhost_name2" | list[ "string" ] | [ ] |
 | apache_global_modules_activate | Allow to activate apache modules, without the '_module' suffix<br />Example:<br />- "proxy_http"<br />- "proxy_wstunnel" | list[ "string" ] | [ ] |
 | apache_global_modules_disable | same as apache_global_modules_activate, but to disable modules | list[ "string" ] | [ ] |
 | apache_global_extra_config | extra configuration templates that will be installed and activated.<br />Example:<br />- "myrole/templates/path/to/template.conf.j2"<br />- "/path/to/template2" | list[ "string" ] | [ ] |
+| apache_global_http_header_x_frame_options | Configure the x-frame-option header at a global level. Use "DENY" to prevent any iframe usage.<br />Only the values "SAMEORIGIN" and "DENY" are supported by the current browsers | "string" | "SAMEORIGIN" |
+| |
+| apache_global_ssl_protocol | List of allowed SSL/TLS protocols.<br />Alternative format : `"-all +TLSv1.2 +TLSv1.3"` | "string" | "all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1" |
+| apache_global_ssl_ciphersuite | List of allowed SSL ciphers by the server.<br /> Please note the parameter "SSLHonorCipherOrder" is active. | "string" | "EECDH+CHACHA20:EECDH+AESGCM :EDH+AESGCM" |
+| apache_global_ssl_ecdh_curve | Ecdh curve selections for SSL.<br />If the parameter Curve is not supported by apache, set this setting to "" to disable it. | "string" | "X25519:secp521r1:secp384r1:prime256v1" |
 | |
 | apache_default_site_ssl_cert_pem | Path to the ssl certificate public key, in text format.<br />It will be used as default for all sites not providing their own certificates<br />Example: "/etc/ssl/private/path/to/cert.pem" | "string" | "" |
 | apache_default_site_ssl_cert_key | Path to the ssl private key, in text format.<br />Example: "/etc/ssl/private/path/to/cert.key" | "string" | "" |

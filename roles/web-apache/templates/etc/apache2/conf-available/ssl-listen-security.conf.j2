@@ -30,11 +30,11 @@
 
     # SSL allowed protocols -----------
     # alt form : SSLProtocol -all +TLSv1.2 +TLSv1.3
-    SSLProtocol all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+    SSLProtocol {{ apache_global_ssl_protocol }}
 
     SSLHonorCipherOrder on
-    #SSLCipherSuite ALL:!aNULL:!eNULL:!LOW:!EXP:!RC4:!3DES:!MEDIUM:+HIGH:!DH:!aECDH:!EXPORT	# !DH:!aECDH must be removed for iOS 6.x
-    SSLCipherSuite EECDH+AESGCM:EECDH+CHACHA20:EDH+AESGCM:ECDH+CHACHA20:AES256+EECDH:AES256+EDH
+    SSLCipherSuite {{ apache_global_ssl_ciphersuite }}
+    {% if apache_global_ssl_ecdh_curve |length > 0 %}SSLOpenSSLConfCmd Curves {{ apache_global_ssl_ecdh_curve }}{% endif %}
 
 
     # Security settings ---------------
@@ -59,7 +59,7 @@
         Header add Strict-Transport-Security "max-age=15552000;includeSubdomains"
 
         # Use 'X-Frame-Options DENY' for hosts shared by different clients
-        Header always set X-Frame-Options sameorigin
+        Header always set X-Frame-Options {{ apache_global_http_header_x_frame_options |upper }}
         Header always set X-Content-Type-Options nosniff
         Header always set X-XSS-Protection "1; mode=block"
     </IfModule>

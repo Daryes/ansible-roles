@@ -62,5 +62,7 @@ mygroup_apache:
 
 ```
 
-As the default value is `[ ]` for both `server_alias` and `raw_settings`, they can be removed from the declaration.
+As the default value is `[ ]` for both `server_alias` and `raw_settings`, they are not required in the declaration.
+
+If you want to use `raw_settings`, an advanced example is available at the end of the documentation of the standard vhost.
 

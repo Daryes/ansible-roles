@@ -45,7 +45,7 @@
     ErrorLog  "{{ current_vhost_log_dir }}/{{ current_vhost_log_name }}_error.log"
 
 {% for loopRaw in thisVhost.raw_settings |default( [] ) |flatten %}
-    {{ loopRaw }}
+    {{ loopRaw |indent(width=4, first=false) }}
 {% endfor %}
 
 </VirtualHost>

@@ -67,6 +67,17 @@ mygroup_apache:
       - '  Require all granted'
       - '</Directory>'
 
+      - |
+        # example with a YAML scalar
+        location /test {
+          # ... list of nginx params ...
+        }
+
+      - |
+        # The template expects an array of strings
+        # to use yaml scalars, an array of scalars is expected
+        # ... another list of nginx params ...
+
   - server_name: ...
     ...
 ```
