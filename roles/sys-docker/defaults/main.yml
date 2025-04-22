@@ -58,6 +58,8 @@ docker_config_log_driver: "json-file"
 # notice : using journald driver does not support the "max-size" & "max-file" parameters
 docker_config_log_opts: '"max-size": "10m", "max-file": "3"'
 
+docker_config_log_retention_days: 14
+
 # conf: registry mirrors list, syntax: [ "https://myregistry.domain.tld", "http://myregistry2:5002", ... ]
 docker_config_registry_mirrors: []
 # conf: registry not using tls, syntax: [ "myregistry.domain.tld:80", "myregistry2:5002", ... ]

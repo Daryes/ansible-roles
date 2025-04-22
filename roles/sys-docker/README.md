@@ -84,6 +84,7 @@ mandatory roles :
 | docker_config_insecure_registries | List of registries not using TLS.<br />Ex: `[ "http://myregistry.domain.tld:80", "http://myregistry2:5002", ... ]` | list[ "string" ] | [ ] |
 | docker_config_log_driver | Docker log driver, can be journald, syslog, ... - the driver 'json-file' is the default | "string" | "json-file" |
 | docker_config_log_opts | log driver opts, all the json parameters must be on a single line between `' '`<br />Each property and value are expected to be strings between `" "`<br />Some parameters can be incompatibles with drivers, for example using journald driver does not support "max-size" & "max-file" parameters  | "string" | '"max-size": "10m", "max-file": "3"' |
+| docker_config_log_retention_days | Number of days the logs are kept and rotated when using the rsyslog redirector | numeric | 14 |
 
 
 **Docker networking configuration**
