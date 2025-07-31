@@ -13,7 +13,8 @@ Example: a host member of the inventory groups "group1" and "group2" will be sca
 * group1_bind_zones_extra
 * group2_bind_zones_extra
 
-If a variable group9_bind_zones_extra exists for this host, it will be ignored as the host is not a member of group9_test.
+The additional informations from those declaration will be assembled with the related DNS zones declared in `bind_zones_dns`  
+Also, if a variable `group9_bind_zones_extra` exists for this host, as the host is not a member of group9_test, the variable will be ignored.  
 
 
 ## Restrictions and limitations

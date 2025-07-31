@@ -103,11 +103,11 @@ bind_zones_dns:
 
 ```
 
-A little tip : if you want an automatic range generator for the zone name, this line will reuse the dns server own ip from the facts to generate the name.
+A little tip : if you want an automatic range generator for the zone name, this line will reuse the dns server own ip from the Ansible facts to generate the name.
 ```
 - name: "{{ ansible_default_ipv4.address |ipaddr('revdns') |regex_replace('^[0-9]+\\.[0-9]+\\.', '') |regex_replace('\\.$', '') }}"
 ```
-the .network property can also be used.
+The `ansible_default_ipv4.network` property can also be used.
 
 
 ### records_raw usage

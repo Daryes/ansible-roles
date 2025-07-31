@@ -9,7 +9,7 @@ It also has the capability to parse the inventory to look for partial dns zone e
 
 As the role make use of the distribution packages, the configuration is located under `/etc/bind` for Debian, and `/etc/named` for RHEL/Centos.  
 But to alleviate differences between distributions, the configuration itself is fully contained in the corresponding directory, using its own structure.  
-Multiples changes are applied, and some files from the packages are ignored. For example, the zones are located under `/etc/????/zones.d`, and the logs are under `/var/log/named/`  
+Multiples changes are applied, and some files from the packages are ignored. For example, the zones are located under `/etc/<bind or named>/zones.d`, and the logs are under `/var/log/named/`  
 As such, is it recommended to use the role itself to manage the content.  
 
 
@@ -26,14 +26,14 @@ Mandatory role :
 * _include-pkg_install
 
 
-## Parameters
+## Bind system parameters
 
 Please refer to the following dedicated pages :
 * [**Mandatory and optional parameters**](doc/README_general.md)  
-  General parameters for the role
+  General parameters for configuring Bind with this role
 
 * [**ACL parameters**](doc/README_acl.md)  
-  Specific ACL parameters
+  Specific ACL parameters for Bind
 
 
 ## DNS zone parameters
@@ -72,10 +72,10 @@ bind_zones_dns:
 ```
 
 
-## Zones types and templates
+### Zones types and templates
 
-There are currently 3 types of supported zones, each with different settings.
-Each make use of a specific template type, or uses multiple of them
+There are currently 4 types of supported zones, each with different settings.  
+Each make use of a specific template type, or combine multiple of them
 
 The following zones can be created :
 * [**Standard zone**](doc/README_zone_standard.md)  

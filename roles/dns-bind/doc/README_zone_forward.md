@@ -1,7 +1,9 @@
 # DNS zone : forward
 
 Configuration for a forward zone, which redirect all queries to one or others dns servers.  
-The clients have no information about this, as everything is executed on the server side.
+The clients have no information about this, as the execution is managed on Bind side.
+
+As an internal cache is maintained, it is usually used to alleviate the load of the authoritative DNS server for this zone.
 
 ## Parameters
 

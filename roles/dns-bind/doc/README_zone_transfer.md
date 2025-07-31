@@ -3,8 +3,8 @@
 Configuration for a transfer zone, which copy an existing zone from another dns server to build a local cache.  
 It is also known as a secondary zone, or slave zone.  
 
-Please note that the default configuration of dns servers does not always allow the possibility to make a copy of a zone, for security purposes.  
-First, this server IP must have been authorized on the servers holding the source of the requested zone.
+Please note that the default configuration of dns servers does not always allow the possibility to make a copy of a zone, for security reasons.  
+As a requirement, this server IP must have been authorized on the servers holding the source of the requested zone.
 
 
 ## Parameters
