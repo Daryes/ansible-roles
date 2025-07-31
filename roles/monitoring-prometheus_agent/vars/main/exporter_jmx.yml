@@ -1,21 +1,54 @@
 ---
 
+# Starting with v1.1.0, the releases are moved from maven to github only
+# Use " " to force a string for the version number
+role_prometheus_agent_jmx_package_release:
+  "1.0.1":
+    file: "jmx_prometheus_javaagent-{{ prometheus_agent_jmx_version }}.jar"
+    url_prefix: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ prometheus_agent_jmx_version }}/"
+
+  # 1.0.0 => broken - must not be used
+
+  "0":
+    file: "jmx_prometheus_javaagent-{{ prometheus_agent_jmx_version }}.jar"
+    url_prefix: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ prometheus_agent_jmx_version }}/"
+
+  default:
+    file: "jmx_prometheus_javaagent-{{ prometheus_agent_jmx_version }}.jar"
+    url_prefix: "https://github.com/prometheus/jmx_exporter/releases/download/{{ prometheus_agent_jmx_version }}/"
+
+
+# compare the list of entries from _jmx_package_release with a custom list of the _jmx_version in full, a construct removing the last number of the version,
+# then the version reduced to the major number. Finally sorting and keeping the last result
+# A sort() is required due to the intersect() filter returnung a random order, hence the "default" value moved outside the initial array
+role_prometheus_agent_jmx_package_release_vercheck: >-
+  {{ [
+       prometheus_agent_jmx_version,
+       (prometheus_agent_jmx_version |split('.'))[:-1] |join('.'),
+       prometheus_agent_jmx_version |split('.') |first
+     ]
+     |intersect( role_prometheus_agent_jmx_package_release.keys() |list )
+     |sort |last |default( 'default', true)
+  }}
+
+
 # prometheus packages ref: https://github.com/prometheus/jmx_exporter
 # java 7+ agent
-role_prometheus_agent_jmx_package_file: "jmx_prometheus_javaagent-{{ prometheus_agent_jmx_version }}.jar"
+role_prometheus_agent_jmx_package_file: "{{ role_prometheus_agent_jmx_package_release[ role_prometheus_agent_jmx_package_release_vercheck ].file }}"
 # yamllint disable-line rule:line-length
-role_prometheus_agent_jmx_package_url: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ prometheus_agent_jmx_version }}/{{ role_prometheus_agent_jmx_package_file }}"
+role_prometheus_agent_jmx_package_url: "{{ role_prometheus_agent_jmx_package_release[ role_prometheus_agent_jmx_package_release_vercheck ].url_prefix + role_prometheus_agent_jmx_package_file }}"
 
 
 # java 6 and lower agent
-role_prometheus_agent_jmx_package_file_java6: "jmx_prometheus_javaagent_java6-{{ prometheus_agent_jmx_version }}.jar"
+role_prometheus_agent_jmx_package_java6_file: "jmx_prometheus_javaagent_java6-{{ prometheus_agent_jmx_version }}.jar"
 # yamllint disable-line rule:line-length
-role_prometheus_agent_jmx_package_url_java6: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent_java6/{{ prometheus_agent_jmx_version }}/{{ role_prometheus_agent_jmx_package_file_java6  }}"
+role_prometheus_agent_jmx_package_java6_url: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent_java6/{{ prometheus_agent_jmx_version }}/{{ role_prometheus_agent_jmx_package_java6_file }}"
+role_prometheus_agent_jmx_package_java6_install: "{{ prometheus_agent_jmx_version is version(operator='le', version='0.18.0') }}"
 
 
-# no service for this agent - jar plugin to add into the java command line
+# no service for this agent - the jar plugin is to insert into the java command line
 role_prometheus_agent_jmx_dist:
-  bin: "{{ role_prometheus_agent_dist.bin_dir  }}/jmx_prometheus_javaagent.jar"
-  bin_java6: "{{ role_prometheus_agent_dist.bin_dir  }}/jmx_prometheus_javaagent_java6.jar"
+  bin: "{{ role_prometheus_agent_dist.bin_dir }}/jmx_prometheus_javaagent.jar"
+  bin_java6: "{{ role_prometheus_agent_dist.bin_dir }}/jmx_prometheus_javaagent_java6.jar"
   config: "{{ role_prometheus_agent_dist.conf }}/jmx.yml"
 

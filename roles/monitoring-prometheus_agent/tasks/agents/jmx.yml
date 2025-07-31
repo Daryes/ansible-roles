@@ -12,13 +12,14 @@
     arg_install_exe_mode: "0644"
     arg_install_exe_version_same_for_all: "{{ prometheus_agent_version_same_for_all }}"
 
-
   loop_control:
     # required to prevent any conflict with the keyword "item" in the included tasks
     loop_var: thisType
   with_items:
     - { exe_fullpath: "{{ role_prometheus_agent_jmx_dist.bin }}",       donwload_url: "{{ role_prometheus_agent_jmx_package_url }}" }
-    - { exe_fullpath: "{{ role_prometheus_agent_jmx_dist.bin_java6 }}", donwload_url: "{{ role_prometheus_agent_jmx_package_url_java6 }}" }
+    # yamllint disable-line rule:line-length
+    - { exe_fullpath: "{{ role_prometheus_agent_jmx_dist.bin_java6 }}", donwload_url: "{{ role_prometheus_agent_jmx_package_java6_url }}", when: "{{ role_prometheus_agent_jmx_package_java6_install }}" }
+  when: thisType.when |default(true) |bool
 
 
 - name: Monitoring Prometheus agent | jmx - install service files
@@ -38,5 +39,5 @@
   become: yes
 
 
-# no service to manage - the agents are jar files to inject in the java command line
+# no service to manage - the agents are jar files to be injected into the java command line
 
