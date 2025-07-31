@@ -26,3 +26,11 @@ role_system_agent_port:
   smartctl: "9633"
   jmx: "aleatoire - multi-instances"
 
+
+# job associations to the module name and the dedicated scrape interval
+# name is an arbitrary definition given for the prometheus job, module is the blackbox module name
+role_blackbox_agent_jobs:
+  - { name: "website",      module: 'http_2xx',     interval: "{{ prometheus_job_website_scrape_interval }}" }
+  - { name: "certificate",  module: 'tls_connect',  interval: "{{ prometheus_job_certificate_scrape_interval }}" }
+  - { name: "icmp",         module: 'icmp',         interval: "{{ prometheus_job_icmp_scrape_interval }}" }
+

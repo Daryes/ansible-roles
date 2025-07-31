@@ -220,18 +220,17 @@ scrape_configs:
 {%  endfilter %}
 
 
-{# # Blackbox - instead of repeating the same block for each job, create a dict of { 'name': 'module name' } and loop over it #}
-{% set aBlackboxJobs = { 'website': 'http_2xx', 'certificate': 'tls_connect', 'icmp': 'icmp' }  %}
+{# # Blackbox - instead of repeating the same block for each job, use a dict declared under vars/  and loop over it #}
 {% for loopBlackbox in prometheus_job_blackbox |default([]) |flatten %}
-{%   for loopJobName, loopJobModule in aBlackboxJobs.items() %}
-  - job_name: '{{ loopJobName }}'
+{%   for loopJob in role_blackbox_agent_jobs |flatten %}
+  - job_name: '{{ loopJob.name }}'
     metrics_path: /probe
-    scrape_interval: {{ prometheus_job_website_scrape_interval |default(prometheus_scrape_interval) }}
+    scrape_interval: {{ loopJob.interval |default(prometheus_scrape_interval) }}
     params:
-      module: [{{ loopJobModule }}]
+      module: [{{ loopJob.module }}]
     file_sd_configs:
       - files:
-        - 'prometheus.d/probe-{{ loopJobName }}*.yml'
+        - 'prometheus.d/probe-{{ loopJob.name }}*.yml'
     relabel_configs:
       # blackbox specific config
       - source_labels: [__address__]

@@ -19,6 +19,8 @@
     - { path: "{{ prometheus_data_dir }}/{{ role_prometheus_dist.data_subdir }}",               owner: "{{ role_prometheus_dist.user }}",  mode: "0750" }
     - { path: "{{ prometheus_data_dir }}/{{ role_prometheus_dist.alertmanager_data_subdir }}",  owner: "{{ role_prometheus_dist.user }}",  mode: "0750" }
     - { path: "{{ role_prometheus_dist.log }}",  owner: "{{ role_prometheus_dist.log_user }}",  group: "{{ role_prometheus_dist.log_group }}" }
+    # sysctl.d seems missing from time to time on Rocky
+    - { path: "/etc/sysctl.d" }
   become: yes
 
 
