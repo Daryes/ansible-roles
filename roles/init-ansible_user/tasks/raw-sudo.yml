@@ -29,5 +29,6 @@
   changed_when: bootstrap_sudo.stdout is search('sudo required')
   when: system_with_sudo is changed
   become: yes
-  become_method: "su"
+  # ansible-core 2.10+ request the full module name, while v2.9.x expects only "su"
+  become_method: "ansible.builtin.su"
 
