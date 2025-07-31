@@ -4,5 +4,5 @@
   fail:
     msg: "The family '{{ ansible_os_family|lower }}' for this system is not managed by this role"
   # allow to continue
-  ignore_errors: yes
+  ignore_errors: yes  # noqa: ignore-errors
 

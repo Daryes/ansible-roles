@@ -45,5 +45,6 @@
 
 - name: "{{ arg_install_comment }} | executable down+install - load install module"
   include_tasks: exe_proc-install.yml
+  # noqa: no-handler
   when: _pkg_download_copy_status is changed
 

@@ -32,6 +32,7 @@
     dest: "{{ role_archive_storage_dir }}/{{ task_install_pkg_target_file }}"
     checksum: "{{ task_install_pkg_target_hash }}"
     force: no
+  # noqa: no-handler
   when: task_pkg_available is changed
   become: false
   with_items:

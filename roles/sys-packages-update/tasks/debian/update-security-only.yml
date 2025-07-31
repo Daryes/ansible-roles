@@ -9,7 +9,7 @@
 #   sudo apt-get upgrade -o Dir::Etc::SourceList=/tmp/security.sources.list
 #
 - name: System Update | APT | security update only - filtering packages
-  shell: "DEBIAN_FRONTEND='noninteractive' apt-get upgrade --simulate --quiet=2 |grep -i '^Inst .* .*\\-security' | cut -d ' '  -f2 || true"
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get upgrade --simulate --quiet=2 |grep -i '^Inst .* .*\\-security' | cut -d ' '  -f2 || true" # noqa: risky-shell-pipe
   args:
   #  warn: false
   become: yes
@@ -21,7 +21,7 @@
 # https://raphaelhertzog.com/2010/09/21/debian-conffile-configuration-file-managed-by-dpkg/
 # use shell instead of the ansible module due to instability
 - name: System Update | APT | security update only
-  shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade   {{ task_updateonly_packages.stdout_lines |join(' ') }}"
+  shell: "DEBIAN_FRONTEND='noninteractive' apt-get -y -q -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade  {{ task_updateonly_packages.stdout_lines |join(' ') }}"
   args:
   #  warn: false
   become: yes

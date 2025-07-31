@@ -24,5 +24,6 @@
 
 - name: "{{ arg_install_comment }} | pkg down+install - load the install/update module"
   include_tasks: debian_proc-install.yml
+  # noqa: no-handler
   when: _pkg_install_status is changed
 

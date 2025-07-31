@@ -15,7 +15,7 @@
   when: item not in task_grafana_plugins_list.stdout
   notify: stop grafana
   become: yes
-  # TODO: activate become_* when ansible 2.9 will be dropped
+  # TODO: install the "acl" package on the target to activate the become_* params
   #become_user: "{{ role_grafana_dist.user }}"
   #become_flags: '-s /bin/bash'
 
@@ -25,7 +25,7 @@
     cmd: "{{ role_grafana_dist.cli_bin }} plugins upgrade-all"
   when: grafana_plugins_update_all |default(false) |bool
   become: yes
-  # TODO: activate become_* when ansible 2.9 will be dropped
+  # TODO: install the "acl" package on the target to activate the become_* params
   #become_user: "{{ role_grafana_dist.user }}"
   #become_flags: '-s /bin/bash'
 

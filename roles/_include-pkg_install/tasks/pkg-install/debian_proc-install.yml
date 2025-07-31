@@ -71,6 +71,7 @@
       - "{{ arg_install_deb_repo_final }}"
     loop_control:
       label: "{{ item.name }} => {{ item.apt_key_server |default('') + item.apt_key_url |default('') }}"
+    # noqa: no-handler
     when: task_stat_key_gpg is changed
     become: yes
 
