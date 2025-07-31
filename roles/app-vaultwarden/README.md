@@ -22,6 +22,9 @@ If more settings are required, they should be inserted directly in the template,
 
 A template file for nginx is provided, but its content is dedicated to the web-nginx role.
 
+It is possible to secure the admin token password, with the integrated command : `docker run --rm -it vaultwarden/server /vaultwarden hash`  
+More information is available [on the wiki](https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token)
+
 
 ## Requirements
 
@@ -87,8 +90,8 @@ vaultwarden_listen_port_ws : 3012
 
 
 vaultwarden_db : "psql"
-vaultwarden_db_local_password: "m8jqRuMr_GE2lBazfomqcRjvMxYTq4atJbK"
-vaultwarden_admin_token: "C3WxUELvZyHpVldRdxwj5C@Fn6KRCl5VVRfD2RCdypSVAV616hG0yDNxdIp+f2PG"
+vaultwarden_db_local_password: "m8jqRuMr_GE2lBazfomqcTestingq4atJbK"
+vaultwarden_admin_token: "C3WxUELvZyHpVldRdxwj5C@Fn6KRCTesting2RCdypSVAV616hG0yDNxdIp+f2PG"
 
 
 # nginx configuration - adjust the ssl_* path to target an existing certificate on the host
