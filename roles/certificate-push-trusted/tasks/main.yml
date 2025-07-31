@@ -31,7 +31,7 @@
     group: root
     mode: "0755"
   vars:
-    var_file_dest: "{{ role_certs_dist.ca_dir }}/{{ item.source |basename |regex_replace('\\.(pem|cert|crt)$', role_certs_dist.cert_pem_ext ) }}"
+    var_file_dest: "{{ role_certs_dist.ca_dir }}/{{ item.source |basename |regex_replace('\\.(pem|cert|crt)$', '.' + role_certs_dist.cert_pem_ext ) }}"
   with_items: "{{ task_local_certs_public_content.results }}"
   loop_control:
     label: "{{ var_file_dest }}"
