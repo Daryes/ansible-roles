@@ -29,7 +29,7 @@
       "asDropdown": true,
       "icon": "external link",
       "includeVars": false,
-      "keepTime": false,
+      "keepTime": true,
       "tags": [
         "server"
       ],
@@ -43,7 +43,7 @@
       "asDropdown": true,
       "icon": "external link",
       "includeVars": false,
-      "keepTime": false,
+      "keepTime": true,
       "tags": [
         "app"
       ],
@@ -57,7 +57,7 @@
       "asDropdown": true,
       "icon": "external link",
       "includeVars": false,
-      "keepTime": false,
+      "keepTime": true,
       "tags": [
         "webserver"
       ],
@@ -71,7 +71,7 @@
       "asDropdown": true,
       "icon": "external link",
       "includeVars": false,
-      "keepTime": false,
+      "keepTime": true,
       "tags": [
         "db"
       ],
@@ -344,7 +344,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(ALERTS{geo=\"$geodc\"}) by (alertname, job) ",
+          "expr": "count(ALERTS{geo=\"$geodc\", alertstate=\"firing\"}) by (alertname, job) ",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
