@@ -33,9 +33,14 @@ docker_compose_log_dir: "/var/log/docker"
 docker_image_helloworld: "hello-world"
 
 
-# cron job for cleaning build cache and stopped containers
+# daily cron job for cleaning build cache
 docker_cron_clean_build_cache: yes
+# daily cron job for cleaning stopped containers
 docker_cron_clean_container_stopped: no
+# daily cron job for cleaning images having no nane and no tag (ie: <none>:<none> images)
+docker_cron_clean_image_dangling_no_name_no_tag: no
+# clean only images older than the number of hours
+docker_cron_clean_image_dangling_delay: 12
 
 
 # proxy configuration

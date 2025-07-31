@@ -72,13 +72,16 @@ mandatory roles :
 | docker_compose_log_redirect | Install the rsyslog redirect configuration for having docker-compose logs redirected to syslog, then a dedicated file | boolean | true |
 | docker_compose_log_dir | directory where rsyslog will store the docker-compose log files | "string" | "/var/log/docker" |
 | project_root | root directory where each docker-compose.yml is located in a subdir.<br />Used by the optional docker-compose@.service unit | "string" | "/opt" |
-| | | | |
+| |
 | docker_cron_clean_build_cache | Daily cron job for cleaning build cache, set to yes to activate | boolean | yes |
 | docker_cron_clean_container_stopped | Daily cron job for cleaning stopped containers, set to yes to activate | boolean | no |
+| docker_cron_clean_image_dangling_no_name_no_tag | Daily cron job for cleaning unused images missing both a name and a tag, and not referenced by a child image.<br />Ie: `<none>:<none>` images | boolean | no |
+| docker_cron_clean_image_dangling_delay | Filter in hours to exclude the images created more recently than the specified time. | numeric | 12 |
+| |
 | docker_proxy_http_url | General proxy url, can be used for registry procies.<br />The port must always been present.<br />Ref: https://docs.docker.com/config/daemon/systemd/#httphttps-proxy<br />Ex: "http://proxy.example.com:80" | "string" | "" |
 | docker_proxy_https_url | General https proxy url. Same as _proxy_http_url.<br />Ex: "https://proxy.example.com:443" | "string" | "" |
 | docker_proxy_no_proxy | Comma separated list of domains that will skip the proxy.<br />The localhost address is already present. | "string" | "" |
-| | | | |
+| |
 | docker_config_ipv6 | ipv6 usage for containers, set to 'yes' to activate | boolean | no |
 | docker_config_registry_mirrors | List of mirrors or personal registries.<br />The https:// scheme must always be present.<br />Ex: `[ "https://myregistry.domain.tld", "https://myregistry2:5002", ... ]` | list[ "string" ] | [ ] |
 | docker_config_insecure_registries | List of registries not using TLS.<br />Ex: `[ "http://myregistry.domain.tld:80", "http://myregistry2:5002", ... ]` | list[ "string" ] | [ ] |

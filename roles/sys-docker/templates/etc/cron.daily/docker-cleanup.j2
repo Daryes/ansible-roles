@@ -6,6 +6,8 @@
 # exit silently if docker is not installed
 if ! command -v docker &>/dev/null; then exit 0; fi
 
+set -o pipefail
+
 # remove builder cache
 {% if docker_cron_clean_build_cache |bool %}
 sRet=$( docker builder prune --all --force  2>&1 )
@@ -20,4 +22,12 @@ sRet=$( docker container prune --force  2>&1 )
 if [ $? -ne 0 ]; then echo "$sRet"; exit 1; fi
 {% else %}
 # => the ansible variable 'docker_cron_clean_container_stopped' is not activated
+{% endif %}
+
+# remove unused images without a name and tag and older than {{ docker_cron_clean_image_dangling_delay }} hours
+{% if docker_cron_clean_image_dangling_no_name_no_tag |bool %}
+sRet=$( docker image ls --filter="dangling=true" --filter "until={{ docker_cron_clean_image_dangling_delay |regex_replace('[a-zA-Z ]', '') }}h" --quiet | xargs --no-run-if-empty docker rmi 2>&1 )
+if [ $? -ne 0 ]; then echo "$sRet"; exit 1; fi
+{% else %}
+# => the ansible variable 'docker_cron_clean_image_dangling_no_name_no_tag' is not activated
 {% endif %}
