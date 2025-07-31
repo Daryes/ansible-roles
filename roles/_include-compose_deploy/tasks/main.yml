@@ -184,7 +184,7 @@
   # trap some rare occurence when compose returns "image-name:" without the tag
   when: >
     arg_compose_remove_old_images |bool
-    and task_compose_startup is changed
+    and ( task_compose_startup is changed or task_compose_startup is skipped )
     and task_compose_files_validation is changed
     and task_compose_config_before_change.stdout_lines |default([]) |length > 0
     and item is not match('.*:$')
