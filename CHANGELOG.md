@@ -1,6 +1,44 @@
 # Changelog
 
 
+## release 2025-07-31
+
+**BREAKING:**
+* role certificate-push-trusted: can be a breaking change as is some case, a duplicate dot could appear in the filename, which is now fixed.
+
+* role init-ansible_user: fix for some core versions expecting the full module name for 'become_method'.  
+  This breaks the compatibiliy with ansible v2.9
+
+**CHANGES:**  
+
+* role _include-compose_deploy: 
+  - fix for missing the removal of the old image if requested when 'arg_compose_up_execute' is set to false.
+
+* role web-nginx: 
+  - new parameter `proxy_raw_settings` supported by the "vhost-reverse" template, similar to the `raw_settings` parameters, but only for the `location / { proxy_pass ... }` section.  
+  Both raw parameters can be used together.
+
+* role monitoring-prometheus:  
+  - fix for the `/etc/sysctl.d` sometimes missing on RHEL/Rocky 9 and failing the role.  
+  - The definition for the blackbox jobs (http, tls_connect, icmp) moved from the static prometheus.yml file to a role variable under vars/
+
+* role monitoring-prometheus_agent: 
+  - the jmx agent has been updated to support the new releases on github only, dropping maven as a repo after v1.0
+
+* role sys-docker: 
+  - new parameter `docker_cron_clean_image_dangling_no_name_no_tag` (default to false) for removing dangling docker images with the daily cron.  
+  This concerns only images lacking a name or a tag (`<>`). Usually older images which were using the `latest` tag are in such state after an update.
+  - new parameter `docker_cron_clean_image_dangling_delay` (default to 12 hours) 
+
+* role monitoring-grafana-dashboard:  
+  - all dashboards are updated to keep the selected time when switching between dashboards.
+  - home dashboard : The alert count will only track those in "firing" state, instead of both "firing" + "pending" states.
+
+
+* role app-vaultwarden: 
+  - readme updated with a how-to for securing the admin token password
+
+
 ## release 2025-04-22
 
 **BREAKING:**
