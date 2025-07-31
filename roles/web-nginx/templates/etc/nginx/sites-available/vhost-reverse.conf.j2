@@ -43,6 +43,9 @@ server {
     {% if not thisVhost.corp_access |default(false) |bool %}# not activated - {% endif %}if ($corp_access = 0) { return 403; }
 
 {% for loopRaw in thisVhost.raw_settings |default( [] ) |flatten %}
+{%   if loop.first %}
+    # raw_settings extra parameters
+{%   endif %}
     {{ loopRaw |indent(width=4, first=false) }}
 {% endfor %}
 
@@ -52,6 +55,12 @@ server {
 
         # websocket support
         include conf.d/proxy_websocket.include;
+{% for loopRaw in thisVhost.proxy_raw_settings |default( [] ) |flatten %}
+{%   if loop.first %}
+        # proxy_raw_settings extra parameters
+{%   endif %}
+        {{ loopRaw |indent(width=8, first=false) }}
+{% endfor %}
     }
 }
 

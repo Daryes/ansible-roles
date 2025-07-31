@@ -27,7 +27,9 @@ Required settings for ssl activation are also integrated.
 | - | ssl certificate. Path to the public certificate in text format.<br />Example: "/etc/path/to/cert.pem" | ssl_cert_pem: "string" | "" |
 | - | ssl certificate. Path to the private key in text format.<br />Example: "/etc/path/to/cert.key" | ssl_cert_key: "string" | "" |
 | - | Filter access using ip addresses | corp_access: boolean | no |
-| - | Raw nginx parameters, taken as-is.<br />Each line must be terminated with a ";" | raw_settings: [ "string" ] | [ ] |
+| - | Raw nginx parameters for the main server{} definition, taken as-is.<br />Each line must be terminated with a ";" | raw_settings: [ "string" ] | [ ] |
+| - | Raw nginx parameters for the subsection location/proxy_pass, taken as-is.<br />Parameters like the header definitions are not inherited from the main server{} section and must be defined here.<br />Each line must be terminated with a ";" | proxy_raw_settings: [ "string" ] | [ ] |
+
 
 The site_vhost_template parameter can target one of the provided templates, or a custom one from another role.  
 In this case, the full path must be specified.  
@@ -44,7 +46,7 @@ In this state, all connections will be refused by nginx unless the source IP is 
 | Parameter | Description | Type | Default value |
 | --------- | ----------- | ---- | ------------- |
 | nginx_global_access_ip_list | list of specific or corporate IP to be allowed to connect | list:<br/>- { ip: "x.x.x.x", description: "text" } | [ ] |
-| `<group_name>_web_access_ip_list` | list of ip to allow to connect to the instance.<br />This is complementary to the nginx_global_access_ip_list parameter.<br />While defined per group, is applied for the whole server. | list:<br />- { ip: "x.x.x.x",  description: "site A" }<br />- { ip: "y.y.y.y/24",  description: "Network B" } | [ ] |
+| `<group_name>_web_access_ip_list` | list of ip to allow to connect to the instance.<br />This is complementary to the nginx_global_access_ip_list parameter.<br />While defined per group, is applied for the whole server. | list:<br />- { ip: "x.x.x.x",  description: "site A" }<br />- { ip: "y.y.y.y/24",  description: "Net B" } | [ ] |
 
 
 Single ip addresses and CIDR ranges are supported : 10.11.12.13, 10.11.12.0/24, ...  
@@ -70,6 +72,7 @@ mygroup_nginx:
     site_vhost_template: "roles/web-nginx/templates/etc/nginx/sites-available/vhost-template_no_ssl.conf.j2"
     proxy_pass: "http://{{ app_listen_ip }}:{{ app_listen_port }}"
     raw_settings: [ 'client_max_body_size 10M;' ]
+    proxy_raw_settings: [ "proxy_set_header  X-Script-Name  /myapp;"
 
 ```
 
