@@ -4,7 +4,8 @@
 ## release 2025-07-31
 
 **BREAKING:**
-* role certificate-push-trusted: can be a breaking change as is some case, a duplicate dot could appear in the filename, which is now fixed.
+* role certificate-push-trusted: can be a breaking change as is some case, a duplicate dot could appear in the filename, which is now fixed.  
+  Having a duplicate will not trouble the systems, so the old certificate can be removed after with an ansible adhoc command. 
 
 * role init-ansible_user: fix for some core versions expecting the full module name for 'become_method'.  
   This breaks the compatibiliy with ansible v2.9
